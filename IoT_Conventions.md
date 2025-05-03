@@ -7,6 +7,7 @@
 - timeout
 - sensing intervals
 - current value
+- protocol version x:x:x:x
 
 ## separation southbound gateway
 - IoT type
