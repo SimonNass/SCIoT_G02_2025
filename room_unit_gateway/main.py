@@ -8,6 +8,7 @@
 import time
 import grovepi
 from grovepi import *
+from grove_rgb_lcd import *
 
 # Connected actuators
 led1 = 3 # LED blue at D5 fade
@@ -58,6 +59,12 @@ while True:
             print ("Motion Detected")
         else:
             print ("No motion")
+
+        # Room Display
+        setRGB(0,128,64)
+        #setRGB(0,255,0)
+        setText("Test Temperaturt:{}".format(temperature))
+
         # Reset
         if i > 255:
             i = 0
@@ -84,6 +91,8 @@ while True:
         grovepi.analogWrite(led1,0)
         grovepi.digitalWrite(led2,0)
         grovepi.digitalWrite(led3,0)
+        setRGB(0,0,0)
+        setText("")
         break
-    except IOError:
+    except (IOError,TypeError):
         print ("Error")
