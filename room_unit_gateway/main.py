@@ -15,6 +15,8 @@ led2 = 4 #LED red at D4 on/off
 led3 = 2 #LED green at D2 on/off
 # Connected sensors
 dht_sensor = 7 #Temperature and humidity at D7
+light_sensor = 1 #light sensor at A1
+sound_sensor = 0 #sound level sensor at A0
 
 grovepi.pinMode(led1,"OUTPUT")
 grovepi.pinMode(led2,"OUTPUT")
@@ -29,9 +31,13 @@ while True:
         # READ sensors
         [temperature,humidity] = dht(dht_sensor,0)
         print ("--")
-        print ("Temperature: {}".format(temperature))
-        print ("Humidity: {}".format(humidity))
-        print ("--")
+        #print ("Temperature: {}".format(temperature))
+        #print ("Humidity: {}".format(humidity))
+        #print ("--")
+        light = grovepi.analogRead(light_sensor)
+        sound = grovepi.analogRead(sound_sensor)
+        #print ("Light level: {}".format(light))
+        print ("Sound level: {}".format(sound))
         # Reset
         if i > 255:
             i = 0
@@ -42,17 +48,17 @@ while True:
             togle = 1
 
         # Current brightness
-        print ("LED dim: {}".format(i))
-        print ("LED togle: {}".format(togle))
+        #print ("LED dim: {}".format(i))
+        #print ("LED togle: {}".format(togle))
 
         # Give PWM output to LED
-        grovepi.analogWrite(led1,i)
-        grovepi.digitalWrite(led2,togle)
-        grovepi.digitalWrite(led3,togle)
+        #grovepi.analogWrite(led1,i)
+        #grovepi.digitalWrite(led2,togle)
+        #grovepi.digitalWrite(led3,togle)
 
         # Increment brightness for next iteration
         i = i + 20
-        time.sleep(1)
+        time.sleep(.2)
 
     except KeyboardInterrupt:
         grovepi.analogWrite(led1,0)
