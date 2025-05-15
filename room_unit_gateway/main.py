@@ -6,6 +6,7 @@
 
 
 import time
+import pika
 import grovepi
 from grovepi import *
 from grove_rgb_lcd import *
@@ -33,6 +34,27 @@ grovepi.pinMode(motion_sensor,"INPUT")
 time.sleep(1)
 i = 0
 togle = 0
+
+ip = '127.0.0.1'
+port = 5672
+user = ''
+password = ''
+if len(sys.argv) == 5:
+    ip = sys.argv[1]
+    port = sys.argv[2]
+    print ("Selected IP {} and Port {}".format(ip,port))
+    user = sys.argv[3]
+    password = sys.argv[4]
+    print ("RabbitMQ user {} with passwordlength {}".format(user,len(password)))
+
+
+credentials = pika.PlainCredentials(user,password)
+connection = pika.BlockingConnection(pika.ConnectionParameters(ip,port,'/',credentials))
+channel = connection.channel()
+
+channel.exchange_declare(exchange='sciot.topic',exchange_type='topic',durable=True,auto_delete=False)
+
+
 while True:
     try:
         # READ sensors
@@ -86,6 +108,8 @@ while True:
         # Increment brightness for next iteration
         i = i + 20
         time.sleep(.2)
+
+        channel.basic_publish(exchange='sciot.topic',routing_key='u38.0.353.window.t.12345',body='Hello World')
 
     except KeyboardInterrupt:
         grovepi.analogWrite(led1,0)
