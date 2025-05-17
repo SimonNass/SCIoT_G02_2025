@@ -1,0 +1,53 @@
+version: '3.9'
+
+services:
+  backend:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - mqtt-broker
+    restart: always
+    networks:
+      - iot-network
+    volumes:
+      - ./backend:/app/backend
+
+  db:
+    image: mariadb:10.6
+    env_file:
+      - .env
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - iot-network
+
+  mqtt-broker:
+    image: eclipse-mosquitto:2
+    container_name: mqtt-broker
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/log:/mosquitto/log
+    restart: always
+    networks:
+      - iot-network
+
+networks:
+  iot-network:
+    driver: bridge
+
+volumes:
+  mariadb-data:
