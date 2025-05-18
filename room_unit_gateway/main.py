@@ -5,11 +5,15 @@
 # The GrovePi connects the Raspberry Pi and Grove sensors.  You can learn more about GrovePi here:  http://www.dexterindustries.com/GrovePi
 
 
+import config_reader
 import time
 import pika
 import grovepi
 from grovepi import *
 from grove_rgb_lcd import *
+
+
+config_values = config_reader.read_config('config.ini')
 
 # Connected actuators
 led1 = 3 # LED blue at D5 fade
@@ -71,7 +75,7 @@ while True:
         #print ("Sound level: {}".format(sound))
         #print ("Rotation angle: {}".format(rotation))
 
-        button_state = digitalRead(button_sensor)
+        button_state = grovepi.digitalRead(button_sensor)
         if button_state:
             print ("Button pressed")
         else:
@@ -83,9 +87,9 @@ while True:
             print ("No motion")
 
         # Room Display
-        setRGB(0,128,64)
+        grovepi.setRGB(0,128,64)
         #setRGB(0,255,0)
-        setText("Test Temperaturt:{}".format(temperature))
+        grovepi.setText("Test Temperaturt:{}".format(temperature))
 
         # Reset
         if i > 255:
@@ -115,8 +119,8 @@ while True:
         grovepi.analogWrite(led1,0)
         grovepi.digitalWrite(led2,0)
         grovepi.digitalWrite(led3,0)
-        setRGB(0,0,0)
-        setText("")
+        grovepi.setRGB(0,0,0)
+        grovepi.setText("")
         break
     except (IOError,TypeError):
         print ("Error")
