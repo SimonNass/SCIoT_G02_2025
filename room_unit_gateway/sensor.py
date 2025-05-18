@@ -14,7 +14,7 @@ class Sensor:
         self.read_interval = read_interval
         if Connectortype.Digital:
             grovepi.pinMode(self.i2c_connector,"INPUT")
-        self.last_value = self.read_sendor()
+        self.last_value = self.read_sensor()
 
     #def __del__(self):
     #    pass
@@ -22,7 +22,7 @@ class Sensor:
     def __str__(self):
         return f"ID:{self.id},Name:{self.name},Type:{self.type},I2C:{self.i2c_connector},{self.connector_type},last value:{self.last_value}"
     
-    def read_sendor(self):
+    def read_sensor(self):
         if self.connector_type == Connectortype.Analog:
             self.last_value = grovepi.analogRead(self.i2c_connector)
         elif self.connector_type == Connectortype.Digital:

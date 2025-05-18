@@ -3,9 +3,9 @@
 import configparser
 import json
 
-import sensor
-import actuator
-import display
+from sensor import Sensor
+from actuator import Actuator
+from display import Display
 
 def read_config(config_file_name: str):
     config = configparser.ConfigParser()
@@ -27,21 +27,21 @@ def read_config(config_file_name: str):
     sensor_init_list = json.loads(config.get('Sensors','sensor_list'))
     sensor_class_list = []
     for sensor in sensor_init_list:
-        sensor_class = sensor.Sensor(id=sensor[0],name=sensor[1],sensore_type=sensor[2],i2c=sensor[3],i2c_type=sensor[4],read_interval=sensor[5])
+        sensor_class = Sensor(id=sensor[0],name=sensor[1],sensore_type=sensor[2],i2c=sensor[3],i2c_type=sensor[4],read_interval=sensor[5])
         sensor_class_list.append(sensor_class)
     
     # Actuators
     actuator_list = json.loads(config.get('Sensors','actuator_list'))
     actuator_class_list = []
     for actuator in actuator_list:
-        actuator_class = actuator.Actuator(id=actuator[0],name=actuator[1],actuator_type=actuator[2],i2c=actuator[3],i2c_type=actuator[4],initial_value=actuator[5],min=actuator[6],max=actuator[7])
+        actuator_class = Actuator(id=actuator[0],name=actuator[1],actuator_type=actuator[2],i2c=actuator[3],i2c_type=actuator[4],initial_value=actuator[5],min=actuator[6],max=actuator[7])
         actuator_class_list.append(actuator_class)
     
     # Displays
     display_list = json.loads(config.get('Sensors','display_list'))
     display_class_list = []
     for display in display_list:
-        display_class = actuator.Actuator(id=display[0],name=display[1],display_type=display[2],i2c=display[3],i2c_type=display[4],initial_value=display[5])
+        display_class = Display(id=display[0],name=display[1],display_type=display[2],i2c=display[3],i2c_type=display[4],initial_value=display[5])
         display_class_list.append(display_class)
 
     config_values = {
