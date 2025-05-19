@@ -7,7 +7,6 @@
 
 import time
 import sys
-from typing import List
 
 import config_reader
 from networking import MQTTendpoint
@@ -25,9 +24,9 @@ if len(sys.argv) != 2:
 config_values = config_reader.read_config(sys.argv[1])
 network_connection = MQTTendpoint(host=config_values['rabitMQ_host'],port=config_values['rabitMQ_port'],username=config_values['rabitMQ_username'],password=sys.argv[2])
 
-sensors: List[Sensor] = config_values['sensor_class_list']
-actuators: List[Actuator] = config_values['actuator_class_list']
-displays: List[Display] = config_values['display_class_list']
+sensors = config_values['sensor_class_list']
+actuators = config_values['actuator_class_list']
+displays = config_values['display_class_list']
 
 while True:
     try:
@@ -42,7 +41,7 @@ while True:
             display.write_display("Test")
 
         # Reset
-        if i > 255:
+        if i > 250:
             i = 0
 
         if togle == 1:
@@ -51,7 +50,7 @@ while True:
             togle = 1
 
         # Increment brightness for next iteration
-        i = i + 20
+        i = i + 1
         time.sleep(1)
 
         network_connection.send()

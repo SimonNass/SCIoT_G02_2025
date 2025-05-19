@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 import grovepi
+from grovepi import *
 
 from enumdef import Connectortype
 
 class Sensor:
-    def __init__(self, id: int, name: str, sensore_type: str, i2c: int, i2c_type: Connectortype, read_interval: int):
+    def __init__(self, id, name, sensore_type, i2c, i2c_type, read_interval):
         self.id = id #assert unique
         self.name = name
         self.type = sensore_type
@@ -20,8 +21,8 @@ class Sensor:
     #    pass
 
     def __str__(self):
-        return f"ID:{self.id},Name:{self.name},Type:{self.type},I2C:{self.i2c_connector},{self.connector_type},last value:{self.last_value}"
-    
+        return "ID:{},Name:{},Type:{},I2C:{},{},last value:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value)
+
     def read_sensor(self):
         if self.connector_type == Connectortype.Analog:
             self.last_value = grovepi.analogRead(self.i2c_connector)
