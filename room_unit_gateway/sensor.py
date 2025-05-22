@@ -13,7 +13,8 @@ class Sensor:
         self.i2c_connector = i2c #assert not used twice
         self.connector_type = i2c_type
         self.read_interval = read_interval
-        if Connectortype.Digital:
+        #print ("{}".format(self.connector_type))
+        if self.connector_type == Connectortype.Digital:
             grovepi.pinMode(self.i2c_connector,"INPUT")
         self.last_value = self.read_sensor()
 
