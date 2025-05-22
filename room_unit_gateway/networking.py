@@ -4,9 +4,9 @@ import pika
 
 class MQTTendpoint:
     def __init__(self, host, port, username, password):
-        self.host = host.replace("'","").replace('"','')
+        self.host = remove_quotation(host)
         self.port = port
-        self.username = username.encode('ascii','ignore').replace("'","").replace('"','')
+        self.username = remove_quotation(username.encode('ascii','ignore'))
         self.password = password
         print ("Selected host: {} and port: {}".format(self.host,self.port))
         print ("RabbitMQ username {} with password length {}".format(self.username,len(self.password)))
@@ -31,3 +31,6 @@ class MQTTendpoint:
         except:
             print ("Connection failed.")
 
+
+def remove_quotation(string):
+    return string.replace("'","").replace('"','')
