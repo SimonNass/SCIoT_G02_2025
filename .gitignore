@@ -12,7 +12,10 @@ _deps
 CMakeUserPresets.json
 .env
 __pycache__
+*.pyc
 log/
 *.log
 data/
 *.db
+
+
