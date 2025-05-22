@@ -1,10 +1,7 @@
 # TODO
 
-- define API interfaces
-- define message format (REST)
-- search for pub/sub messenger software
+- Define API interfaces and MQTT topology
 - get the sensors working
-    - on pi directly
     - in a docker file
 - build an overview UI
 - build DB
