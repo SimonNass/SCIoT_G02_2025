@@ -16,14 +16,14 @@ class Actuator:
         if initial_value > max or initial_value < min:
             self.last_value = min
             text = "value {} is out of the allowed interval [{},{}]for this actuator".format(initial_value,min,max)
-	    raise ValueError(text)
+            raise ValueError(text)
         self.min_value = int(min)
         self.max_value = int(max)
         if min > max:
             self.min_value = max
             self.max_value = min
             raise ValueError("The min and max values are swapped")
-        grovepi.pinMode(self.i2c_connector,"OUTPUT")
+        grovepi.pinMode(self.i2c_connector,"OUTPUT") # TODO led fade does not work
         self.write_actuator(initial_value)
 
     def __del__(self):
@@ -38,8 +38,8 @@ class Actuator:
     def write_actuator(self, value):
         if (int(value) > self.max_value) or (int(value) < self.min_value):
             text = "value {} is out of the allowed interval [{},{}] for this actuator".format(value,self.min_value,self.max_value)
-	    print ("{} < {} == {}".format(int(value)+10,self.min_value, int(value)+10 < self.min_value))
-	    raise ValueError(text)
+            print ("{} < {} == {}".format(int(value)+10,self.min_value, int(value)+10 < self.min_value))
+            raise ValueError(text)
 
         if self.connector_type == Connectortype.Analog:
             self.last_value = grovepi.analogWrite(self.i2c_connector,int(value))
