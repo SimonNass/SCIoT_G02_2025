@@ -21,8 +21,13 @@ togle = 0
 if len(sys.argv) != 2:
     print ("Error CLI arguments incorrect")
 
-config_values = config_reader.read_config(sys.argv[1])
-network_connection = MQTTendpoint(host=config_values['rabitMQ_host'],port=config_values['rabitMQ_port'],username=config_values['rabitMQ_username'],password=sys.argv[2])
+config_file_name = str(sys.argv[1])
+password = str(sys.argv[2])
+try:
+    config_values = config_reader.read_config(config_file_name)
+except:
+    Print ("Reading config file {} was not succesfull")
+network_connection = MQTTendpoint(host=config_values['rabitMQ_host'],port=config_values['rabitMQ_port'],username=config_values['rabitMQ_username'],password=password)
 
 sensors = config_values['sensor_class_list']
 actuators = config_values['actuator_class_list']
