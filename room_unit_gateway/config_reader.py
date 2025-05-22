@@ -28,12 +28,12 @@ def read_config(config_file_name):
     sensor_init_list = json.loads(config.get('Sensors','sensor_list'))
     sensor_class_list = []
     for sensor in sensor_init_list:
-	sensor_id = int(sensor['id'])
-	sensor_name = sensor['name']
-	sensor_type = sensor['sensore_type']
-	sensor_i2c = int(sensor['i2c'])
-	sensor_i2ctype = getattr(Connectortype, sensor['i2c_type'])
-	sensor_interval = sensor['read_interval']
+        sensor_id = int(sensor['id'])
+        sensor_name = sensor['name']
+        sensor_type = sensor['sensore_type']
+        sensor_i2c = int(sensor['i2c'])
+        sensor_i2ctype = getattr(Connectortype, sensor['i2c_type'])
+        sensor_interval = sensor['read_interval']
         sensor_class = Sensor(id=sensor_id,name=sensor_name,sensore_type=sensor_type,i2c=sensor_i2c,i2c_type=sensor_i2ctype,read_interval=sensor_interval)
         sensor_class_list.append(sensor_class)
 
