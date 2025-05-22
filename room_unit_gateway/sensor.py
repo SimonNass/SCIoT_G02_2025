@@ -25,15 +25,18 @@ class Sensor:
         return "ID:{},Name:{},Type:{},I2C:{},{},last value:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value)
 
     def read_sensor(self):
-        if self.connector_type == Connectortype.Analog:
-            self.last_value = grovepi.analogRead(self.i2c_connector)
-        elif self.connector_type == Connectortype.Digital:
-            self.last_value = grovepi.digitalRead(self.i2c_connector)
-        elif self.connector_type == Connectortype.Digital_multiple:
-            self.last_value = grovepi.dht(self.i2c_connector,0)
-        elif self.connector_type == Connectortype.I2C:
-            raise ValueError("Connector type is not implemented")
-        else:
-            raise ValueError("Connector type is uncnown")
-        print ("{}: {}".format(self.name,self.last_value))
-        return self.last_value
+        try:
+            if self.connector_type == Connectortype.Analog:
+                self.last_value = grovepi.analogRead(self.i2c_connector)
+            elif self.connector_type == Connectortype.Digital:
+                self.last_value = grovepi.digitalRead(self.i2c_connector)
+            elif self.connector_type == Connectortype.Digital_multiple:
+                self.last_value = grovepi.dht(self.i2c_connector,0)
+            elif self.connector_type == Connectortype.I2C:
+                raise ValueError("Connector type is not implemented")
+            else:
+                raise ValueError("Connector type is uncnown")
+            print ("{}: {}".format(self.name,self.last_value))
+            return self.last_value
+        except:
+            print ("read was unsucesful")

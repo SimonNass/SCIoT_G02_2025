@@ -24,8 +24,12 @@ class Display:
         return "ID:{},Name:{},Type:{},I2C:{},{},last value:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value)
 
     def write_display(self, value):
-        if len(value) > 20:
-            raise ValueError("Test is too long")
-        setText(value)
-        self.last_value = value
-        print ("{}: {}".format(self.name,self.last_value))
+        try:
+            if len(value) > 20: 
+                #TODO correct magic number 20
+                raise ValueError("Test is too long")
+            setText(value)
+            self.last_value = value
+            print ("{}: {}".format(self.name,self.last_value))
+        except:
+            print ("write was unsucesful")
