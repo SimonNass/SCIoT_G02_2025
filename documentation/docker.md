@@ -12,3 +12,8 @@
 
 ## other usefull comands
 docker-compose ps
+
+Install Docker on PI after this URL tutorial:
+https://docs.docker.com/engine/install/raspberry-pi-os/
+sudo docker build --tag 'room-pi' -f pi.Dockerfile .
+sudo docker run --privileged room-pi
