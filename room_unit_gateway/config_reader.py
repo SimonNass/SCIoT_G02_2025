@@ -26,7 +26,7 @@ def read_config(config_file_name):
     mqtt_room_id = config.get('MQTT', 'roomID', fallback=0)
 
     # Sensors
-    sensor_init_list = json.loads(config.get('Sensors','sensor_list'), fallback=[])
+    sensor_init_list = json.loads(config.get('Sensors','sensor_list', fallback="[]"))
     sensor_class_list = []
     for sensor in sensor_init_list:
         sensor_id = int(sensor['id'])
@@ -39,7 +39,7 @@ def read_config(config_file_name):
         sensor_class_list.append(sensor_class)
 
     # Actuators
-    actuator_list = json.loads(config.get('Actuators','actuator_list'), fallback=[])
+    actuator_list = json.loads(config.get('Actuators','actuator_list', fallback="[]"))
     actuator_class_list = []
     for actuator in actuator_list:
         actuator_id = int(actuator['id'])
@@ -54,7 +54,7 @@ def read_config(config_file_name):
         actuator_class_list.append(actuator_class)
 
     # Displays
-    display_list = json.loads(config.get('Displays','display_list'), fallback=[])
+    display_list = json.loads(config.get('Displays','display_list', fallback="[]"))
     display_class_list = []
     for display in display_list:
         display_id = int(display['id'])
