@@ -52,19 +52,20 @@ def main():
 
     want_to_exit = False
     while not want_to_exit:
+        print ("", flush=True)
         try:
             # READ sensors
             for sensor in sensors:
                 _ = sensor.read_sensor()
 
             for actuator in actuators:
-                actuator.write_actuator(i)
+                actuator.write_actuator(togle)
 
             for display in displays:
                 display.write_display("Test")
 
             # Reset
-            if i > 250:
+            if i > 240:
                 i = 0
 
             if togle == 1:
@@ -73,7 +74,7 @@ def main():
                 togle = 1
 
             # Increment brightness for next iteration
-            i = i + 1
+            i = i + 10
             time.sleep(1)
 
             network_connection.send()

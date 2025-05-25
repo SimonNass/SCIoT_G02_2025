@@ -82,5 +82,4 @@ def read_config(config_file_name):
     }
 
     print (config_values)
-    #sys.exit("read")
     return config_values
