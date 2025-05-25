@@ -3,10 +3,10 @@
 import pika
 
 class MQTTendpoint:
-    def __init__(self, host, port, username, password):
+    def __init__(self, host: str, port: int, username: str, password: str):
         self.host = remove_quotation(host)
         self.port = port
-        self.username = remove_quotation(username.encode('ascii','ignore'))
+        self.username = remove_quotation(username)
         self.password = password
         print ("Selected host: {} and port: {}".format(self.host,self.port))
         print ("RabbitMQ username {} with password length {}".format(self.username,len(self.password)))

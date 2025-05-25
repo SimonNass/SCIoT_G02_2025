@@ -6,7 +6,7 @@ from grovepi import *
 from enumdef import Connectortype
 
 class Actuator:
-    def __init__(self, id, name, actuator_type, i2c, i2c_type, initial_value, min, max):
+    def __init__(self, id: int, name: str, actuator_type: str, i2c: int, i2c_type: Connectortype, initial_value: int, min: int, max: int):
         self.id = id #assert unique
         self.name = name
         self.type = actuator_type
@@ -17,8 +17,8 @@ class Actuator:
             self.last_value = min
             text = "value {} is out of the allowed interval [{},{}]for this actuator".format(initial_value,min,max)
             raise ValueError(text)
-        self.min_value = int(min)
-        self.max_value = int(max)
+        self.min_value = min
+        self.max_value = max
         if min > max:
             self.min_value = max
             self.max_value = min
@@ -35,17 +35,17 @@ class Actuator:
     def __str__(self):
         return "ID:{},Name:{},Type:{},I2C:{},{},last value:{},min:{},max:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value,self.min_value,self.max_value)
 
-    def write_actuator(self, value):
+    def write_actuator(self, value: int):
         try:
-            if (int(value) > self.max_value) or (int(value) < self.min_value):
+            if (value > self.max_value) or (value < self.min_value):
                 text = "value {} is out of the allowed interval [{},{}] for this actuator".format(value,self.min_value,self.max_value)
                 print ("{} < {} == {}".format(int(value)+10,self.min_value, int(value)+10 < self.min_value))
                 raise ValueError(text)
 
             if self.connector_type == Connectortype.Analog:
-                self.last_value = grovepi.analogWrite(self.i2c_connector,int(value))
+                self.last_value = grovepi.analogWrite(self.i2c_connector,value)
             elif self.connector_type == Connectortype.Digital:
-                self.last_value = grovepi.digitalWrite(self.i2c_connector,int(value))
+                self.last_value = grovepi.digitalWrite(self.i2c_connector,value)
             elif self.connector_type == Connectortype.Digital_multiple:
                 raise ValueError("Connector type is not implemented")
             elif self.connector_type == Connectortype.I2C:

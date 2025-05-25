@@ -6,7 +6,7 @@ from grovepi import *
 from enumdef import Connectortype
 
 class Sensor:
-    def __init__(self, id, name, sensore_type, i2c, i2c_type, read_interval):
+    def __init__(self, id: int, name: str, sensore_type: str, i2c: int, i2c_type: Connectortype, read_interval: int):
         self.id = id #assert unique
         self.name = name
         self.type = sensore_type

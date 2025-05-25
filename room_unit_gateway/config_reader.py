@@ -62,7 +62,7 @@ def read_config(config_file_name):
         display_type = str(display['display_type'])
         display_i2c = int(display['i2c'])
         display_i2ctype = getattr(Connectortype, str(display['i2c_type']))
-        display_initial_value = int(display['initial_value'])
+        display_initial_value = str(display['initial_value'])
         display_class = Display(id=display_id,name=display_name,display_type=display_type,i2c=display_i2c,i2c_type=display_i2ctype,initial_value=display_initial_value)
         display_class_list.append(display_class)
 
@@ -78,4 +78,5 @@ def read_config(config_file_name):
         'display_class_list': display_class_list,
     }
 
+    #print (config_values)
     return config_values

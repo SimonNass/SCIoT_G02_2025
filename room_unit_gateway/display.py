@@ -6,7 +6,7 @@ from grove_rgb_lcd import *
 from enumdef import Connectortype
 
 class Display:
-    def __init__(self, id, name, display_type, i2c, i2c_type, initial_value):
+    def __init__(self, id: int, name: str, display_type: str, i2c: int, i2c_type: Connectortype, initial_value: str):
         self.id = id #assert unique
         self.name = name
         self.type = display_type
@@ -23,7 +23,7 @@ class Display:
     def __str__(self):
         return "ID:{},Name:{},Type:{},I2C:{},{},last value:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value)
 
-    def write_display(self, value):
+    def write_display(self, value: str):
         try:
             if len(value) > 20: 
                 #TODO correct magic number 20

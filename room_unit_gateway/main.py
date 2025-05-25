@@ -14,26 +14,36 @@ from sensor import Sensor
 from actuator import Actuator
 from display import Display
 
+print (sys.version)
+print (sys.version_info)
+
 time.sleep(1)
 i = 0
 togle = 0
 
-if len(sys.argv) != 2:
+if len(sys.argv) < 3 or len(sys.argv) > 3:
     print ("Error CLI arguments incorrect")
+    print (sys.argv)
 
 config_file_name = str(sys.argv[1])
 password = str(sys.argv[2])
+
+print ("")
+
+config_values = {}
 try:
     config_values = config_reader.read_config(config_file_name)
 except:
-    Print ("Reading config file {} was not succesfull")
-network_connection = MQTTendpoint(host=config_values['rabitMQ_host'],port=config_values['rabitMQ_port'],username=config_values['rabitMQ_username'],password=password)
+    print ("Reading config file {} was not succesfull {}".format(config_file_name,type(config_values)))
+
+network_connection = MQTTendpoint(host=config_values['mqtt_host'],port=config_values['mqtt_port'],username=config_values['mqtt_username'],password=password)
 
 sensors = config_values['sensor_class_list']
 actuators = config_values['actuator_class_list']
 displays = config_values['display_class_list']
 
-while True:
+want_to_exit = True
+while not want_to_exit:
     try:
         # READ sensors
         for sensor in sensors:
@@ -59,6 +69,8 @@ while True:
         time.sleep(1)
 
         network_connection.send()
+
+        want_to_exit = True
 
     except KeyboardInterrupt:
         # TODO delete all sensors, actuators and displays
