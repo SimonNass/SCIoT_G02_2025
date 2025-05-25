@@ -13,18 +13,15 @@ class Actuator:
         self.i2c_connector = i2c #assert not used twice
         self.connector_type = i2c_type
         self.last_value = initial_value
-        if initial_value > max or initial_value < min:
-            self.last_value = min
-            text = "value {} is out of the allowed interval [{},{}]for this actuator".format(initial_value,min,max)
-            raise ValueError(text)
         self.min_value = min
         self.max_value = max
         if min > max:
             self.min_value = max
             self.max_value = min
-            raise ValueError("The min and max values are swapped")
+        if not self.is_valid(initial_value):
+            self.last_value = min
         grovepi.pinMode(self.i2c_connector,"OUTPUT")
-        self.write_actuator(initial_value)
+        self.write_actuator(self.last_value)
 
     def __del__(self):
         if Connectortype.Analog:
@@ -37,9 +34,8 @@ class Actuator:
 
     def write_actuator(self, value: int):
         try:
-            if (value > self.max_value) or (value < self.min_value):
+            if not self.is_valid(value):
                 text = "value {} is out of the allowed interval [{},{}] for this actuator".format(value,self.min_value,self.max_value)
-                print ("{} < {} == {}".format(int(value)+10,self.min_value, int(value)+10 < self.min_value))
                 raise ValueError(text)
 
             if self.connector_type == Connectortype.Analog:
@@ -54,5 +50,13 @@ class Actuator:
                 raise ValueError("Connector type is uncnown")
             self.last_value = value
             print ("{}: {}".format(self.name,self.last_value))
-        except:
+        except Exception as e:
             print ("write was unsucesful")
+            print (e)
+
+    def is_valid(self, value: int):
+        if (value > self.max_value) or (value < self.min_value):
+            text = "value {} is out of the allowed interval [{},{}] for this actuator".format(value,self.min_value,self.max_value)
+            print (text)
+            return False
+        return True

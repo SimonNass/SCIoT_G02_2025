@@ -25,6 +25,7 @@ def read_config(config_file_name):
     mqtt_username = config.get('MQTT', 'username', fallback='root')
     mqtt_room_id = config.get('MQTT', 'roomID', fallback=0)
 
+    print ("reading in sensors")
     # Sensors
     sensor_init_list = json.loads(config.get('Sensors','sensor_list', fallback="[]"))
     sensor_class_list = []
@@ -38,6 +39,7 @@ def read_config(config_file_name):
         sensor_class = Sensor(id=sensor_id,name=sensor_name,sensore_type=sensor_type,i2c=sensor_i2c,i2c_type=sensor_i2ctype,read_interval=sensor_interval)
         sensor_class_list.append(sensor_class)
 
+    print ("reading in actuators")
     # Actuators
     actuator_list = json.loads(config.get('Actuators','actuator_list', fallback="[]"))
     actuator_class_list = []
@@ -53,6 +55,7 @@ def read_config(config_file_name):
         actuator_class = Actuator(id=actuator_id,name=actuator_name,actuator_type=actuator_type,i2c=actuator_i2c,i2c_type=actuator_i2ctype,initial_value=actuator_initial_value,min=actuator_min,max=actuator_max)
         actuator_class_list.append(actuator_class)
 
+    print ("reading in display")
     # Displays
     display_list = json.loads(config.get('Displays','display_list', fallback="[]"))
     display_class_list = []
@@ -78,5 +81,6 @@ def read_config(config_file_name):
         'display_class_list': display_class_list,
     }
 
-    #print (config_values)
+    print (config_values)
+    #sys.exit("read")
     return config_values

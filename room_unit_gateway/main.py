@@ -14,66 +14,82 @@ from sensor import Sensor
 from actuator import Actuator
 from display import Display
 
-print (sys.version)
-print (sys.version_info)
 
-time.sleep(1)
-i = 0
-togle = 0
+def main():
+    print (sys.version)
+    print (sys.version_info)
 
-if len(sys.argv) < 3 or len(sys.argv) > 3:
-    print ("Error CLI arguments incorrect")
-    print (sys.argv)
+    time.sleep(1)
+    i = 0
+    togle = 0
 
-config_file_name = str(sys.argv[1])
-password = str(sys.argv[2])
+    if len(sys.argv) < 3 or len(sys.argv) > 3:
+        print ("Error CLI arguments incorrect")
+        print (sys.argv)
 
-print ("")
+    config_file_name = str(sys.argv[1])
+    password = str(sys.argv[2])
 
-config_values = {}
-try:
-    config_values = config_reader.read_config(config_file_name)
-except:
-    print ("Reading config file {} was not succesfull {}".format(config_file_name,type(config_values)))
+    print ("")
 
-network_connection = MQTTendpoint(host=config_values['mqtt_host'],port=config_values['mqtt_port'],username=config_values['mqtt_username'],password=password)
-
-sensors = config_values['sensor_class_list']
-actuators = config_values['actuator_class_list']
-displays = config_values['display_class_list']
-
-want_to_exit = True
-while not want_to_exit:
+    config_values = {}
+    sensors = []
+    actuators = []
+    displays = []
     try:
-        # READ sensors
-        for sensor in sensors:
-            _ = sensor.read_sensor()
+        config_values = config_reader.read_config(config_file_name)
+        print (config_values)
+        sensors = config_values['sensor_class_list']
+        actuators = config_values['actuator_class_list']
+        displays = config_values['display_class_list']
+    except:
+        print ("Reading config file {} was not succesfull {}".format(config_file_name,config_values))
 
-        for actuator in actuators:
-            actuator.write_actuator(i)
+    try:
+        network_connection = MQTTendpoint(host=config_values['mqtt_host'],port=config_values['mqtt_port'],username=config_values['mqtt_username'],password=password)
+    except:
+        print ("MQTT broker not connected.")
 
-        for display in displays:
-            display.write_display("Test")
+    want_to_exit = False
+    while not want_to_exit:
+        try:
+            # READ sensors
+            for sensor in sensors:
+                _ = sensor.read_sensor()
 
-        # Reset
-        if i > 250:
-            i = 0
+            for actuator in actuators:
+                actuator.write_actuator(i)
 
-        if togle == 1:
-            togle = 0
-        elif togle == 0:
-            togle = 1
+            for display in displays:
+                display.write_display("Test")
 
-        # Increment brightness for next iteration
-        i = i + 1
-        time.sleep(1)
+            # Reset
+            if i > 250:
+                i = 0
 
-        network_connection.send()
+            if togle == 1:
+                togle = 0
+            elif togle == 0:
+                togle = 1
 
-        want_to_exit = True
+            # Increment brightness for next iteration
+            i = i + 1
+            time.sleep(1)
 
-    except KeyboardInterrupt:
-        # TODO delete all sensors, actuators and displays
-        break
-    except (IOError,TypeError):
-        print ("Error")
+            network_connection.send()
+
+            #want_to_exit = True
+
+        except KeyboardInterrupt:
+            # TODO delete all sensors, actuators and displays
+            break
+        except (IOError,TypeError):
+            print ("Error")
+
+
+    print ("end of main")
+
+
+# __name__
+if __name__=="__main__":
+    main()
