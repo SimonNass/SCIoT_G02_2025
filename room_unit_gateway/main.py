@@ -7,6 +7,7 @@
 
 import time
 import sys
+from typing import List
 
 import config_reader
 from networking import MQTTendpoint
@@ -14,14 +15,69 @@ from sensor import Sensor
 from actuator import Actuator
 from display import Display
 
-
-def main():
+def system_info():
     print (sys.version)
     print (sys.version_info)
 
-    time.sleep(1)
+def read_all_sensors(sensors: List[Sensor]):
+    for sensor in sensors:
+        _ = sensor.read_sensor()
+
+def write_all_actuators(actuators: List[Actuator], value: int):
+    for actuator in actuators:
+        actuator.write_actuator(value)
+
+def write_all_displays(displays: List[Display], text: str):
+    for display in displays:
+        display.write_display(text)
+
+def cyclic_read(sensors: List[Sensor], displays: List[Display], cycle: int):
+    for sensor in sensors:
+        if sensor.read_interval % cycle == 0:
+            sensor_value = sensor.read_sensor()
+            text = "{}: {}".format(sensor.name, sensor_value)
+            write_all_displays(displays, text)
+
+def send_head(sensors: List[Sensor],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint):
+    text = ""
+    for s in sensors:
+        text = text + str(s)
+    for a in actuators:
+        text = text + str(a)
+    for d in displays:
+        text = text + str(d)
+    print (text)
+    network_connection.send('sciot.topic','u38.0.353.window.t.12345',text)
+
+def execution_cycle(sensors: List[Sensor],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint):
     i = 0
-    togle = 0
+    want_to_exit = False
+    while not want_to_exit:
+        print ("", flush=True)
+        try:
+
+            read_all_sensors(sensors)
+            write_all_actuators(actuators, i % 2)
+            write_all_displays(displays,"12345678910131517192123252729313335")
+            cyclic_read(sensors,displays,i)
+            network_connection.send('sciot.topic','u38.0.353.window.t.12345','Hello World')
+            send_head(sensors,actuators,displays,network_connection)
+
+            # Reset
+            if i > 240:
+                i = 0
+            # Increment
+            i = i + 1
+            #want_to_exit = True
+            time.sleep(1)
+
+        except KeyboardInterrupt:
+            break
+        except (IOError,TypeError):
+            print ("Error")
+
+def main():
+    system_info()
 
     if len(sys.argv) < 3 or len(sys.argv) > 3:
         print ("Error CLI arguments incorrect")
@@ -38,7 +94,6 @@ def main():
     displays = []
     try:
         config_values = config_reader.read_config(config_file_name)
-        print (config_values)
         sensors = config_values['sensor_class_list']
         actuators = config_values['actuator_class_list']
         displays = config_values['display_class_list']
@@ -50,45 +105,13 @@ def main():
     except:
         print ("MQTT broker not connected.")
 
-    want_to_exit = False
-    while not want_to_exit:
-        print ("", flush=True)
-        try:
-            # READ sensors
-            for sensor in sensors:
-                _ = sensor.read_sensor()
-
-            for actuator in actuators:
-                actuator.write_actuator(togle)
-
-            for display in displays:
-                display.write_display("Test")
-
-            # Reset
-            if i > 240:
-                i = 0
-
-            if togle == 1:
-                togle = 0
-            elif togle == 0:
-                togle = 1
-
-            # Increment brightness for next iteration
-            i = i + 10
-            time.sleep(1)
-
-            network_connection.send()
-
-            #want_to_exit = True
-
-        except KeyboardInterrupt:
-            # TODO delete all sensors, actuators and displays
-            break
-        except (IOError,TypeError):
-            print ("Error")
-
-
-    print ("end of main")
+    execution_cycle(sensors,actuators,displays,network_connection)
+    for sensor in sensors:
+        del sensor
+    for actuator in actuators:
+        del actuator
+    for display in displays:
+        del display
 
 
 # __name__

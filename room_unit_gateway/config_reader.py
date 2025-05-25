@@ -52,7 +52,7 @@ def read_config(config_file_name):
         actuator_initial_value = int(actuator['initial_value'])
         actuator_min = int(actuator['min'])
         actuator_max = int(actuator['max'])
-        actuator_class = Actuator(id=actuator_id,name=actuator_name,actuator_type=actuator_type,i2c=actuator_i2c,i2c_type=actuator_i2ctype,initial_value=actuator_initial_value,min=actuator_min,max=actuator_max)
+        actuator_class = Actuator(id=actuator_id,name=actuator_name,actuator_type=actuator_type,i2c=actuator_i2c,i2c_type=actuator_i2ctype,initial_value=actuator_initial_value,min_value=actuator_min,max_value=actuator_max)
         actuator_class_list.append(actuator_class)
 
     print ("reading in display")
@@ -81,5 +81,4 @@ def read_config(config_file_name):
         'display_class_list': display_class_list,
     }
 
-    print (config_values)
     return config_values

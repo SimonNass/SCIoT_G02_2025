@@ -13,6 +13,7 @@ class Display:
         self.i2c_connector = i2c #assert not used twice
         self.connector_type = i2c_type
         self.last_value = initial_value
+        self.char_limit = 16 * 2
         setRGB(0,255,0)
         self.write_display(initial_value)
 
@@ -24,12 +25,14 @@ class Display:
         return "ID:{},Name:{},Type:{},I2C:{},{},last value:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value)
 
     def write_display(self, value: str):
+        write_value = value
         try:
-            if len(value) > 20: 
-                #TODO correct magic number 20
-                raise ValueError("Test is too long")
-            setText(value)
-            self.last_value = value
+            if len(write_value) > self.char_limit:
+                print ("Text is too long")
+                #raise ValueError("Text is too long")
+                write_value = write_value[:self.char_limit]
+            setText(write_value)
+            self.last_value = write_value
             print ("{}: {}".format(self.name,self.last_value))
         except:
             print ("write was unsucesful")

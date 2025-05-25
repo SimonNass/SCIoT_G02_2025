@@ -11,3 +11,4 @@
 - build aggregations and context information
 - build planing AI
 - make docker components talk to each other
+- update python version in docker for room pi
