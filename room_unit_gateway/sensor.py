@@ -2,6 +2,7 @@
 
 import grovepi
 from grovepi import *
+import numpy as np
 
 from enumdef import Connectortype
 
@@ -24,6 +25,9 @@ class Sensor:
     def __str__(self):
         return "ID:{},Name:{},Type:{},I2C:{},{},last value:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value)
 
+    def __dict__(self):
+        return {"id":self.name,"name":self.name,"type":self.type,"i2c":self.i2c_connector,"connector_type":self.connector_type,"last_value":self.last_value}
+
     def read_sensor(self):
         try:
             if self.connector_type == Connectortype.Analog:
@@ -31,12 +35,17 @@ class Sensor:
             elif self.connector_type == Connectortype.Digital:
                 self.last_value = grovepi.digitalRead(self.i2c_connector)
             elif self.connector_type == Connectortype.Digital_multiple:
-                self.last_value = grovepi.dht(self.i2c_connector,0)
+                while True:
+                    self.last_value = grovepi.dht(self.i2c_connector,0)
+                    if not any(np.isnan(self.last_value)):
+                        break
             elif self.connector_type == Connectortype.I2C:
                 raise ValueError("Connector type is not implemented")
             else:
                 raise ValueError("Connector type is uncnown")
+
             print ("{}: {}".format(self.name,self.last_value))
             return self.last_value
-        except:
+        except Exception as e:
             print ("read was unsucesful")
+            print (e)

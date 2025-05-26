@@ -35,7 +35,7 @@ def read_config(config_file_name):
         sensor_type = str(sensor['sensore_type'])
         sensor_i2c = int(sensor['i2c'])
         sensor_i2ctype = getattr(Connectortype, str(sensor['i2c_type']))
-        sensor_interval = sensor['read_interval']
+        sensor_interval = int(sensor['read_interval'])
         sensor_class = Sensor(id=sensor_id,name=sensor_name,sensore_type=sensor_type,i2c=sensor_i2c,i2c_type=sensor_i2ctype,read_interval=sensor_interval)
         sensor_class_list.append(sensor_class)
 

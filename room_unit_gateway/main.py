@@ -8,6 +8,7 @@
 import time
 import sys
 from typing import List
+import json
 
 import config_reader
 from networking import MQTTendpoint
@@ -33,21 +34,20 @@ def write_all_displays(displays: List[Display], text: str):
 
 def cyclic_read(sensors: List[Sensor], displays: List[Display], cycle: int):
     for sensor in sensors:
-        if sensor.read_interval % cycle == 0:
+        if cycle % sensor.read_interval== 0:
             sensor_value = sensor.read_sensor()
-            text = "{}: {}".format(sensor.name, sensor_value)
+            text = "{}: {}".format(sensor.name,str(sensor_value))
             write_all_displays(displays, text)
 
-def send_head(sensors: List[Sensor],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint):
-    text = ""
-    for s in sensors:
-        text = text + str(s)
-    for a in actuators:
-        text = text + str(a)
-    for d in displays:
-        text = text + str(d)
+def send_head(sensors: List[Sensor],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint): # TODO
+    s_list = [s.__dict__ for s in sensors]
+    a_list = [a.__dict__ for a in actuators]
+    d_list = [d.__dict__ for d in displays]
+    print (s_list)
+    #text = json.dumps({"sensors": s_list, "actuators":a_list, "displays": d_list})
+    text = json.dumps(s_list)
     print (text)
-    network_connection.send('sciot.topic','u38.0.353.window.t.12345',text)
+    #network_connection.send('sciot.topic','u38.0.353.window.t.12345',text)
 
 def execution_cycle(sensors: List[Sensor],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint):
     i = 0
@@ -56,12 +56,12 @@ def execution_cycle(sensors: List[Sensor],actuators: List[Actuator],displays: Li
         print ("", flush=True)
         try:
 
-            read_all_sensors(sensors)
-            write_all_actuators(actuators, i % 2)
-            write_all_displays(displays,"12345678910131517192123252729313335")
+            #read_all_sensors(sensors)
+            #write_all_actuators(actuators, i % 2)
+            #write_all_displays(displays,"12345678910131517192123252729313335")
             cyclic_read(sensors,displays,i)
-            network_connection.send('sciot.topic','u38.0.353.window.t.12345','Hello World')
-            send_head(sensors,actuators,displays,network_connection)
+            #network_connection.send('sciot.topic','u38.0.353.window.t.12345','Hello World')
+            #send_head(sensors,actuators,displays,network_connection)
 
             # Reset
             if i > 240:
@@ -73,8 +73,9 @@ def execution_cycle(sensors: List[Sensor],actuators: List[Actuator],displays: Li
 
         except KeyboardInterrupt:
             break
-        except (IOError,TypeError):
+        except (IOError,TypeError) as e:
             print ("Error")
+            print (e)
 
 def main():
     system_info()
@@ -92,6 +93,7 @@ def main():
     sensors = []
     actuators = []
     displays = []
+    network_connection = None
     try:
         config_values = config_reader.read_config(config_file_name)
         sensors = config_values['sensor_class_list']
@@ -106,6 +108,7 @@ def main():
         print ("MQTT broker not connected.")
 
     execution_cycle(sensors,actuators,displays,network_connection)
+
     for sensor in sensors:
         del sensor
     for actuator in actuators:

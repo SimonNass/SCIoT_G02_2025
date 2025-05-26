@@ -8,6 +8,8 @@ class MQTTendpoint:
         self.port = port
         self.username = remove_quotation(username)
         self.password = password
+        self.connection = None
+        self.channel = None
         print ("Selected host: {} and port: {}".format(self.host,self.port))
         print ("RabbitMQ username {} with password length {}".format(self.username,len(self.password)))
 
@@ -20,8 +22,8 @@ class MQTTendpoint:
             print ("Connection unable to establisch.")
 
     def __del__(self):
-        self.connection.close()
-        pass
+        if self.connection != None:
+            self.connection.close()
 
     def __str__(self):
         return "For RebitMQ > host:{},port:{},username:{},password length:{}".format(self.host,self.port,self.username,len(self.password))

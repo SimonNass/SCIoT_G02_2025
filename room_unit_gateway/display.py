@@ -18,11 +18,14 @@ class Display:
         self.write_display(initial_value)
 
     def __del__(self):
-        setRGB(0,0,0)
         setText("")
+        setRGB(0,0,0)
 
     def __str__(self):
         return "ID:{},Name:{},Type:{},I2C:{},{},last value:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value)
+
+    def __dict__(self):
+        return {"id":self.name,"name":self.name,"type":self.type,"i2c":self.i2c_connector,"connector_type":self.connector_type,"last_value":self.last_value}
 
     def write_display(self, value: str):
         write_value = value

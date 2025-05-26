@@ -32,6 +32,9 @@ class Actuator:
     def __str__(self):
         return "ID:{},Name:{},Type:{},I2C:{},{},last value:{},min:{},max:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value,self.min_value,self.max_value)
 
+    def __dict__(self):
+        return {"id":self.name,"name":self.name,"type":self.type,"i2c":self.i2c_connector,"connector_type":self.connector_type,"last_value":self.last_value,"min":self.min_value,"max":self.max_value}
+
     def write_actuator(self, value: int):
         write_value = max(self.min_value,min(self.max_value,value))
         try:
