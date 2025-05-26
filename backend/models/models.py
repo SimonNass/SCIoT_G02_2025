@@ -2,16 +2,14 @@ from sqlalchemy import String, Text, Boolean, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
 from datetime import datetime
 from typing import List, Optional
+from backend.extensions import db
 
-class Base(DeclarativeBase):
-    pass
-
-
-class Floor(Base):
+class Floor(db.Model):
     __tablename__ = 'floors'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     floor_number: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
+    floor_name: Mapped[Optional[str]] = mapped_column(String(100))
     description: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
@@ -26,7 +24,7 @@ class Floor(Base):
         return f"Floor(id={self.id!r}, floor_number={self.floor_number!r}, floor_name={self.floor_name!r})"
 
 
-class Room(Base):
+class Room(db.Model):
     __tablename__ = 'rooms'
     
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -52,7 +50,7 @@ class Room(Base):
         return f"Room(id={self.id!r}, room_number={self.room_number!r}, room_type={self.room_type!r})"
 
 
-class Device(Base):
+class Device(db.Model):
     __tablename__ = 'devices'
     
     id: Mapped[int] = mapped_column(primary_key=True)
