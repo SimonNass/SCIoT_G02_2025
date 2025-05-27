@@ -1,13 +1,14 @@
 import logging
 import paho.mqtt.client as mqtt
-from backend.models import models
-from backend.extensions import db
 from backend.mqtt.utils.parsersUtils import parse_mqtt_topic
 from backend.mqtt.utils.dbUtils import get_or_create_device
 from backend.mqtt.utils.cacheUtils import initialize_device_cache
 
 mqtt_client = None
 app_instance = None
+
+# Todo: Switch to device-id from sensor-id
+# Todo: Cron job to remove devices that have not sent data in a while and remove room if all devices are gone
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -24,7 +25,7 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     """
     Handle incoming MQTT messages
-    Topic format: iot/<floor>/<room>/<sensor-type>/<sensor-id>
+    Topic format: iot/<floor_number>/<room_number>/<sensor-type>/<sensor-id>
     """
     try:
         topic = msg.topic

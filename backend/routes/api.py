@@ -218,7 +218,6 @@ def list_rooms_for_floor(floor_number):
                     'name': device.name,
                     'device_type': device.device_type,
                     'is_online': device.is_online,
-                    'battery_level': device.battery_level
                 }
                 room_data['devices'].append(device_data)
             
@@ -243,3 +242,6 @@ def list_devices():
         'name': d.name,
         'is_online': d.is_online,
     } for d in devices])
+    
+# @api.route('/floors/<int:floor_number>/rooms/<string:room_number>/devices/<string:device_id>', methods=['GET'])
+# Todo: Implement this endpoint to get device details

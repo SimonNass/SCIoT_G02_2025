@@ -15,7 +15,7 @@ def get_or_create_device(app_instance, floor_number, room_number, sensor_type, s
         if sensor_id in device_cache:
             logging.debug(f"Device {sensor_id} found in cache")
             # Update last seen status
-            update_device_status(app_instance, sensor_id, is_online=True)
+            update_device_status(app_instance, sensor_id, device_id=sensor_id, is_online=True)
             return device_cache[sensor_id]
         
         # Device not in cache, check database and create if needed
