@@ -234,7 +234,7 @@ def list_rooms_for_floor(floor_number):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@api.route('/devices')
+@api.route('/devices/list')
 def list_devices():
     devices = models.Device.query.all()
     return jsonify([{

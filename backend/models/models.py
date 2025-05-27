@@ -1,13 +1,14 @@
 from sqlalchemy import String, Text, Boolean, Integer, DateTime, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from typing import List, Optional
 from backend.extensions import db
+import uuid
 
 class Floor(db.Model):
     __tablename__ = 'floors'
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     floor_number: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
     floor_name: Mapped[Optional[str]] = mapped_column(String(100))
     description: Mapped[Optional[str]] = mapped_column(Text)
@@ -27,7 +28,7 @@ class Floor(db.Model):
 class Room(db.Model):
     __tablename__ = 'rooms'
     
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     room_number: Mapped[str] = mapped_column(String(20), nullable=False) 
     room_type: Mapped[str] = mapped_column(String(50), nullable=False) 
     description: Mapped[Optional[str]] = mapped_column(Text)
@@ -53,7 +54,7 @@ class Room(db.Model):
 class Device(db.Model):
     __tablename__ = 'devices'
     
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     device_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     device_type: Mapped[str] = mapped_column(String(50), nullable=False)
