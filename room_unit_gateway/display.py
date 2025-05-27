@@ -2,11 +2,12 @@
 
 import grovepi
 from grove_rgb_lcd import *
+import uuid
 
 from enumdef import Connectortype
 
 class Display:
-    def __init__(self, id: int, name: str, display_type: str, i2c: int, i2c_type: Connectortype, initial_value: str):
+    def __init__(self, id: uuid, name: str, display_type: str, i2c: int, i2c_type: Connectortype, initial_value: str):
         self.id = id #assert unique
         self.name = name
         self.type = display_type
@@ -25,7 +26,7 @@ class Display:
         return "ID:{},Name:{},Type:{},I2C:{},{},last value:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value)
 
     def __dict__(self):
-        return {"id":self.name,"name":self.name,"type":self.type,"i2c":self.i2c_connector,"connector_type":self.connector_type,"last_value":self.last_value}
+        return {"id":self.id,"name":self.name,"type":self.type,"i2c":self.i2c_connector,"connector_type":self.connector_type,"last_value":self.last_value}
 
     def write_display(self, value: str):
         write_value = value

@@ -47,7 +47,7 @@ def send_head(sensors: List[Sensor],actuators: List[Actuator],displays: List[Dis
     #text = json.dumps({"sensors": s_list, "actuators":a_list, "displays": d_list})
     text = json.dumps(s_list)
     print (text)
-    #network_connection.send('sciot.topic','u38.0.353.window.t.12345',text)
+    #network_connection.send('iot/1/1/sensor','u38.0.353.window.t.12345',text)
 
 def execution_cycle(sensors: List[Sensor],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint):
     i = 0
@@ -103,6 +103,7 @@ def main():
         print ("Reading config file {} was not succesfull {}".format(config_file_name,config_values))
 
     try:
+        topic_prefix = "iot/" + config_values['floor_id'] * config_values['max_rooms_per_floor'] + config_values['room_id'] + "/"
         network_connection = MQTTendpoint(host=config_values['mqtt_host'],port=config_values['mqtt_port'],username=config_values['mqtt_username'],password=password)
     except:
         print ("MQTT broker not connected.")

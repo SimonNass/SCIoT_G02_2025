@@ -8,6 +8,7 @@ class MQTTendpoint:
         self.port = port
         self.username = remove_quotation(username)
         self.password = password
+        self.topic_prefix = str("iot/1/1/")
         self.connection = None
         self.channel = None
         print ("Selected host: {} and port: {}".format(self.host,self.port))
@@ -36,7 +37,7 @@ class MQTTendpoint:
 
     def recv(self, topiy: str): # TODO
         try:
-            for method_frame, properties, body in self.channel.consume(topiy):
+            for method_frame, properties, body in self.channel.consume(self.topic_prefix + topiy):
                 print (method_frame, properties, body)
                 self.channel.basic_ack(method_frame.delivery_tag)
                 if method_frame.delivery_tag == 10:

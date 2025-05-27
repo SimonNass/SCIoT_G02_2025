@@ -3,11 +3,12 @@
 import grovepi
 from grovepi import *
 import numpy as np
+import uuid
 
 from enumdef import Connectortype
 
 class Sensor:
-    def __init__(self, id: int, name: str, sensore_type: str, i2c: int, i2c_type: Connectortype, read_interval: int):
+    def __init__(self, id: uuid, name: str, sensore_type: str, i2c: int, i2c_type: Connectortype, read_interval: int):
         self.id = id #assert unique
         self.name = name
         self.type = sensore_type
@@ -23,10 +24,10 @@ class Sensor:
     #    pass
 
     def __str__(self):
-        return "ID:{},Name:{},Type:{},I2C:{},{},last value:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value)
+        return "ID:{},Name:{},Type:{},I2C:{},{},last value:{},read interval:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value,self.read_interval)
 
     def __dict__(self):
-        return {"id":self.name,"name":self.name,"type":self.type,"i2c":self.i2c_connector,"connector_type":self.connector_type,"last_value":self.last_value}
+        return {"id":self.id,"name":self.name,"type":self.type,"i2c":self.i2c_connector,"connector_type":self.connector_type,"last_value":self.last_value, "read_interval":self.read_interval}
 
     def read_sensor(self):
         try:

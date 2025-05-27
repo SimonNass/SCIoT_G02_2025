@@ -2,11 +2,12 @@
 
 import grovepi
 from grovepi import *
+import uuid
 
 from enumdef import Connectortype
 
 class Actuator:
-    def __init__(self, id: int, name: str, actuator_type: str, i2c: int, i2c_type: Connectortype, initial_value: int, min_value: int, max_value: int):
+    def __init__(self, id: uuid, name: str, actuator_type: str, i2c: int, i2c_type: Connectortype, initial_value: int, min_value: int, max_value: int):
         self.id = id #assert unique
         self.name = name
         self.type = actuator_type
@@ -33,7 +34,7 @@ class Actuator:
         return "ID:{},Name:{},Type:{},I2C:{},{},last value:{},min:{},max:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value,self.min_value,self.max_value)
 
     def __dict__(self):
-        return {"id":self.name,"name":self.name,"type":self.type,"i2c":self.i2c_connector,"connector_type":self.connector_type,"last_value":self.last_value,"min":self.min_value,"max":self.max_value}
+        return {"id":self.id,"name":self.name,"type":self.type,"i2c":self.i2c_connector,"connector_type":self.connector_type,"last_value":self.last_value,"min":self.min_value,"max":self.max_value}
 
     def write_actuator(self, value: int):
         write_value = max(self.min_value,min(self.max_value,value))

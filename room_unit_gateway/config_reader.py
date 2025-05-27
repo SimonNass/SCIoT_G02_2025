@@ -2,6 +2,7 @@
 
 import configparser
 import json
+import uuid
 
 from sensor import Sensor
 from actuator import Actuator
@@ -23,14 +24,16 @@ def read_config(config_file_name):
     mqtt_host = config.get('MQTT', 'host', fallback='0.0.0.0')
     mqtt_port = config.getint('MQTT', 'port', fallback=1234)
     mqtt_username = config.get('MQTT', 'username', fallback='root')
-    mqtt_room_id = config.get('MQTT', 'roomID', fallback=0)
+    floor_id = config.get('Architecture', 'floor_ID', fallback=0)
+    max_rooms_per_floor = config.get('MQArchitectureTT', 'max_rooms_per_floor', fallback=100)
+    room_id = config.get('Architecture', 'room_ID', fallback=0)
 
     print ("reading in sensors")
     # Sensors
     sensor_init_list = json.loads(config.get('Sensors','sensor_list', fallback="[]"))
     sensor_class_list = []
     for sensor in sensor_init_list:
-        sensor_id = int(sensor['id'])
+        sensor_id = uuid.uuid1() #int(sensor['id'])
         sensor_name = str(sensor['name'])
         sensor_type = str(sensor['sensore_type'])
         sensor_i2c = int(sensor['i2c'])
@@ -44,7 +47,7 @@ def read_config(config_file_name):
     actuator_list = json.loads(config.get('Actuators','actuator_list', fallback="[]"))
     actuator_class_list = []
     for actuator in actuator_list:
-        actuator_id = int(actuator['id'])
+        actuator_id = uuid.uuid1() #int(actuator['id'])
         actuator_name = str(actuator['name'])
         actuator_type = str(actuator['actuator_type'])
         actuator_i2c = int(actuator['i2c'])
@@ -75,7 +78,9 @@ def read_config(config_file_name):
         'mqtt_host': mqtt_host,
         'mqtt_port': mqtt_port,
         'mqtt_username': mqtt_username,
-        'mqtt_room_id': mqtt_room_id,
+        'floor_id': floor_id,
+        'max_rooms_per_floor': max_rooms_per_floor,
+        'room_id': room_id,
         'sensor_class_list': sensor_class_list,
         'actuator_class_list': actuator_class_list,
         'display_class_list': display_class_list,
