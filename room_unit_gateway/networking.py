@@ -3,12 +3,12 @@
 import pika
 
 class MQTTendpoint:
-    def __init__(self, host: str, port: int, username: str, password: str):
+    def __init__(self, host: str, port: int, username: str, password: str, topic_prefix: str):
         self.host = remove_quotation(host)
         self.port = port
         self.username = remove_quotation(username)
         self.password = password
-        self.topic_prefix = str("iot/1/1/")
+        self.topic_prefix = topic_prefix #str("iot/1/1/")
         self.connection = None
         self.channel = None
         print ("Selected host: {} and port: {}".format(self.host,self.port))

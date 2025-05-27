@@ -104,7 +104,7 @@ def main():
 
     try:
         topic_prefix = "iot/" + config_values['floor_id'] * config_values['max_rooms_per_floor'] + config_values['room_id'] + "/"
-        network_connection = MQTTendpoint(host=config_values['mqtt_host'],port=config_values['mqtt_port'],username=config_values['mqtt_username'],password=password)
+        network_connection = MQTTendpoint(host=config_values['mqtt_host'],port=config_values['mqtt_port'],username=config_values['mqtt_username'],password=password,topic_prefix=topic_prefix)
     except:
         print ("MQTT broker not connected.")
 
