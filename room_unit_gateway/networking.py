@@ -19,8 +19,9 @@ class MQTTendpoint:
             self.connection = pika.BlockingConnection(pika.ConnectionParameters(self.host,self.port,'/',credentials))
             self.channel = self.connection.channel()
             self.channel.exchange_declare(exchange='sciot.topic',exchange_type='topic',durable=True,auto_delete=False)
-        except:
+        except Exception as e:
             print ("Connection unable to establisch.")
+            print (e)
 
     def __del__(self):
         if self.connection != None:
@@ -32,8 +33,9 @@ class MQTTendpoint:
     def send(self, topiy: str, routing_key: str, message: str):
         try:
             self.channel.basic_publish(exchange=topiy,routing_key=routing_key,body=message)
-        except:
+        except Exception as e:
             print ("Connection failed.")
+            print (e)
 
     def recv(self, topiy: str): # TODO
         try:
@@ -43,8 +45,9 @@ class MQTTendpoint:
                 if method_frame.delivery_tag == 10:
                     break
             _ = self.channel.cancel()
-        except:
+        except Exception as e:
             print ("Connection failed.")
+            print (e)
 
 def remove_quotation(string):
     return string.replace("'","").replace('"','')

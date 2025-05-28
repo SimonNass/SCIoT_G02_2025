@@ -38,5 +38,6 @@ class Display:
             setText(write_value)
             self.last_value = write_value
             print ("{}: {}".format(self.name,self.last_value))
-        except:
+        except Exception as e:
             print ("write was unsucesful")
+            print (e)
