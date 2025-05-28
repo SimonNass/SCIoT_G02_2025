@@ -87,7 +87,7 @@ def main():
     config_file_name = str(sys.argv[1])
     password = str(sys.argv[2])
 
-    print ("")
+    print ("", flush=True)
 
     config_values = {}
     sensors = []
@@ -101,14 +101,14 @@ def main():
         displays = config_values['display_class_list']
     except Exception as e:
         print ("Reading config file {} was not succesfull {}".format(config_file_name,config_values))
-        print (e)
+        print (e, flush=True)
 
     try:
         topic_prefix = "iot/" + config_values['floor_id'] * config_values['max_rooms_per_floor'] + config_values['room_id'] + "/"
         network_connection = MQTTendpoint(host=config_values['mqtt_host'],port=config_values['mqtt_port'],username=config_values['mqtt_username'],password=password,topic_prefix=topic_prefix)
     except Exception as e:
         print ("MQTT broker not connected.")
-        print (e)
+        print (e, flush=True)
 
     execution_cycle(sensors,actuators,displays,network_connection)
 

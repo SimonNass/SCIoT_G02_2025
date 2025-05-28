@@ -43,7 +43,7 @@ def read_config(config_file_name):
             sensor_class = Sensor(id=sensor_id,name=sensor_name,sensore_type=sensor_type,i2c=sensor_i2c,i2c_type=sensor_i2ctype,read_interval=sensor_interval)
             sensor_class_list.append(sensor_class)
         except Exception as e:
-            print (e)
+            print (e, flush=True)
 
     print ("reading in actuators")
     # Actuators
@@ -62,7 +62,7 @@ def read_config(config_file_name):
             actuator_class = Actuator(id=actuator_id,name=actuator_name,actuator_type=actuator_type,i2c=actuator_i2c,i2c_type=actuator_i2ctype,initial_value=actuator_initial_value,min_value=actuator_min,max_value=actuator_max)
             actuator_class_list.append(actuator_class)
         except Exception as e:
-            print (e)
+            print (e, flush=True)
 
     print ("reading in display")
     # Displays
@@ -79,7 +79,7 @@ def read_config(config_file_name):
             display_class = Display(id=display_id,name=display_name,display_type=display_type,i2c=display_i2c,i2c_type=display_i2ctype,initial_value=display_initial_value)
             display_class_list.append(display_class)
         except Exception as e:
-            print (e)
+            print (e, flush=True)
 
     # returnobject
     config_values = {
