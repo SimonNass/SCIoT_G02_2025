@@ -7,12 +7,12 @@ import uuid
 from enumdef import Connectortype
 
 class Actuator:
-    def __init__(self, id: uuid, name: str, actuator_type: str, i2c: int, i2c_type: Connectortype, initial_value: int, min_value: int, max_value: int):
-        self.id = id #assert unique
+    def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: int, off_value: int):
+        self.id = uuid.uuid1()
         self.name = name
-        self.type = actuator_type
-        self.i2c_connector = i2c #assert not used twice
-        self.connector_type = i2c_type
+        self.type = type_name
+        self.i2c_connector = connector #assert not used twice
+        self.connector_type = connector_types
         self.last_value = max(min_value,min(max_value,initial_value))
         self.min_value = min_value
         self.max_value = max_value

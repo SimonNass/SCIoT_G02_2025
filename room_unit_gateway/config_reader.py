@@ -1,13 +1,8 @@
 #!/usr/bin/env python
 
 import configparser
-import json
-import uuid
 
-from sensor import Sensor
-from actuator import Actuator
-from display import Display
-from enumdef import Connectortype
+import object_factory
 
 def read_config(config_file_name):
     config = configparser.ConfigParser()
@@ -16,7 +11,7 @@ def read_config(config_file_name):
 
     # General
     version = config.get('General', 'version', fallback=0)
-    if version == 1:
+    if version == 2:
         print ("Error wrong config version")
 
     # MQTT
@@ -28,58 +23,15 @@ def read_config(config_file_name):
     max_rooms_per_floor = config.get('MQArchitectureTT', 'max_rooms_per_floor', fallback=100)
     room_id = config.get('Architecture', 'room_ID', fallback=0)
 
-    print ("reading in sensors")
+    print ("reading in sensors", flush=True)
     # Sensors
-    sensor_init_list = json.loads(config.get('Sensors','sensor_list', fallback="[]"))
-    sensor_class_list = []
-    for sensor in sensor_init_list:
-        sensor_id = uuid.uuid1() #int(sensor['id'])
-        sensor_name = str(sensor['name'])
-        sensor_type = str(sensor['sensore_type'])
-        sensor_i2c = int(sensor['i2c'])
-        sensor_i2ctype = getattr(Connectortype, str(sensor['i2c_type']))
-        sensor_interval = int(sensor['read_interval'])
-        try:
-            sensor_class = Sensor(id=sensor_id,name=sensor_name,sensore_type=sensor_type,i2c=sensor_i2c,i2c_type=sensor_i2ctype,read_interval=sensor_interval)
-            sensor_class_list.append(sensor_class)
-        except Exception as e:
-            print (e, flush=True)
+    sensor_types = object_factory.configure_sensor_types(config.get('Sensors','sensor_types', fallback="[]"))
+    sensor_class_list = object_factory.configure_sensors(config.get('Sensors','sensor_list', fallback="[]"), sensor_types)
 
-    print ("reading in actuators")
+    print ("reading in actuators", flush=True)
     # Actuators
-    actuator_list = json.loads(config.get('Actuators','actuator_list', fallback="[]"))
-    actuator_class_list = []
-    for actuator in actuator_list:
-        actuator_id = uuid.uuid1() #int(actuator['id'])
-        actuator_name = str(actuator['name'])
-        actuator_type = str(actuator['actuator_type'])
-        actuator_i2c = int(actuator['i2c'])
-        actuator_i2ctype = getattr(Connectortype, str(actuator['i2c_type']))
-        actuator_initial_value = int(actuator['initial_value'])
-        actuator_min = int(actuator['min'])
-        actuator_max = int(actuator['max'])
-        try:
-            actuator_class = Actuator(id=actuator_id,name=actuator_name,actuator_type=actuator_type,i2c=actuator_i2c,i2c_type=actuator_i2ctype,initial_value=actuator_initial_value,min_value=actuator_min,max_value=actuator_max)
-            actuator_class_list.append(actuator_class)
-        except Exception as e:
-            print (e, flush=True)
-
-    print ("reading in display")
-    # Displays
-    display_list = json.loads(config.get('Displays','display_list', fallback="[]"))
-    display_class_list = []
-    for display in display_list:
-        display_id = uuid.uuid1() #int(display['id'])
-        display_name = str(display['name'])
-        display_type = str(display['display_type'])
-        display_i2c = int(display['i2c'])
-        display_i2ctype = getattr(Connectortype, str(display['i2c_type']))
-        display_initial_value = str(display['initial_value'])
-        try:
-            display_class = Display(id=display_id,name=display_name,display_type=display_type,i2c=display_i2c,i2c_type=display_i2ctype,initial_value=display_initial_value)
-            display_class_list.append(display_class)
-        except Exception as e:
-            print (e, flush=True)
+    actuator_types = object_factory.configure_actuator_types(config.get('Actuators','actuator_types', fallback="[]"))
+    actuator_class_list = object_factory.configure_actuators(config.get('Actuators','actuator_list', fallback="[]"), actuator_types)
 
     # returnobject
     config_values = {
@@ -91,8 +43,7 @@ def read_config(config_file_name):
         'max_rooms_per_floor': max_rooms_per_floor,
         'room_id': room_id,
         'sensor_class_list': sensor_class_list,
-        'actuator_class_list': actuator_class_list,
-        'display_class_list': display_class_list,
+        'actuator_class_list': actuator_class_list
     }
 
     return config_values

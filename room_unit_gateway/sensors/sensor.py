@@ -8,20 +8,17 @@ import uuid
 from enumdef import Connectortype
 
 class Sensor:
-    def __init__(self, id: uuid, name: str, sensore_type: str, i2c: int, i2c_type: Connectortype, read_interval: int):
-        self.id = id #assert unique
+    def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int):
+        self.id = uuid.uuid1()
         self.name = name
-        self.type = sensore_type
-        self.i2c_connector = i2c #assert not used twice
-        self.connector_type = i2c_type
+        self.type = type_name
+        self.i2c_connector = connector #assert not used twice
+        self.connector_type = connector_types
         self.read_interval = read_interval
         #print ("{}".format(self.connector_type))
         if self.connector_type == Connectortype.Digital:
             grovepi.pinMode(self.i2c_connector,"INPUT")
         self.last_value = self.read_sensor()
-
-    #def __del__(self):
-    #    pass
 
     def __str__(self):
         return "ID:{},Name:{},Type:{},I2C:{},{},last value:{},read interval:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value,self.read_interval)

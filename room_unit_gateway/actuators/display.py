@@ -7,12 +7,12 @@ import uuid
 from enumdef import Connectortype
 
 class Display:
-    def __init__(self, id: uuid, name: str, display_type: str, i2c: int, i2c_type: Connectortype, initial_value: str):
-        self.id = id #assert unique
+    def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: str, max_value: str, datatype: str, unit: str, initial_value: str, off_value: str):
+        self.id = uuid.uuid1()
         self.name = name
-        self.type = display_type
-        self.i2c_connector = i2c #assert not used twice
-        self.connector_type = i2c_type
+        self.type = type_name
+        self.i2c_connector = connector #assert not used twice
+        self.connector_type = connector_types
         self.last_value = initial_value
         self.char_limit = 16 * 2
         setRGB(0,255,0)

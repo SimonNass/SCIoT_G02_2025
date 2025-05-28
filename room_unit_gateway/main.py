@@ -12,9 +12,9 @@ import json
 
 import config_reader
 from networking import MQTTendpoint
-from sensor import Sensor
-from actuator import Actuator
-from display import Display
+from sensors.sensor import Sensor
+from actuators.actuator import Actuator
+from actuators.display import Display
 
 def system_info():
     print (sys.version)
@@ -98,7 +98,7 @@ def main():
         config_values = config_reader.read_config(config_file_name)
         sensors = config_values['sensor_class_list']
         actuators = config_values['actuator_class_list']
-        displays = config_values['display_class_list']
+        displays = []#config_values['display_class_list']
     except Exception as e:
         print ("Reading config file {} was not succesfull {}".format(config_file_name,config_values))
         print (e, flush=True)
