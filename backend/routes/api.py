@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from backend.extensions import db
 from backend.models import models
 from sqlalchemy.exc import IntegrityError
+from backend.routes.auth.simple_auth import require_api_key
 
 api = Blueprint('api', __name__)
 
@@ -11,6 +12,7 @@ def health_check():
 
 # Create floor with rooms (optional)
 @api.route('/floors/create', methods=['POST'])
+@require_api_key
 def create_floor_with_rooms():
     """
     Create a floor with optional rooms
@@ -84,6 +86,7 @@ def create_floor_with_rooms():
 
 # Create rooms for existing floor
 @api.route('/floors/<int:floor_number>/rooms/create', methods=['POST'])
+@require_api_key
 def create_rooms_for_floor(floor_number):
     """
     Create rooms for an existing floor
@@ -150,6 +153,7 @@ def create_rooms_for_floor(floor_number):
 
 # List all floors with their rooms
 @api.route('/floors/list')
+@require_api_key
 def list_all_floors():
     """Get all floors with their associated rooms"""
     try:
@@ -190,6 +194,7 @@ def list_all_floors():
 
 # List all rooms for a specific floor
 @api.route('/floors/<int:floor_number>/rooms/list')
+@require_api_key
 def list_rooms_for_floor(floor_number):
     """Get all rooms for a specific floor by floor number"""
     try:
@@ -234,6 +239,7 @@ def list_rooms_for_floor(floor_number):
         return jsonify({'error': str(e)}), 500
 
 @api.route('/devices/list')
+@require_api_key
 def list_devices():
     devices = models.Device.query.all()
     return jsonify([{

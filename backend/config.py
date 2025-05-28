@@ -20,3 +20,6 @@ class Config:
     MQTT_BROKER_PORT = int(os.environ.get('MQTT_BROKER_PORT'))
     MQTT_CLIENT_ID = os.environ.get('MQTT_CLIENT_ID')
     MQTT_TOPIC_SUBSCRIBE = os.environ.get('MQTT_TOPIC_SUBSCRIBE')
+
+    # API Security
+    API_KEY = os.environ.get('API_KEY')
