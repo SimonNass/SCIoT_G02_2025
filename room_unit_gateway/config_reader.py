@@ -69,7 +69,7 @@ def read_config(config_file_name):
     display_list = json.loads(config.get('Displays','display_list', fallback="[]"))
     display_class_list = []
     for display in display_list:
-        display_id = int(display['id'])
+        display_id = uuid.uuid1() #int(display['id'])
         display_name = str(display['name'])
         display_type = str(display['display_type'])
         display_i2c = int(display['i2c'])
