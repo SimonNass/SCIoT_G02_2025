@@ -61,7 +61,7 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[Actuator],dis
             #write_all_displays(displays,"12345678910131517192123252729313335")
             #cyclic_read(sensors,displays,i)
             #network_connection.send('sciot.topic','u38.0.353.window.t.12345','Hello World')
-            send_all_sensors(sensors,actuators,displays,network_connection)
+            send_all_sensors(sensors,network_connection)
 
             # Reset
             if i > 240:
