@@ -31,7 +31,7 @@ def write_all_displays(displays: List[ActuatorInterface], text: str):
     for display in displays:
         if display.connector_types != Connectortype.I2C_display:
             continue
-        display.write_display(text)
+        display.write_actuator(text)
 
 def send_sensors(sensors: List[SensorInterface], network_connection: GatewayNetwork):
     for sensor in sensors:
