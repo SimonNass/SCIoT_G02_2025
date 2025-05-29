@@ -14,18 +14,18 @@ class DisplayActuator(ActuatorInterface):
         super().__init__(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
         self.char_limit = 16 * 2
         split = self.initial_value.split(",")
-        r = split[0]
-        g = split[1]
-        b = split[2]
+        r = int(split[0])
+        g = int(split[1])
+        b = int(split[2])
         text = split[3]
         setRGB(r,g,b)
         self.write_display(text)
 
     def __del__(self):
         split = self.off_value.split(",")
-        r = split[0]
-        g = split[1]
-        b = split[2]
+        r = int(split[0])
+        g = int(split[1])
+        b = int(split[2])
         text = split[3]
         setText(text)
         setRGB(r,g,b)
