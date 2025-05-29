@@ -5,12 +5,8 @@
 - pi
     - update python version in docker for room pi
     - get the motor working
-    - test pi with no / wrong sensors
-    - pi check that with nothing conneted or connected wrong it stil works
-    - add pi add sensor value unit
-    - send Maix examples for sensor message example
+    - test pi with no / wrong sensors, pi check that with nothing conneted or connected wrong it stil works
     - send maxi example actuator request and response
-    - add sensor min max values
     - button add buffer to not send multiple messages if 
     - send welkome message for display
 - build an overview UI
@@ -20,8 +16,6 @@
   - current state?
 - build aggregations and context information
 - build planing AI
-- make docker components talk to each other
-- update python version in docker for room pi
 - send notes of lecture
 
 ## Meeting 27.05
