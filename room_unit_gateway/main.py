@@ -40,10 +40,9 @@ def cyclic_read(sensors: List[SensorInterface], displays: List[Display], cycle: 
             write_all_displays(displays, text)
 
 def send_all(sensors: List[SensorInterface],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint): # TODO
-    s_list = [json.dumps(s.__dict__) for s in sensors]
-    a_list = [json.dumps(a.__dict__) for a in actuators]
-    d_list = [json.dumps(d.__dict__) for d in displays]
-    print (s_list)
+    s_list = [s.__dict__() for s in sensors]
+    a_list = [a.__dict__() for a in actuators]
+    d_list = [d.__dict__() for d in displays]
     #text = json.dumps({"sensors": s_list, "actuators":a_list, "displays": d_list})
     text = json.dumps(s_list)
     print (text)
@@ -68,14 +67,16 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[Actuator],dis
                 i = 0
             # Increment
             i = i + 1
-            #want_to_exit = True
+            want_to_exit = True
             time.sleep(1)
 
         except KeyboardInterrupt:
+            want_to_exit = True
             break
         except (IOError,TypeError) as e:
             print ("Error")
             print (e)
+            want_to_exit = True
 
 def main():
     system_info()

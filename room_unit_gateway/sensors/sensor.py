@@ -28,7 +28,7 @@ class SensorInterface(ABC):
         return "id:{},name:{},type_name:{},connector:{},{},last value:{},read interval:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value,self.read_interval)
 
     def __dict__(self):
-        return {"id":self.id,"name":self.name,"type_name":self.type,"connector":self.i2c_connector,"connector_type":self.connector_type,"min":self.min_value, "max":self.max_value, "datatype":self.datatype, "unit":self.unit, "read_interval":self.read_interval, "notify_interval":self.notify_interval, "notify_change_precision":self.notify_change_precision, "last_value":self.last_value}
+        return {"id":str(self.id),"name":self.name,"type_name":self.type,"connector":self.i2c_connector,"connector_type":self.connector_type,"min":self.min_value, "max":self.max_value, "datatype":self.datatype, "unit":self.unit, "read_interval":self.read_interval, "notify_interval":self.notify_interval, "notify_change_precision":self.notify_change_precision, "last_value":self.last_value}
 
     @abstractmethod
     def read_sensor(self):
