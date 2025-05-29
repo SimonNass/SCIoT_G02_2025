@@ -36,7 +36,7 @@ def configure_sensor_types(json_list: json):
         datatype = str(t['datatype'])
         unit = str(t['unit'])
         read_interval = int(t['read_interval'])
-        t_dict = {'mame_key':mame_key,'connector_types':connector_types,'min_value':min_value,'max_value':max_value,'datatype':datatype,'unit':unit,'read_interval':read_interval}
+        t_dict = {'mame_key':mame_key,'connector_types':connector_types,'min':min_value,'max':max_value,'datatype':datatype,'unit':unit,'read_interval':read_interval}
         types.update({mame_key:t_dict})
     return types
 
@@ -82,6 +82,6 @@ def configure_actuator_types(json_list: json):
             max_value = int(t['max'])
             initial_value = int(t['initial_value'])
             off_value = int(t['off_value'])
-        t_dict = {'mame_key':mame_key,'connector_types':connector_types,'min_value':min_value,'max_value':max_value,'datatype':datatype,'unit':unit,'initial_value':initial_value,'off_value':off_value}
+        t_dict = {'mame_key':mame_key,'connector_types':connector_types,'min':min_value,'max':max_value,'datatype':datatype,'unit':unit,'initial_value':initial_value,'off_value':off_value}
         types.update({mame_key:t_dict})
     return types
