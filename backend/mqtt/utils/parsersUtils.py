@@ -1,13 +1,16 @@
 import logging
 
-def parse_mqtt_topic(topic):
+def parse_mqtt_topic(topic, app_instance):
     """
     Parse MQTT topic: SCIoT_G02_2025/<floor>/<room>/<sensor-type>/<sensor-id>
     Returns: (floor_number, room_number, sensor_type, sensor_id) or None if invalid
     """
     try:
         parts = topic.split('/')
-        if len(parts) != 5 or parts[0] != 'SCIoT_G02_2025':
+        
+        # Get the expected topic prefix from .env
+        expected_prefix = app_instance.config['MQTT_TOPIC_SUBSCRIBE'].split('/')[0]
+        if len(parts) != 5 or parts[0] != expected_prefix:
             logging.warning(f"Invalid topic format: {topic}")
             return None
         

@@ -35,7 +35,7 @@ def on_message(client, userdata, msg):
         logging.debug(f"Payload: {payload}")
         
         # Parse the topic
-        parsed = parse_mqtt_topic(topic)
+        parsed = parse_mqtt_topic(topic, app_instance)
         if not parsed:
             logging.warning(f"Skipping message with invalid topic: {topic}")
             return
