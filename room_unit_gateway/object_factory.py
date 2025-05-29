@@ -3,7 +3,7 @@ import json
 from sensors.sensor import Sensor
 from actuators.actuator import Actuator
 from actuators.display import Display
-from enumdef import Connectortype
+from enumdef import Connectortype, Notifyinterval
 
 def configure_sensors(json_list: json, types: dict):
     init_list = json.loads(json_list)
@@ -18,8 +18,10 @@ def configure_sensors(json_list: json, types: dict):
         datatype = types[type_name]['datatype']
         unit = types[type_name]['unit']
         read_interval = types[type_name]['read_interval']
+        notify_interval = types[type_name]['notify_interval']
+        notify_change_precision = types[type_name]['notify_change_precision']
         try:
-            sensor_object = Sensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval)
+            sensor_object = Sensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
             sensors.append(sensor_object)
         except Exception as e:
             print (e, flush=True)
@@ -36,7 +38,9 @@ def configure_sensor_types(json_list: json):
         datatype = str(t['datatype'])
         unit = str(t['unit'])
         read_interval = int(t['read_interval'])
-        t_dict = {'mame_key':mame_key,'connector_types':connector_types,'min':min_value,'max':max_value,'datatype':datatype,'unit':unit,'read_interval':read_interval}
+        notify_interval = getattr(Notifyinterval, str(t['notify_interval']))
+        notify_change_precision = int(t['notify_change_precision'])
+        t_dict = {'mame_key':mame_key,'connector_types':connector_types,'min':min_value,'max':max_value,'datatype':datatype,'unit':unit,'read_interval':read_interval,'notify_interval':notify_interval,'notify_change_precision':notify_change_precision}
         types.update({mame_key:t_dict})
     return types
 

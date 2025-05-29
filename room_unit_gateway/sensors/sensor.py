@@ -8,7 +8,7 @@ import uuid
 from enumdef import Connectortype
 
 class Sensor:
-    def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int):
+    def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: int, notify_change_precision: int):
         self.id = uuid.uuid1()
         self.name = name
         self.type = type_name
