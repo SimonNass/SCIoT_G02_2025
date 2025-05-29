@@ -12,7 +12,7 @@ import json
 
 import config_reader
 from networking import MQTTendpoint
-from sensors.sensor import Sensor
+from sensors.sensor import SensorInterface
 from actuators.actuator import Actuator
 from actuators.display import Display
 
@@ -20,7 +20,7 @@ def system_info():
     print (sys.version)
     print (sys.version_info)
 
-def read_all_sensors(sensors: List[Sensor]):
+def read_all_sensors(sensors: List[SensorInterface]):
     for sensor in sensors:
         _ = sensor.read_sensor()
 
@@ -32,14 +32,14 @@ def write_all_displays(displays: List[Display], text: str):
     for display in displays:
         display.write_display(text)
 
-def cyclic_read(sensors: List[Sensor], displays: List[Display], cycle: int):
+def cyclic_read(sensors: List[SensorInterface], displays: List[Display], cycle: int):
     for sensor in sensors:
         if cycle % sensor.read_interval== 0:
             sensor_value = sensor.read_sensor()
             text = "{}: {}".format(sensor.name,str(sensor_value))
             write_all_displays(displays, text)
 
-def send_head(sensors: List[Sensor],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint): # TODO
+def send_head(sensors: List[SensorInterface],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint): # TODO
     s_list = [s.__dict__ for s in sensors]
     a_list = [a.__dict__ for a in actuators]
     d_list = [d.__dict__ for d in displays]
@@ -49,7 +49,7 @@ def send_head(sensors: List[Sensor],actuators: List[Actuator],displays: List[Dis
     print (text)
     #network_connection.send('iot/1/1/sensor','u38.0.353.window.t.12345',text)
 
-def execution_cycle(sensors: List[Sensor],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint):
+def execution_cycle(sensors: List[SensorInterface],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint):
     i = 0
     want_to_exit = False
     while not want_to_exit:
