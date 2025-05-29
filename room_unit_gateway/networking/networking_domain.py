@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import json
+
 from networking.networking import MQTTPublishEndpoint, MQTTSubscribeEndpoint
 from sensors.sensor import SensorInterface
 from actuators.actuator import Actuator

@@ -8,7 +8,6 @@
 import time
 import sys
 from typing import List
-import json
 
 import config_reader
 from networking.networking_domain import GatewayNetwork
