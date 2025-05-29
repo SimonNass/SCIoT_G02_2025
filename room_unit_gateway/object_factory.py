@@ -1,6 +1,6 @@
 import json
 
-from sensors.sensor import Sensor
+from sensors.sensor import SensorInterface, AnalogSensor, DigitalSensor, DigitalMultipleSensor
 from actuators.actuator import Actuator
 from actuators.display import Display
 from enumdef import Connectortype, Notifyinterval
@@ -21,7 +21,16 @@ def configure_sensors(json_list: json, types: dict):
         notify_interval = types[type_name]['notify_interval']
         notify_change_precision = types[type_name]['notify_change_precision']
         try:
-            sensor_object = Sensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            if connector_types == Connectortype.Analog:
+                sensor_object = AnalogSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            elif connector_types == Connectortype.Digital:
+                sensor_object = DigitalSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            elif connector_types == Connectortype.Digital_multiple_0:
+                sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,i=0,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            elif connector_types == Connectortype.Digital_multiple_1:
+                sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,i=1,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            else:
+                raise ValueError("onnector_type is not implemented.")
             sensors.append(sensor_object)
         except Exception as e:
             print (e, flush=True)
