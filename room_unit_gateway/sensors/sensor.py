@@ -32,10 +32,15 @@ class Sensor:
                 self.last_value = grovepi.analogRead(self.i2c_connector)
             elif self.connector_type == Connectortype.Digital:
                 self.last_value = grovepi.digitalRead(self.i2c_connector)
-            elif self.connector_type == Connectortype.Digital_multiple:
+            elif self.connector_type == Connectortype.Digital_multiple_0:
                 while True:
-                    self.last_value = grovepi.dht(self.i2c_connector,0)
-                    if not any(np.isnan(self.last_value)):
+                    self.last_value = grovepi.dht(self.i2c_connector,0)[0]
+                    if not any(np.isnan([self.last_value])):
+                        break
+            elif self.connector_type == Connectortype.Digital_multiple_1:
+                while True:
+                    self.last_value = grovepi.dht(self.i2c_connector,0)[1]
+                    if not any(np.isnan([self.last_value])):
                         break
             elif self.connector_type == Connectortype.I2C:
                 raise ValueError("Connector type is not implemented")
