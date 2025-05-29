@@ -19,7 +19,7 @@ class DisplayActuator(ActuatorInterface):
         b = int(split[2])
         text = split[3]
         setRGB(r,g,b)
-        self.write_display(text)
+        self.write_actuator(text)
 
     def __del__(self):
         split = self.off_value.split(",")
