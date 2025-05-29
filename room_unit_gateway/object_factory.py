@@ -55,7 +55,7 @@ def configure_actuators(json_list: json, types: dict):
         initial_value = types[type_name]['initial_value']
         off_value = types[type_name]['off_value']
         try:
-            if type_name == Connectortype.I2C_display:
+            if connector_types == Connectortype.I2C_display:
                 actuator_object = Display(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
             else:
                 actuator_object = Actuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
@@ -72,7 +72,7 @@ def configure_actuator_types(json_list: json):
         connector_types = getattr(Connectortype, str(t['connector_types']))
         datatype = str(t['datatype'])
         unit = str(t['unit'])
-        if mame_key == Connectortype.I2C_display:
+        if connector_types == Connectortype.I2C_display:
             min_value = str(t['min'])
             max_value = str(t['max'])
             initial_value = str(t['initial_value'])
