@@ -1,16 +1,75 @@
-from backend import db
+from sqlalchemy import String, Text, Boolean, Integer, DateTime, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+from typing import List, Optional
+from backend.extensions import db
+import uuid
+
+class Floor(db.Model):
+    __tablename__ = 'floors'
+
+    id: Mapped[int] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    floor_number: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
+    floor_name: Mapped[Optional[str]] = mapped_column(String(100))
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
+    # Relationship: One floor has many rooms
+    rooms: Mapped[List["Room"]] = relationship(
+        back_populates="floor", 
+        cascade="all, delete-orphan",
+        order_by="Room.room_number"
+    )
+    
+    def __repr__(self) -> str:
+        return f"Floor(id={self.id!r}, floor_number={self.floor_number!r}, floor_name={self.floor_name!r})"
+
+
+class Room(db.Model):
+    __tablename__ = 'rooms'
+    
+    id: Mapped[int] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    room_number: Mapped[str] = mapped_column(String(20), nullable=False, unique=True) 
+    room_type: Mapped[str] = mapped_column(String(50), nullable=False) 
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    capacity: Mapped[int] = mapped_column(Integer, default=2)
+    is_occupied: Mapped[bool] = mapped_column(Boolean, default=False)
+    last_cleaned: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
+    # Foreign key to Floor
+    floor_id: Mapped[int] = mapped_column(ForeignKey("floors.id"), nullable=False)
+    
+    # Relationships
+    floor: Mapped["Floor"] = relationship(back_populates="rooms")
+    devices: Mapped[List["Device"]] = relationship(
+        back_populates="room", 
+        cascade="all, delete-orphan"
+    )
+    
+    def __repr__(self) -> str:
+        return f"Room(id={self.id!r}, room_number={self.room_number!r}, room_type={self.room_type!r})"
+
 
 class Device(db.Model):
     __tablename__ = 'devices'
     
-    id = db.Column(db.Integer, primary_key=True)
-    device_id = db.Column(db.String(100), unique=True, nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text)
-    is_online = db.Column(db.Boolean, default=False)
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id: Mapped[int] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    device_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    device_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    is_online: Mapped[bool] = mapped_column(Boolean, default=False)
+    last_seen: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    # Todo: add max and min value
+    # Todo: interval for sensor data
     
-    def __repr__(self):
-        return f'<Device {self.device_id}>'
+    # Foreign key to Room
+    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id"), nullable=False)
+    
+    # Relationship
+    room: Mapped["Room"] = relationship(back_populates="devices")
+    
+    def __repr__(self) -> str:
+        return f"Device(id={self.id!r}, device_id={self.device_id!r}, name={self.name!r}, type={self.device_type!r})"

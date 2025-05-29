@@ -1,11 +1,11 @@
 from flask import Flask
 import logging
-from backend.config import DatabaseConfig
+from backend.config import Config
 from backend.extensions import db
 from backend.mqtt.mqtt_client import start_mqtt_client
 from backend.routes import register_routes
 
-def create_app(config_class=DatabaseConfig):
+def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     
@@ -20,15 +20,12 @@ def create_app(config_class=DatabaseConfig):
     
     try:
         with app.app_context():
+            # Only creates new tabels if they don't already exist
             db.create_all()
     except Exception as e:
         app.logger.error(f"Error initializing database: {e}")
     
     register_routes(app)
     start_mqtt_client(app)
-    
-    @app.route('/health')
-    def health_check():
-        return {'status': 'healthy'}, 200
     
     return app
