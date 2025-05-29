@@ -25,7 +25,7 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     """
     Handle incoming MQTT messages
-    Topic format: iot/<floor_number>/<room_number>/<sensor-type>/<sensor-id>
+    Topic format: SCIoT_G02_2025/<floor_number>/<room_number>/<sensor-type>/<sensor-id>
     """
     try:
         topic = msg.topic
@@ -35,7 +35,7 @@ def on_message(client, userdata, msg):
         logging.debug(f"Payload: {payload}")
         
         # Parse the topic
-        parsed = parse_mqtt_topic(topic)
+        parsed = parse_mqtt_topic(topic, app_instance)
         if not parsed:
             logging.warning(f"Skipping message with invalid topic: {topic}")
             return
