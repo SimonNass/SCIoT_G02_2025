@@ -11,7 +11,7 @@ from typing import List
 import json
 
 import config_reader
-from networking import MQTTendpoint
+from networking.networking_domain import GatewayNetwork
 from sensors.sensor import SensorInterface
 from actuators.actuator import Actuator
 from actuators.display import Display
@@ -32,25 +32,30 @@ def write_all_displays(displays: List[Display], text: str):
     for display in displays:
         display.write_display(text)
 
-def cyclic_read(sensors: List[SensorInterface], displays: List[Display], cycle: int):
+def send_sensors(sensors: List[SensorInterface], network_connection: GatewayNetwork):
+    for sensor in sensors:
+        print ("--")
+        network_connection.send_all_sensor(sensor,True)
+
+def send_actuators(actuators: List[Actuator], network_connection: GatewayNetwork):
+    for actuator in actuators:
+        print ("--")
+        network_connection.send_all_actuator(actuator)
+
+def cyclic_read(sensors: List[SensorInterface], displays: List[Display], cycle: int, network_connection: GatewayNetwork):
     for sensor in sensors:
         if cycle % sensor.read_interval== 0:
             sensor_value = sensor.read_sensor()
+            network_connection.send_all_sensor(sensor,False)
             text = "{}: {}".format(sensor.name,str(sensor_value))
-            write_all_displays(displays, text)
+            #write_all_displays(displays, text)
 
-def send_all_sensors(sensors: List[SensorInterface], network_connection: MQTTendpoint):
-    for s in sensors:
-        topic = '{}'.format(str(s.id))
-        text = json.dumps(s.__dict__())
-        print ("--")
-        print (topic)
-        print (text)
-        network_connection.send(topic,'u38.0.353.window.t.12345',text)
-        print ("----")
-
-def execution_cycle(sensors: List[SensorInterface],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint):
+def execution_cycle(sensors: List[SensorInterface],actuators: List[Actuator],displays: List[Display], network_connection: GatewayNetwork):
+    print ("", flush=True)
+    send_sensors(sensors,network_connection)
+    send_actuators(actuators,network_connection)
     i = 0
+    max_i = 240
     want_to_exit = False
     while not want_to_exit:
         print ("", flush=True)
@@ -59,12 +64,10 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[Actuator],dis
             #read_all_sensors(sensors)
             #write_all_actuators(actuators, i % 2)
             #write_all_displays(displays,"12345678910131517192123252729313335")
-            #cyclic_read(sensors,displays,i)
-            #network_connection.send('sciot.topic','u38.0.353.window.t.12345','Hello World')
-            send_all_sensors(sensors,network_connection)
+            #cyclic_read(sensors,displays,i,network_connection)
 
             # Reset
-            if i > 240:
+            if i > max_i:
                 i = 0
             # Increment
             i = i + 1
@@ -106,13 +109,12 @@ def main():
         print (e, flush=True)
 
     try:
-        topic_prefix = "iot/" + config_values['floor_id'] * config_values['max_rooms_per_floor'] + config_values['room_id'] + "/"
-        network_connection = MQTTendpoint(host=config_values['mqtt_host'],port=config_values['mqtt_port'],username=config_values['mqtt_username'],password=password,topic_prefix=topic_prefix)
+        gateway_network = GatewayNetwork(host=config_values['mqtt_host'],port=config_values['mqtt_port'],username=config_values['mqtt_username'],password=password,floor_id=config_values['floor_id'],max_rooms_per_floor=config_values['max_rooms_per_floor'],room_id=config_values['room_id'])
     except Exception as e:
         print ("MQTT broker not connected.")
         print (e, flush=True)
 
-    execution_cycle(sensors,actuators,displays,network_connection)
+    execution_cycle(sensors,actuators,displays,gateway_network)
 
     for sensor in sensors:
         del sensor
