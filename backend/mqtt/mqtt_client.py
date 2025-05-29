@@ -25,7 +25,7 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     """
     Handle incoming MQTT messages
-    Topic format: iot/<floor_number>/<room_number>/<sensor-type>/<sensor-id>
+    Topic format: SCIoT_G02_2025/<floor_number>/<room_number>/<sensor-type>/<sensor-id>
     """
     try:
         topic = msg.topic
