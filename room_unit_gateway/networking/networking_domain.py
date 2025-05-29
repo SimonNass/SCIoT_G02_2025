@@ -4,8 +4,7 @@ import json
 
 from networking.networking import MQTTPublishEndpoint, MQTTSubscribeEndpoint
 from sensors.sensor import SensorInterface
-from actuators.actuator import Actuator
-from actuators.display import Display
+from actuators.actuator import ActuatorInterface
 
 class GatewayNetwork:
     def __init__(self, host: str, port: int, username: str, password: str, floor_id: int, max_rooms_per_floor: int, room_id: int):
@@ -22,7 +21,7 @@ class GatewayNetwork:
         #print (text)
         self.publisher.send(topic,'u38.0.353.window.t.12345',text)
 
-    def send_all_actuator(self, actuator: Actuator):
+    def send_all_actuator(self, actuator: ActuatorInterface):
         topic = '{}/all'.format(str(actuator.id))
         text = json.dumps(actuator.__dict__())
         #print (topic)

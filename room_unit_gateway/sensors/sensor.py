@@ -25,7 +25,7 @@ class SensorInterface(ABC):
         self.last_value = self.min_value
 
     def __str__(self):
-        return "id:{},name:{},type_name:{},connector:{},{},last value:{},read interval:{}".format(self.id,self.name,self.type,self.i2c_connector,self.connector_type,self.last_value,self.read_interval)
+        return str(self.__dict__())
 
     def __dict__(self):
         return {"id":str(self.id),"name":self.name,"type_name":self.type,"connector":self.i2c_connector,"connector_type":str(self.connector_type),"min":self.min_value, "max":self.max_value, "datatype":self.datatype, "unit":self.unit, "read_interval":self.read_interval, "notify_interval":str(self.notify_interval), "notify_change_precision":self.notify_change_precision, "last_value":self.last_value}

@@ -12,23 +12,25 @@ from typing import List
 import config_reader
 from networking.networking_domain import GatewayNetwork
 from sensors.sensor import SensorInterface
-from actuators.actuator import Actuator
-from actuators.display import Display
+from actuators.actuator import ActuatorInterface
+from enumdef import Connectortype
 
 def system_info():
     print (sys.version)
-    print (sys.version_info)
+    #print (sys.version_info)
 
 def read_all_sensors(sensors: List[SensorInterface]):
     for sensor in sensors:
         _ = sensor.read_sensor()
 
-def write_all_actuators(actuators: List[Actuator], value: int):
+def write_all_actuators(actuators: List[ActuatorInterface], value: int):
     for actuator in actuators:
         actuator.write_actuator(value)
 
-def write_all_displays(displays: List[Display], text: str):
+def write_all_displays(displays: List[ActuatorInterface], text: str):
     for display in displays:
+        if display.connector_types != Connectortype.I2C_display:
+            continue
         display.write_display(text)
 
 def send_sensors(sensors: List[SensorInterface], network_connection: GatewayNetwork):
@@ -36,20 +38,20 @@ def send_sensors(sensors: List[SensorInterface], network_connection: GatewayNetw
         print ("--")
         network_connection.send_all_sensor(sensor,True)
 
-def send_actuators(actuators: List[Actuator], network_connection: GatewayNetwork):
+def send_actuators(actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
     for actuator in actuators:
         print ("--")
         network_connection.send_all_actuator(actuator)
 
-def cyclic_read(sensors: List[SensorInterface], displays: List[Display], cycle: int, network_connection: GatewayNetwork):
+def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface], cycle: int, network_connection: GatewayNetwork):
     for sensor in sensors:
         if cycle % sensor.read_interval== 0:
             sensor_value = sensor.read_sensor()
             network_connection.send_all_sensor(sensor,False)
             text = "{}: {}".format(sensor.name,str(sensor_value))
-            #write_all_displays(displays, text)
+            write_all_displays(displays, text)
 
-def execution_cycle(sensors: List[SensorInterface],actuators: List[Actuator],displays: List[Display], network_connection: GatewayNetwork):
+def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
     print ("", flush=True)
     send_sensors(sensors,network_connection)
     send_actuators(actuators,network_connection)
@@ -62,8 +64,8 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[Actuator],dis
 
             #read_all_sensors(sensors)
             #write_all_actuators(actuators, i % 2)
-            #write_all_displays(displays,"12345678910131517192123252729313335")
-            #cyclic_read(sensors,displays,i,network_connection)
+            #write_all_displays(actuators,"12345678910131517192123252729313335")
+            #cyclic_read(sensors,actuators,i,network_connection)
 
             # Reset
             if i > max_i:
@@ -96,13 +98,11 @@ def main():
     config_values = {}
     sensors = []
     actuators = []
-    displays = []
-    network_connection = None
+    gateway_network = None
     try:
         config_values = config_reader.read_config(config_file_name)
         sensors = config_values['sensor_class_list']
         actuators = config_values['actuator_class_list']
-        displays = []#config_values['display_class_list']
     except Exception as e:
         print ("Reading config file {} was not succesfull {}".format(config_file_name,config_values))
         print (e, flush=True)
@@ -113,14 +113,12 @@ def main():
         print ("MQTT broker not connected.")
         print (e, flush=True)
 
-    execution_cycle(sensors,actuators,displays,gateway_network)
+    execution_cycle(sensors,actuators,gateway_network)
 
     for sensor in sensors:
         del sensor
     for actuator in actuators:
         del actuator
-    for display in displays:
-        del display
 
 
 # __name__

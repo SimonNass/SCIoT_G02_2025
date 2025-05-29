@@ -1,8 +1,8 @@
 import json
 
 from sensors.sensor import AnalogSensor, DigitalSensor, DigitalMultipleSensor
-from actuators.actuator import Actuator
-from actuators.display import Display
+from actuators.actuator import AnalogActuator, DigitalActuator
+from actuators.display import DisplayActuator
 from enumdef import Connectortype, Notifyinterval
 
 def configure_sensors(json_list: json, types: dict):
@@ -30,7 +30,7 @@ def configure_sensors(json_list: json, types: dict):
             elif connector_types == Connectortype.Digital_multiple_1:
                 sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,i=1,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
             else:
-                raise ValueError("onnector_type is not implemented.")
+                raise ValueError("Connector_type is not implemented.")
             sensors.append(sensor_object)
         except Exception as e:
             print (e, flush=True)
@@ -69,9 +69,13 @@ def configure_actuators(json_list: json, types: dict):
         off_value = types[type_name]['off_value']
         try:
             if connector_types == Connectortype.I2C_display:
-                actuator_object = Display(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+                actuator_object = DisplayActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+            elif connector_types == Connectortype.Analog:
+                actuator_object = AnalogActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+            elif connector_types == Connectortype.Digital:
+                actuator_object = DigitalActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
             else:
-                actuator_object = Actuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+                raise ValueError("Connector_type is not implemented.")
             actuators.append(actuator_object)
         except Exception as e:
             print (e, flush=True)
