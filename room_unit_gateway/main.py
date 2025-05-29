@@ -39,7 +39,7 @@ def cyclic_read(sensors: List[SensorInterface], displays: List[Display], cycle: 
             text = "{}: {}".format(sensor.name,str(sensor_value))
             write_all_displays(displays, text)
 
-def send_head(sensors: List[SensorInterface],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint): # TODO
+def send_all(sensors: List[SensorInterface],actuators: List[Actuator],displays: List[Display], network_connection: MQTTendpoint): # TODO
     s_list = [s.__dict__ for s in sensors]
     a_list = [a.__dict__ for a in actuators]
     d_list = [d.__dict__ for d in displays]
@@ -59,9 +59,9 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[Actuator],dis
             #read_all_sensors(sensors)
             #write_all_actuators(actuators, i % 2)
             #write_all_displays(displays,"12345678910131517192123252729313335")
-            cyclic_read(sensors,displays,i)
+            #cyclic_read(sensors,displays,i)
             #network_connection.send('sciot.topic','u38.0.353.window.t.12345','Hello World')
-            #send_head(sensors,actuators,displays,network_connection)
+            send_all(sensors,actuators,displays,network_connection)
 
             # Reset
             if i > 240:

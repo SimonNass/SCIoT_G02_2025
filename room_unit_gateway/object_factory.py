@@ -1,6 +1,6 @@
 import json
 
-from sensors.sensor import SensorInterface, AnalogSensor, DigitalSensor, DigitalMultipleSensor
+from sensors.sensor import AnalogSensor, DigitalSensor, DigitalMultipleSensor
 from actuators.actuator import Actuator
 from actuators.display import Display
 from enumdef import Connectortype, Notifyinterval
