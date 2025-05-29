@@ -8,7 +8,7 @@ import uuid
 class Floor(db.Model):
     __tablename__ = 'floors'
 
-    id: Mapped[int] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     floor_number: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
     floor_name: Mapped[Optional[str]] = mapped_column(String(100))
     description: Mapped[Optional[str]] = mapped_column(Text)
@@ -28,7 +28,7 @@ class Floor(db.Model):
 class Room(db.Model):
     __tablename__ = 'rooms'
     
-    id: Mapped[int] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     room_number: Mapped[str] = mapped_column(String(20), nullable=False, unique=True) 
     room_type: Mapped[str] = mapped_column(String(50), nullable=False) 
     description: Mapped[Optional[str]] = mapped_column(Text)
@@ -54,7 +54,7 @@ class Room(db.Model):
 class Device(db.Model):
     __tablename__ = 'devices'
     
-    id: Mapped[int] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     device_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     device_type: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -63,7 +63,8 @@ class Device(db.Model):
     last_seen: Mapped[Optional[datetime]] = mapped_column(DateTime)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     # Todo: add max and min value
-    # Todo: interval for sensor data
+    # Todo: add last value for device
+    # Todo: add  unit of measurement for sensor data
     
     # Foreign key to Room
     room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id"), nullable=False)

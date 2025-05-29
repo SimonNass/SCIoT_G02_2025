@@ -152,7 +152,7 @@ def create_rooms_for_floor(floor_number):
 
 
 # List all floors with their rooms
-@api.route('/floors/list')
+@api.route('/floors/list', methods=['GET'])
 @require_api_key
 def list_all_floors():
     """Get all floors with their associated rooms"""
@@ -193,7 +193,7 @@ def list_all_floors():
 
 
 # List all rooms for a specific floor
-@api.route('/floors/<int:floor_number>/rooms/list')
+@api.route('/floors/<int:floor_number>/rooms/list', methods=['GET'])
 @require_api_key
 def list_rooms_for_floor(floor_number):
     """Get all rooms for a specific floor by floor number"""
@@ -238,7 +238,7 @@ def list_rooms_for_floor(floor_number):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@api.route('/devices/list')
+@api.route('/devices/list', methods=['GET'])
 @require_api_key
 def list_devices():
     devices = models.Device.query.all()
@@ -248,6 +248,99 @@ def list_devices():
         'name': d.name,
         'is_online': d.is_online,
     } for d in devices])
-    
-# @api.route('/floors/<int:floor_number>/rooms/<string:room_number>/devices/<string:device_id>', methods=['GET'])
-# Todo: Implement this endpoint to get device details
+
+@api.route('/floors/<int:floor_number>/rooms/<string:room_number>/devices/list', methods=['GET'])
+@require_api_key
+def list_devices_in_room(floor_number, room_number):
+   """
+   Get all devices in a specific room
+   Path: /floors/{floor_number}/rooms/{room_number}/devices/list
+   """
+   try:
+       floor = models.Floor.query.filter_by(floor_number=floor_number).first()
+       if not floor:
+           return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
+       
+       room = models.Room.query.filter_by(
+           room_number=room_number, 
+           floor_id=floor.id
+       ).first()
+       if not room:
+           return jsonify({'error': f'Room {room_number} does not exist on floor {floor_number}'}), 404
+       
+       # Get all devices in the room
+       devices = []
+       for device in room.devices:
+           device_data = {
+               'id': device.id,
+               'device_id': device.device_id,
+               'name': device.name,
+               'device_type': device.device_type,
+               'description': device.description,
+               'is_online': device.is_online,
+               'last_seen': device.last_seen.isoformat() if device.last_seen else None,
+               'created_at': device.created_at.isoformat()
+           }
+           devices.append(device_data)
+       
+       return jsonify({
+           'floor_number': floor_number,
+           'room_number': room_number,
+           'devices': devices,
+           'total_devices': len(devices)
+       }), 200
+       
+   except Exception as e:
+       return jsonify({'error': str(e)}), 500
+   
+@api.route('/floors/<int:floor_number>/rooms/<string:room_number>/devices/<string:device_id>', methods=['GET'])
+@require_api_key
+def get_device_details(floor_number, room_number, device_id):
+    """
+    Get detailed information about a specific device
+    Path: /floors/{floor_number}/rooms/{room_number}/devices/{device_id}
+    """
+    try:
+        floor = models.Floor.query.filter_by(floor_number=floor_number).first()
+        if not floor:
+            return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
+        
+        room = models.Room.query.filter_by(
+            room_number=room_number, 
+            floor_id=floor.id
+        ).first()
+        if not room:
+            return jsonify({'error': f'Room {room_number} does not exist on floor {floor_number}'}), 404
+        
+        device = models.Device.query.filter_by(
+            device_id=device_id,
+            room_id=room.id
+        ).first()
+        if not device:
+            return jsonify({'error': f'Device {device_id} does not exist in room {room_number} on floor {floor_number}'}), 404
+        
+        # Return detailed device information
+        device_details = {
+            'id': device.id,
+            'device_id': device.device_id,
+            'name': device.name,
+            'device_type': device.device_type,
+            'description': device.description,
+            'is_online': device.is_online,
+            'last_seen': device.last_seen.isoformat() if device.last_seen else None,
+            'created_at': device.created_at.isoformat(),
+            'location': {
+                'floor_number': floor.floor_number,
+                'floor_name': floor.floor_name,
+                'room_number': room.room_number,
+                'room_type': room.room_type,
+                'room_id': room.id
+            }
+        }
+        
+        return jsonify({
+            'device': device_details
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
