@@ -52,7 +52,7 @@ class AnalogSensor(SensorInterface):
 
 class DigitalSensor(SensorInterface):
     def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
-        if self.connector_type != Connectortype.Digital:
+        if connector_types != Connectortype.Digital:
             raise ValueError("connector_type is not Digital.")
         super.__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
         grovepi.pinMode(self.i2c_connector,"INPUT")
@@ -75,7 +75,7 @@ class DigitalSensor(SensorInterface):
 
 class DigitalMultipleSensor(SensorInterface):
     def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, i: int, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
-        if (self.connector_type != Connectortype.Digital_multiple_0) or (self.connector_type != Connectortype.Digital_multiple_1):
+        if (connector_types != Connectortype.Digital_multiple_0) or (connector_types != Connectortype.Digital_multiple_1):
             raise ValueError("connector_type is not Digital_multiple.")
         super.__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
         self.i = i
