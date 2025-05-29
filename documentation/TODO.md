@@ -1,8 +1,18 @@
 # TODO
 
 - Define API interfaces and MQTT topology
-- get the sensors working
-    - in a docker file
+- make docker components talk to each other
+- pi
+    - update python version in docker for room pi
+    - get the motor working
+    - test pi with no / wrong sensors
+    - pi check that with nothing conneted or connected wrong it stil works
+    - add pi add sensor value unit
+    - send Maix examples for sensor message example
+    - send maxi example actuator request and response
+    - add sensor min max values
+    - button add buffer to not send multiple messages if 
+    - send welkome message for display
 - build an overview UI
 - build DB
   - metadata
@@ -12,6 +22,7 @@
 - build planing AI
 - make docker components talk to each other
 - update python version in docker for room pi
+- send notes of lecture
 
 ## Meeting 27.05
 
@@ -26,3 +37,23 @@
   - [ ] Needed Backend Endpoints
 - [ ] Simulation
   - [ ] Decide on simulator (needs to provide data via MQTT)
+
+
+
+ai planing tools
+- editor.planing.domains https://editor.planning.domains/#
+- vsual studio code extension PDDL etension for Visual Studio Code
+
+ai planer of schelf
+fast Forward ff
+metric-ff (+ nummeric planers)
+ff-x
+conformant-ff
+configent-ff
+FD
+
+solver.planing.domains https://solver.planning.domains/ with POST request
+PDDL VS code extension (+ test cases)
+FF https://fai.cs.uni-saarland.de/hoffmann/ff.html
+JavaFF
+FD https://planning.wiki/ref/planners/fd
