@@ -7,7 +7,6 @@ from backend.mqtt.utils.cacheUtils import initialize_device_cache
 mqtt_client = None
 app_instance = None
 
-# Todo: Switch to device-id from sensor-id
 # Todo: Cron job to remove devices that have not sent data in a while and remove room if all devices are gone
 
 def on_connect(client, userdata, flags, rc):
@@ -25,7 +24,7 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     """
     Handle incoming MQTT messages
-    Topic format: SCIoT_G02_2025/<floor_number>/<room_number>/<sensor-type>/<sensor-id>
+    Topic format: SCIoT_G02_2025/<floor_number>/<room_number>/<sensor-type>/<device-id>
     """
     try:
         topic = msg.topic
@@ -40,14 +39,14 @@ def on_message(client, userdata, msg):
             logging.warning(f"Skipping message with invalid topic: {topic}")
             return
         
-        floor_number, room_number, sensor_type, sensor_id = parsed
+        floor_number, room_number, sensor_type, device_id = parsed
         
         # Get or create device
-        device_info = get_or_create_device(app_instance, floor_number, room_number, sensor_type, sensor_id)
+        device_info = get_or_create_device(app_instance, floor_number, room_number, sensor_type, device_id)
         
         if device_info:
             # Todo: Could process sensor data here i.e. write to redis?
-            logging.info(f"Processed sensor data for device {sensor_id} ({sensor_type}) in room {room_number}, floor {floor_number}")
+            logging.info(f"Processed sensor data for device {device_id} ({sensor_type}) in room {room_number}, floor {floor_number}")
         else:
             logging.error(f"Failed to process device for topic: {topic}")
     

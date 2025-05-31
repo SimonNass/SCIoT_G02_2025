@@ -2,8 +2,8 @@ import logging
 
 def parse_mqtt_topic(topic, app_instance):
     """
-    Parse MQTT topic: SCIoT_G02_2025/<floor>/<room>/<sensor-type>/<sensor-id>
-    Returns: (floor_number, room_number, sensor_type, sensor_id) or None if invalid
+    Parse MQTT topic: SCIoT_G02_2025/<floor>/<room>/<sensor-type>/<device-id>
+    Returns: (floor_number, room_number, sensor_type, device_id) or None if invalid
     """
     try:
         parts = topic.split('/')
@@ -14,7 +14,7 @@ def parse_mqtt_topic(topic, app_instance):
             logging.warning(f"Invalid topic format: {topic}")
             return None
         
-        _, floor_str, room_number, sensor_type, sensor_id = parts
+        _, floor_str, room_number, sensor_type, device_id = parts
         
         # Convert floor to integer
         try:
@@ -23,7 +23,7 @@ def parse_mqtt_topic(topic, app_instance):
             logging.warning(f"Invalid floor number in topic: {floor_str}")
             return None
         
-        return floor_number, room_number, sensor_type, sensor_id
+        return floor_number, room_number, sensor_type, device_id
     
     except Exception as e:
         logging.error(f"Error parsing topic {topic}: {str(e)}")
