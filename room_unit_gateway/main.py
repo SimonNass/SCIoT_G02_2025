@@ -7,56 +7,120 @@
 
 import time
 import sys
+from typing import List
 
 import config_reader
-from networking import MQTTendpoint
-from sensor import Sensor
-from actuator import Actuator
-from display import Display
+from networking.networking_domain import GatewayNetwork
+from sensors.sensor import SensorInterface
+from actuators.actuator import ActuatorInterface
+from enumdef import Connectortype
 
-time.sleep(1)
-i = 0
-togle = 0
+def system_info():
+    print (sys.version)
+    #print (sys.version_info)
 
-if len(sys.argv) != 2:
-    print ("Error CLI arguments incorrect")
+def read_all_sensors(sensors: List[SensorInterface]):
+    for sensor in sensors:
+        _ = sensor.read_sensor()
 
-config_values = config_reader.read_config(sys.argv[1])
-network_connection = MQTTendpoint(host=config_values['rabitMQ_host'],port=config_values['rabitMQ_port'],username=config_values['rabitMQ_username'],password=sys.argv[2])
+def write_all_actuators(actuators: List[ActuatorInterface], value: int):
+    for actuator in actuators:
+        actuator.write_actuator(value)
 
-sensors = config_values['sensor_class_list']
-actuators = config_values['actuator_class_list']
-displays = config_values['display_class_list']
+def write_all_displays(displays: List[ActuatorInterface], text: str):
+    for display in displays:
+        if display.connector_types != Connectortype.I2C_display:
+            continue
+        display.write_actuator(text)
 
-while True:
+def send_sensors(sensors: List[SensorInterface], network_connection: GatewayNetwork):
+    for sensor in sensors:
+        print ("--")
+        network_connection.send_all_sensor(sensor,True)
+
+def send_actuators(actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
+    for actuator in actuators:
+        print ("--")
+        network_connection.send_all_actuator(actuator)
+
+def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface], cycle: int, network_connection: GatewayNetwork):
+    for sensor in sensors:
+        if cycle % sensor.read_interval== 0:
+            sensor_value = sensor.read_sensor()
+            network_connection.send_all_sensor(sensor,False)
+            text = "{}: {}".format(sensor.name,str(sensor_value))
+            write_all_displays(displays, text)
+
+def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
+    print ("", flush=True)
+    send_sensors(sensors,network_connection)
+    send_actuators(actuators,network_connection)
+    i = 0
+    max_i = 240
+    want_to_exit = False
+    while not want_to_exit:
+        print ("", flush=True)
+        try:
+
+            #read_all_sensors(sensors)
+            #write_all_actuators(actuators, i % 2)
+            #write_all_displays(actuators,"12345678910131517192123252729313335")
+            #cyclic_read(sensors,actuators,i,network_connection)
+
+            # Reset
+            if i > max_i:
+                i = 0
+            # Increment
+            i = i + 1
+            want_to_exit = True
+            time.sleep(1)
+
+        except KeyboardInterrupt:
+            want_to_exit = True
+            break
+        except (IOError,TypeError) as e:
+            print ("Error")
+            print (e)
+            want_to_exit = True
+
+def main():
+    system_info()
+
+    if len(sys.argv) < 3 or len(sys.argv) > 3:
+        print ("Error CLI arguments incorrect")
+        print (sys.argv)
+
+    config_file_name = str(sys.argv[1])
+    password = str(sys.argv[2])
+
+    print ("", flush=True)
+
+    config_values = {}
+    sensors = []
+    actuators = []
+    gateway_network = None
     try:
-        # READ sensors
-        for sensor in sensors:
-            _ = sensor.read_sensor()
+        config_values = config_reader.read_config(config_file_name)
+        sensors = config_values['sensor_class_list']
+        actuators = config_values['actuator_class_list']
+    except Exception as e:
+        print ("Reading config file {} was not succesfull {}".format(config_file_name,config_values))
+        print (e, flush=True)
 
-        for actuator in actuators:
-            actuator.write_actuator(i)
+    try:
+        gateway_network = GatewayNetwork(host=config_values['mqtt_host'],port=config_values['mqtt_port'],username=config_values['mqtt_username'],password=password,floor_id=config_values['floor_id'],max_rooms_per_floor=config_values['max_rooms_per_floor'],room_id=config_values['room_id'])
+    except Exception as e:
+        print ("MQTT broker not connected.")
+        print (e, flush=True)
 
-        for display in displays:
-            display.write_display("Test")
+    execution_cycle(sensors,actuators,gateway_network)
 
-        # Reset
-        if i > 250:
-            i = 0
+    for sensor in sensors:
+        del sensor
+    for actuator in actuators:
+        del actuator
 
-        if togle == 1:
-            togle = 0
-        elif togle == 0:
-            togle = 1
 
-        # Increment brightness for next iteration
-        i = i + 1
-        time.sleep(1)
-
-        network_connection.send()
-
-    except KeyboardInterrupt:
-        # TODO delete all sensors, actuators and displays
-        break
-    except (IOError,TypeError):
-        print ("Error")
+# __name__
+if __name__=="__main__":
+    main()
