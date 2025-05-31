@@ -14,6 +14,7 @@ def initialize_device_cache(app_instance):
                     'id': device.id,
                     'room_id': device.room_id,
                     'device_type': device.device_type,
+                    'type_name': device.type_name,
                     'name': device.name,
                     'is_online': device.is_online
                 }
@@ -25,18 +26,16 @@ def initialize_device_cache(app_instance):
 def remove_device_from_cache(device_id):
     """
     Remove a device from the cache
-    
-    Args:
-        device_id (str): The device ID to remove from cache
     """
-    # Implementation depends on your cache structure
-    # Here's an example assuming you have a global device_cache dictionary
-    
+
+    global device_cache
     try:
-        # If you're using a simple dictionary cache
-        if hasattr(remove_device_from_cache, 'device_cache') and device_id in remove_device_from_cache.device_cache:
-            del remove_device_from_cache.device_cache[device_id]
+        if device_id in device_cache:
+            del device_cache[device_id]
+            logging.info(f"Device {device_id} removed from cache")
             return True
-        return True
+        logging.warning(f"Device {device_id} not found in cache")
+        return False
     except Exception as e:
-        raise Exception(f"Failed to remove device {device_id} from cache: {str(e)}")
+        logging.error(f"Failed to remove device {device_id} from cache: {str(e)}")
+        return False
