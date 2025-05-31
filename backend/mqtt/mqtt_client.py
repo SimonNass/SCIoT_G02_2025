@@ -7,7 +7,6 @@ from backend.mqtt.utils.cacheUtils import initialize_device_cache
 mqtt_client = None
 app_instance = None
 
-# Todo: Cron job to remove devices that have not sent data in a while and remove room if all devices are gone
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:

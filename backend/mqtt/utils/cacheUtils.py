@@ -20,3 +20,23 @@ def initialize_device_cache(app_instance):
             logging.info(f"Device cache initialized with {len(device_cache)} devices")
     except Exception as e:
         logging.error(f"Failed to initialize device cache: {str(e)}")
+
+
+def remove_device_from_cache(device_id):
+    """
+    Remove a device from the cache
+    
+    Args:
+        device_id (str): The device ID to remove from cache
+    """
+    # Implementation depends on your cache structure
+    # Here's an example assuming you have a global device_cache dictionary
+    
+    try:
+        # If you're using a simple dictionary cache
+        if hasattr(remove_device_from_cache, 'device_cache') and device_id in remove_device_from_cache.device_cache:
+            del remove_device_from_cache.device_cache[device_id]
+            return True
+        return True
+    except Exception as e:
+        raise Exception(f"Failed to remove device {device_id} from cache: {str(e)}")

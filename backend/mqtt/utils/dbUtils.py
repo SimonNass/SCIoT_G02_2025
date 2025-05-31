@@ -22,15 +22,13 @@ def get_or_create_device(app_instance, floor_number, room_number, sensor_type, d
         with app_instance.app_context():
             floor = models.Floor.query.filter_by(floor_number=floor_number).first()
             if not floor:
-                # Todo: fix error message
-                logging.error(f"Floor {floor_number} does not exist for device {device_id}")
+                logging.error(f"Floor {floor_number} does not exist")
                 return None
             
             # Check if room exists
             room = models.Room.query.filter_by(room_number=room_number, floor_id=floor.id).first()
             if not room:
-                # Todo: fix error message
-                logging.error(f"Room {room_number} on floor {floor_number} does not exist for device {device_id}")
+                logging.error(f"Room {room_number} on floor {floor_number} does not exist")
                 return None
             
             # Try to get existing device first
