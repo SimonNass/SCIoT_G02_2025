@@ -11,14 +11,14 @@
 )
 
 (:init
-    (is_on green_led)
+    (is_activated green_led)
 )
 
 (:goal
     (and
-        (is_on green_led)
-        (is_on blue_led)
-        (is_on red_led)
+        (is_activated green_led)
+        (is_activated blue_led)
+        (is_activated red_led)
     )
 )
 )

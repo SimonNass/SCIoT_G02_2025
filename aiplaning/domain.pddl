@@ -5,9 +5,14 @@
 (:requirements :strips :typing :negative-preconditions)
 
 (:types floor room sensor actuator - object
-    temperature_s humidity_s light_s sound_s rotation_s button_s motion_s - sensor
-    light_a switch_a display_a - actuator
-    light_dimmer_a light_switch_a - light_a
+    binary_s numerical_s textual_s - sensor
+    button_s motion_s - binary_s
+    temperature_s humidity_s light_s sound_s rotation_s - numerical_s
+    ; - textual_s
+    binary_a numerical_a textual_a - actuator
+    switch_a light_switch_a - binary_a
+    light_dimmer_a - numerical_a
+    display_a - textual_a
 )
 
 (:predicates
@@ -17,50 +22,52 @@
     (is_next_to ?room1 - room ?room2 - room) ; are the rooms next to each other
     (is_ocupied ?room - room) ; is the room ocupied
     (is_cleaned ?room - room) ; is the room cleaned
-    (is_pressed ?button - button_s) ; is the button pressed
-    (detects_motion ?motion - motion_s) ; is a motion detected
-    (is_on ?light - light_a) ; is a lightsource on
+    (is_sensing ?sensor - binary_s) ; is the sensor prodicing a signal
+    ;(is_pressed ?button - button_s) ; is the button pressed
+    ;(detects_motion ?motion - motion_s) ; is a motion detected
+    (is_activated ?actuator - actuator) ; is a actuator on
+    ;(is_on ?light - light_a) ; is a lightsource on
 )
 
 ; this action turns on the light
 (:action turn_on
-    :parameters (?light - light_switch_a)
+    :parameters (?actuator - binary_a)
     :precondition (and
         ; we only ever need to do it once
-        (not (is_on ?light))
+        (not (is_activated ?actuator))
     )
     :effect (and
-        (is_on ?light)
+        (is_activated ?actuator)
     )
 )
 (:action turn_off
-    :parameters (?light - light_switch_a)
+    :parameters (?actuator - binary_a)
     :precondition (and
         ; we only ever need to do it once
-        (is_on ?light)
+        (is_activated ?actuator)
     )
     :effect (and
-        (not (is_on ?light))
+        (not (is_activated ?actuator))
     )
 )
-(:action increase_light
-    :parameters (?light - light_a)
+(:action increase_a
+    :parameters (?actuator - numerical_a)
     :precondition (and
         ; we only ever need to do it once
-        (not (is_on ?light))
+        (not (is_activated ?actuator))
     )
     :effect (and
-        (is_on ?light)
+        (is_activated ?actuator)
     )
 )
-(:action decrease_light
-    :parameters (?light - light_a)
+(:action decrease_a
+    :parameters (?actuator - numerical_a)
     :precondition (and
         ; we only ever need to do it once
-        (is_on ?light)
+        (is_activated ?actuator)
     )
     :effect (and
-        (not (is_on ?light))
+        (not (is_activated ?actuator))
     )
 )
 
