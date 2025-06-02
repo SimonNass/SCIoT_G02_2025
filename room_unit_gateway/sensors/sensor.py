@@ -35,7 +35,7 @@ class SensorInterface(ABC):
             self.last_value = self.read_internal_sensor()
             print ("{}: {}".format(self.name,self.last_value))
             return self.__dict__()
-        except Exception as e:
+        except (Exception, IOError, TypeError) as e:
             print ("read was unsucesful")
             print (e)
 
