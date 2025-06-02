@@ -55,8 +55,8 @@ def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface
 
 def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
     print ("", flush=True)
-    send_sensors(sensors,network_connection)
-    send_actuators(actuators,network_connection)
+    #send_sensors(sensors,network_connection)
+    #send_actuators(actuators,network_connection)
     i = 0
     max_i = 240
     want_to_exit = False
@@ -64,7 +64,7 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
         print ("", flush=True)
         try:
 
-            #read_all_sensors(sensors)
+            read_all_sensors(sensors)
             #write_all_actuators(actuators, i % 2)
             #write_all_displays(actuators,"12345678910131517192123252729313335")
             #cyclic_read(sensors,actuators,i,network_connection)
