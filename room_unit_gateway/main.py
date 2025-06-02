@@ -61,23 +61,26 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
     print ("", flush=True)
     #send_sensors(sensors,network_connection)
     #send_actuators(actuators,network_connection)
-    i = 0
-    max_i = 240
+    cycle = 0
+    max_cycle_time = 240
     want_to_exit = False
     while not want_to_exit:
         print ("", flush=True)
         try:
 
             read_all_sensors(sensors)
-            #write_all_actuators(actuators, i % 2)
+            #write_all_actuators(actuators, cycle % 2)
             #write_all_displays(actuators,"12345678910131517192123252729313335")
-            #cyclic_read(sensors,actuators,i,network_connection)
+            #cyclic_read(sensors,actuators,cycle,network_connection)
 
             # Reset
-            if i > max_i:
-                i = 0
+            if cycle > max_cycle_time:
+                cycle = 0
+                #send_sensors(sensors,network_connection)
+                #send_actuators(actuators,network_connection)
+
             # Increment
-            i = i + 1
+            cycle = cycle + 1
             want_to_exit = True
             time.sleep(1)
 
