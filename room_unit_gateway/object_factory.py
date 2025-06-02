@@ -1,6 +1,6 @@
 import json
 
-from sensors.sensor import AnalogSensor, DigitalSensor, DigitalMultipleSensor
+from sensors.sensor import AnalogSensor, DigitalSensor, DigitalMultipleSensor, VirtualSensor
 from actuators.actuator import AnalogActuator, DigitalActuator
 from actuators.display import DisplayActuator
 from enumdef import Connectortype, Notifyinterval
@@ -29,6 +29,8 @@ def configure_sensors(json_list: json, types: dict):
                 sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,i=0,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
             elif connector_types == Connectortype.Digital_multiple_1:
                 sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,i=1,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            elif connector_types == Connectortype.Virtual:
+                sensor_object = VirtualSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
             else:
                 raise ValueError("Connector_type is not implemented.")
             sensors.append(sensor_object)
