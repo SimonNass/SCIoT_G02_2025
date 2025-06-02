@@ -8,6 +8,7 @@
 import time
 import sys
 from typing import List
+import grovepi
 
 import config_reader
 from networking.networking_domain import GatewayNetwork
@@ -17,7 +18,8 @@ from enumdef import Connectortype
 
 def system_info():
     print (sys.version)
-    #print (sys.version_info)
+    print (sys.version_info)
+    print (grovepi.version())
 
 def read_all_sensors(sensors: List[SensorInterface]):
     for sensor in sensors:
@@ -35,12 +37,12 @@ def write_all_displays(displays: List[ActuatorInterface], text: str):
 
 def send_sensors(sensors: List[SensorInterface], network_connection: GatewayNetwork):
     for sensor in sensors:
-        print ("--")
+        print ("--", flush=True)
         network_connection.send_all_data_sensor(sensor,True)
 
 def send_actuators(actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
     for actuator in actuators:
-        print ("--")
+        print ("--", flush=True)
         network_connection.send_all_data_actuator(actuator)
 
 def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface], cycle: int, network_connection: GatewayNetwork):
