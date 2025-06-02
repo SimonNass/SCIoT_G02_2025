@@ -9,6 +9,7 @@
     - send maxi example actuator request and response
     - button add buffer to not send multiple messages if 
     - send welkome message for display
+    - sensors int of float
 - build an overview UI
 - build DB
   - metadata

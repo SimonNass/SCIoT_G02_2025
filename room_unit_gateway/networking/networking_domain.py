@@ -12,16 +12,19 @@ class GatewayNetwork:
         self.publisher = MQTTPublishEndpoint(host=host,port=port,username=username,password=password,topic_prefix=topic_prefix)
         self.subscriber = MQTTSubscribeEndpoint(host=host,port=port,username=username,password=password,topic_prefix=topic_prefix)
 
-    def send_all_sensor(self, sensor: SensorInterface, read_value: bool):
+    def send_all_data_sensor(self, sensor: SensorInterface, read_value: bool):
+        read_dict = {}
         if read_value:
-            sensor.read_sensor()
+            read_dict = sensor.read_sensor()
+        else:
+            read_dict = sensor.__dict__()
         topic = '{}/all'.format(str(sensor.id))
-        text = json.dumps(sensor.__dict__())
+        text = json.dumps(read_dict)
         #print (topic)
         #print (text)
         self.publisher.send(topic,'u38.0.353.window.t.12345',text)
 
-    def send_all_actuator(self, actuator: ActuatorInterface):
+    def send_all_data_actuator(self, actuator: ActuatorInterface):
         topic = '{}/all'.format(str(actuator.id))
         text = json.dumps(actuator.__dict__())
         #print (topic)

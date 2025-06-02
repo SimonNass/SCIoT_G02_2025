@@ -36,19 +36,19 @@ def write_all_displays(displays: List[ActuatorInterface], text: str):
 def send_sensors(sensors: List[SensorInterface], network_connection: GatewayNetwork):
     for sensor in sensors:
         print ("--")
-        network_connection.send_all_sensor(sensor,True)
+        network_connection.send_all_data_sensor(sensor,True)
 
 def send_actuators(actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
     for actuator in actuators:
         print ("--")
-        network_connection.send_all_actuator(actuator)
+        network_connection.send_all_data_actuator(actuator)
 
 def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface], cycle: int, network_connection: GatewayNetwork):
     for sensor in sensors:
         if cycle % sensor.read_interval== 0:
-            sensor_value = sensor.read_sensor()
-            network_connection.send_all_sensor(sensor,False)
-            text = "{}: {}".format(sensor.name,str(sensor_value))
+            read_dict = sensor.read_sensor()
+            network_connection.send_all_data_sensor(sensor,False)
+            text = "{}: {}".format(sensor.name,str(read_dict["last_value"]))
             write_all_displays(displays, text)
 
 def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
