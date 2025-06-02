@@ -50,8 +50,10 @@ def send_actuators(actuators: List[ActuatorInterface], network_connection: Gatew
 def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface], cycle: int, network_connection: GatewayNetwork):
     for sensor in sensors:
         if cycle % sensor.read_interval== 0:
+            old_value = sensor.last_value
             read_dict = sensor.read_sensor()
-            network_connection.send_all_data_sensor(sensor,False)
+            if abs(old_value - sensor.last_value) >= sensor.notify_change_precision:
+                network_connection.send_all_data_sensor(sensor,True)
             text = "{}: {}".format(sensor.name,str(read_dict["last_value"]))
             write_all_displays(displays, text)
 
