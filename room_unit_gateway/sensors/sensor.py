@@ -87,7 +87,7 @@ class VirtualSensor(SensorInterface):
         if connector_types != Connectortype.Virtual:
             raise ValueError("connector_type is not Digital.")
         super().__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
-        #self.rng = np.random.default_rng(seed = self.i2c_connector)
+        #self.rng = np.random.default_rng(seed = self.i2c_connector) #doas not work on pi
         _ = self.read_sensor()
 
     def read_internal_sensor(self):
