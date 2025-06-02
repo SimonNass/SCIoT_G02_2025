@@ -37,9 +37,13 @@ class DisplayActuator(ActuatorInterface):
                 print ("Text is too long")
                 #raise ValueError("Text is too long")
                 write_value = write_value[:self.char_limit]
-            setText(write_value)
+            _ = self.write_internal_actuator(write_value)
             self.last_value = write_value
             print ("{}: {}".format(self.name,self.last_value))
         except Exception as e:
             print ("write was unsucesful")
             print (e)
+    
+    def write_internal_actuator(self, write_value: str):
+        setText(write_value)
+        return 1
