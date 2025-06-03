@@ -3,7 +3,7 @@ import json
 
 def parse_mqtt_topic(topic, app_instance):
     """
-    Parse MQTT topic: SCIoT_G02_2025/<floor>/<room>/<sensor-type>/<device-id>
+    Parse MQTT topic: SCIoT_G02_2025/<floor>/<room>/<sensor-type>/<device-id>/ALL
     Returns: (floor_number, room_number, sensor_type, device_id) or None if invalid
     """
     try:
@@ -15,11 +15,11 @@ def parse_mqtt_topic(topic, app_instance):
         
         # Get the expected topic prefix from config
         expected_prefix = app_instance.config['MQTT_TOPIC_SUBSCRIBE'].split('/')[0]
-        if len(parts) != 5 or parts[0] != expected_prefix:
+        if len(parts) != 6 or parts[0] != expected_prefix:
             logging.warning(f"Invalid topic format: {topic}")
             return None
         
-        _, floor_str, room_number, sensor_type, device_id = parts
+        _, floor_str, room_number, sensor_type, device_id, _ = parts
         
         # Convert floor to integer
         try:
