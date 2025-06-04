@@ -4,7 +4,7 @@ import paho.mqtt.client as mqtt
 from paho.mqtt.properties import Properties
 from paho.mqtt.packettypes import PacketTypes
 
-class MQTTPublishEndpoint:
+class MQTTEndpoint:
     def __init__(self, host: str, port: int, username: str, password: str, topic_prefix: str):
         self.host = remove_quotation(host)
         self.port = port
