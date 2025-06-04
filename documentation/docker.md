@@ -5,6 +5,14 @@
 - navgate to SCIoT_G02_2025
 - docker-compose up
 
+#### debug
+docker-compose down --volumes --remove-orphans
+docker system prune -af
+docker-compose pull
+docker-compose build
+docker-compose up
+
+
 ### pi room
 - make sure ssh and I2C are allowed in the configurations of the pi
 - configure room_unit_gateway/config.ini for the current hardware setting
