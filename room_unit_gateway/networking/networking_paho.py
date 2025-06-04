@@ -12,7 +12,7 @@ class MQTTEndpoint:
         self.password = password
         self.topic_prefix = topic_prefix # eg. str("iot/1/101/")
         self.mqtt_client = None
-        self.timeout = 60
+        self.timeout = 600
         self.qos = 2
         print ("Selected host: {} and port: {}".format(self.host,self.port))
         print ("Username {} with password length {}".format(self.username,len(self.password)))
