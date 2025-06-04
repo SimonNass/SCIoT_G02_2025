@@ -2,8 +2,8 @@
 
 import json
 
-from networking.networking_pika import MQTTPublishEndpoint, MQTTSubscribeEndpoint
-#from networking.networking_paho import MQTTPublishEndpoint, MQTTSubscribeEndpoint
+#from networking.networking_pika import MQTTPublishEndpoint, MQTTSubscribeEndpoint
+from networking.networking_paho import MQTTPublishEndpoint, MQTTSubscribeEndpoint
 from sensors.sensor import SensorInterface
 from actuators.actuator import ActuatorInterface
 
