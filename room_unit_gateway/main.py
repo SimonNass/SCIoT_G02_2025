@@ -59,8 +59,8 @@ def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface
 
 def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
     print ("", flush=True)
-    #send_sensors(sensors,network_connection)
-    #send_actuators(actuators,network_connection)
+    send_sensors(sensors,network_connection)
+    send_actuators(actuators,network_connection)
     cycle = 0
     max_cycle_time = 240
     want_to_exit = False
@@ -76,12 +76,12 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
             # Reset
             if cycle > max_cycle_time:
                 cycle = 0
-                #send_sensors(sensors,network_connection)
-                #send_actuators(actuators,network_connection)
+                send_sensors(sensors,network_connection)
+                send_actuators(actuators,network_connection)
 
             # Increment
             cycle = cycle + 1
-            want_to_exit = True
+            #want_to_exit = True
             time.sleep(1)
 
         except KeyboardInterrupt:

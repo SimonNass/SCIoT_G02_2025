@@ -10,6 +10,9 @@
     - button add buffer to not send multiple messages if 
     - send welkome message for display
     - sensors int of float
+    - add logger
+    - mqtt keep alive
+    - mqtt qos at most once, at least once, ...
 - build an overview UI
 - build DB
   - metadata
