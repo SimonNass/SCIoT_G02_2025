@@ -6,6 +6,7 @@ from backend.mqtt.mqtt_client import start_mqtt_client
 from backend.routes import register_routes
 # Necessary s.t. create_all() knows what models to create
 from backend.models import models
+from backend.cron.deviceCron import start_scheduler
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -29,5 +30,8 @@ def create_app(config_class=Config):
     
     register_routes(app)
     start_mqtt_client(app)
+
+    # Start the scheduler for device management cronjobs
+    start_scheduler(app)
     
     return app

@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text, Boolean, Integer, DateTime, ForeignKey
+from sqlalchemy import String, Text, Boolean, Integer, DateTime, ForeignKey, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from typing import List, Optional
@@ -57,20 +57,56 @@ class Device(db.Model):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     device_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    device_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    device_type: Mapped[str] = mapped_column(String(50), nullable=False)  # 'sensor' or 'actuator'
+    type_name: Mapped[str] = mapped_column(String(100), nullable=False)  # 'temperature', 'humidity', etc.
     description: Mapped[Optional[str]] = mapped_column(Text)
     is_online: Mapped[bool] = mapped_column(Boolean, default=False)
     last_seen: Mapped[Optional[datetime]] = mapped_column(DateTime)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    # Todo: add max and min value
-    # Todo: add last value for device
-    # Todo: add  unit of measurement for sensor data
+    
+    # Device specifications
+    connector: Mapped[Optional[str]] = mapped_column(String(50))
+    connector_type: Mapped[Optional[str]] = mapped_column(String(50))
+    min_value: Mapped[Optional[float]] = mapped_column(Float)
+    max_value: Mapped[Optional[float]] = mapped_column(Float)
+    datatype: Mapped[Optional[str]] = mapped_column(String(50))
+    unit: Mapped[Optional[str]] = mapped_column(String(20))
+    last_value: Mapped[Optional[str]] = mapped_column(Text)
+    
+    # Sensor-specific fields
+    read_interval: Mapped[Optional[int]] = mapped_column(Integer)
+    notify_interval: Mapped[Optional[str]] = mapped_column(String(50))
+    notify_change_precision: Mapped[Optional[float]] = mapped_column(Float)
+    
+    # Actuator-specific fields
+    initial_value: Mapped[Optional[str]] = mapped_column(String(100))
+    off_value: Mapped[Optional[str]] = mapped_column(String(100))
     
     # Foreign key to Room
     room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id"), nullable=False)
     
     # Relationship
     room: Mapped["Room"] = relationship(back_populates="devices")
+    sensor_data: Mapped[List["SensorData"]] = relationship(
+        back_populates="device", 
+        cascade="all, delete-orphan",
+        order_by="SensorData.timestamp.desc()"
+    )
     
     def __repr__(self) -> str:
         return f"Device(id={self.id!r}, device_id={self.device_id!r}, name={self.name!r}, type={self.device_type!r})"
+
+class SensorData(db.Model):
+    """Store time-series data from sensors/actuators"""
+    __tablename__ = 'sensor_data'
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    device_id: Mapped[str] = mapped_column(ForeignKey("devices.id"), nullable=False)
+    value: Mapped[str] = mapped_column(Text, nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Relationship
+    device: Mapped["Device"] = relationship(back_populates="sensor_data")
+    
+    def __repr__(self) -> str:
+        return f"SensorData(id={self.id!r}, device_id={self.device_id!r}, value={self.value!r}, timestamp={self.timestamp!r})"
