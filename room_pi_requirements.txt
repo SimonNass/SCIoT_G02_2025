@@ -1,5 +1,5 @@
 configparser
 pika
 typing_extensions
-paho-mqtt
+paho-mqtt==2.1.0
 numpy

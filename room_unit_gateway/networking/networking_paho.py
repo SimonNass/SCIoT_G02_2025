@@ -28,7 +28,7 @@ class MQTTEndpoint:
 
     def connect(self):
         try:
-            self.mqtt_client = mqtt.Client("test_gateway_1")
+            self.mqtt_client = mqtt.Client()
             self.mqtt_client.subscribe(self.topic_prefix + '#')
             self.mqtt_client.on_message = self.recv()
             self.mqtt_client.connect(host=self.host, port=self.port, keepalive=self.timeout)
