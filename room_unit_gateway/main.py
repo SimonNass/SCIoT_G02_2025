@@ -8,8 +8,11 @@
 import time
 import sys
 from typing import List
-import grovepi
 import numpy as np
+try:
+    import grovepi
+except ImportError:
+    grovepi = None
 
 import config_reader
 from networking.networking_domain import GatewayNetwork
@@ -20,7 +23,10 @@ from enumdef import Connectortype
 def system_info():
     print (sys.version)
     print (sys.version_info)
-    print ("grovepi version: " + str(grovepi.version()))
+    try:
+        print ("grovepi version: " + str(grovepi.version()))
+    except AttributeError:
+        pass
     print ("numpy version:" + str(np.version.version))
 
 def read_all_sensors(sensors: List[SensorInterface]):

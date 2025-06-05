@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
 from typing import Union
-import grovepi
-from grovepi import *
+try:
+    import grovepi
+    from grovepi import *
+except ImportError:
+    grovepi = None
 import uuid
 from abc import ABC, abstractmethod
 

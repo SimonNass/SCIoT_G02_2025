@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
-import grovepi
-from grovepi import *
+try:
+    import grovepi
+    from grovepi import *
+except ImportError:
+    grovepi = None
 import numpy as np
 import uuid
 from abc import ABC, abstractmethod

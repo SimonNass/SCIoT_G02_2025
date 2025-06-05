@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
-import grovepi
-from grove_rgb_lcd import *
-import uuid
+try:
+    import grovepi
+    from grove_rgb_lcd import *
+except ImportError:
+    grovepi = None
+    grove_rgb_lcd = None
 
 from enumdef import Connectortype
 from actuators.actuator import ActuatorInterface
