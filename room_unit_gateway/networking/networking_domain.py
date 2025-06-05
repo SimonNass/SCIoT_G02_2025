@@ -8,7 +8,7 @@ from actuators.actuator import ActuatorInterface
 
 class GatewayNetwork:
     def __init__(self, host: str, port: int, username: str, password: str, floor_id: int, max_rooms_per_floor: int, room_id: int):
-        room_extended_id = floor_id * max_rooms_per_floor + room_id
+        room_extended_id = int(floor_id) * int(max_rooms_per_floor) + int(room_id)
         topic_prefix = "SCIoT_G02_2025/" + str(floor_id) + "/" + str(room_extended_id) + "/"
         print("{} {} {} {} \n".format(room_extended_id, floor_id, max_rooms_per_floor, room_id))
         self.publisher = MQTTEndpoint(host=host,port=port,username=username,password=password,topic_prefix=topic_prefix)
