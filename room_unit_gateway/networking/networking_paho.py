@@ -37,7 +37,7 @@ class MQTTEndpoint:
             print ("Connection unable to establisch.")
             print (e)
 
-    def send(self, topic: str, routing_key: str, message: str):
+    def send(self, topic: str, message: str):
         if not self.is_connected():
             self.connect()
         try:
