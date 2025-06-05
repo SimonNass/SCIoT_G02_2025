@@ -3,6 +3,8 @@
 import paho.mqtt.client as mqtt
 from paho.mqtt.properties import Properties
 from paho.mqtt.packettypes import PacketTypes
+import logging
+logger = logging.getLogger(__name__)
 
 class MQTTEndpoint:
     def __init__(self, host: str, port: int, username: str, password: str, topic_prefix: str):
@@ -16,6 +18,8 @@ class MQTTEndpoint:
         self.qos = 2
         print ("Selected host: {} and port: {}".format(self.host,self.port))
         print ("Username {} with password length {}".format(self.username,len(self.password)))
+        logger.info("Selected host: {} and port: {}".format(self.host,self.port))
+        logger.info("Username {} with password length {}".format(self.username,len(self.password)))
         self.connect()
 
     def __del__(self):
@@ -35,7 +39,8 @@ class MQTTEndpoint:
             self.mqtt_client.loop_start()
         except Exception as e:
             print ("Connection unable to establisch.")
-            print (e)
+            #print (e)
+            logger.info("Connection unable to establisch. {}".format(e))
 
     def send(self, topic: str, message: str):
         if not self.is_connected():
@@ -46,14 +51,16 @@ class MQTTEndpoint:
             self.mqtt_client.publish(self.topic_prefix + topic,payload=message,qos=self.qos,properties=properties)
         except Exception as e:
             print ("Connection failed.")
-            print (e)
+            #print (e)
+            logger.info("Connection failed {}".format(e))
     
     def recv(self): # TODO
         try:
             pass
         except Exception as e:
             print ("Connection failed.")
-            print (e)
+            #print (e)
+            logger.info("Connection failed {}".format(e))
     
     def is_connected(self): # TODO
         return (self.mqtt_client != None) and (self.mqtt_client.is_connected())

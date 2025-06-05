@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 
 from typing import Union
-import grovepi
-from grovepi import *
+try:
+    import grovepi
+    from grovepi import *
+except ImportError:
+    grovepi = None
 import uuid
 from abc import ABC, abstractmethod
+import logging
+logger = logging.getLogger(__name__)
 
 from enumdef import Connectortype
 
@@ -27,7 +32,12 @@ class ActuatorInterface(ABC):
         if not self.is_valid(self.initial_value):
             self.last_value = min_value
         self.off_value = max(min_value,min(max_value,off_value))
-        grovepi.pinMode(self.i2c_connector,"OUTPUT")
+        try:
+            grovepi.pinMode(self.i2c_connector,"OUTPUT")
+        except  AttributeError as e:
+            print ("pinMode was unsucesful")
+            #print (e)
+            logger.info("pinMode was unsucesful {}".format(e))
 
     @abstractmethod
     def __del__(self):
@@ -50,7 +60,8 @@ class ActuatorInterface(ABC):
             print ("{}: {}".format(self.name,self.last_value))
         except Exception as e:
             print ("write was unsucesful")
-            print (e)
+            #print (e)
+            logger.info("write was unsucesful {}".format(e))
 
     @abstractmethod
     def write_internal_actuator(self, value: int):

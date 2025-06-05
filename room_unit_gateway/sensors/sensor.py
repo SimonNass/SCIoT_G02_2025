@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 
-import grovepi
-from grovepi import *
+try:
+    import grovepi
+    from grovepi import *
+except ImportError:
+    grovepi = None
 import numpy as np
 import uuid
 from abc import ABC, abstractmethod
+import logging
+logger = logging.getLogger(__name__)
 
 from enumdef import Connectortype, Notifyinterval
 
@@ -37,7 +42,8 @@ class SensorInterface(ABC):
             return self.__dict__()
         except (Exception, IOError, TypeError) as e:
             print ("read was unsucesful")
-            print (e)
+            #print (e)
+            logger.info("read was unsucesful {}".format(e))
 
     @abstractmethod
     def read_internal_sensor(self):
@@ -58,7 +64,12 @@ class DigitalSensor(SensorInterface):
         if connector_types != Connectortype.Digital:
             raise ValueError("connector_type is not Digital.")
         super().__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
-        grovepi.pinMode(self.i2c_connector,"INPUT")
+        try:
+            grovepi.pinMode(self.i2c_connector,"INPUT")
+        except  AttributeError as e:
+            print ("pinMode was unsucesful")
+            #print (e)
+            logger.info("pinMode was unsucesful {}".format(e))
         _ = self.read_sensor()
 
     def read_internal_sensor(self):
@@ -70,7 +81,12 @@ class DigitalMultipleSensor(SensorInterface):
             raise ValueError("connector_type is not Digital_multiple.")
         super().__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
         self.i = i
-        grovepi.pinMode(self.i2c_connector,"INPUT")
+        try:
+            grovepi.pinMode(self.i2c_connector,"INPUT")
+        except  AttributeError as e:
+            print ("pinMode was unsucesful")
+            #print (e)
+            logger.info("pinMode was unsucesful {}".format(e))
         _ = self.read_sensor()
 
     def read_internal_sensor(self):

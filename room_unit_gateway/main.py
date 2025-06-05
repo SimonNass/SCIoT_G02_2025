@@ -8,8 +8,14 @@
 import time
 import sys
 from typing import List
-import grovepi
 import numpy as np
+import logging
+logger = logging.getLogger(__name__)
+
+try:
+    import grovepi
+except ImportError:
+    grovepi = None
 
 import config_reader
 from networking.networking_domain import GatewayNetwork
@@ -19,9 +25,16 @@ from enumdef import Connectortype
 
 def system_info():
     print (sys.version)
-    print (sys.version_info)
-    print ("grovepi version: " + str(grovepi.version()))
-    print ("numpy version:" + str(np.version.version))
+    #print (sys.version_info)
+    logger.info(sys.version)
+    logger.info(sys.version_info)
+    try:
+        #print ("grovepi version: " + str(grovepi.version()))
+        logger.info("grovepi version: " + str(grovepi.version()))
+    except AttributeError:
+        pass
+    #print ("numpy version:" + str(np.version.version))
+    logger.info("numpy version:" + str(np.version.version))
 
 def read_all_sensors(sensors: List[SensorInterface]):
     for sensor in sensors:
@@ -89,15 +102,19 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
             break
         except (IOError,TypeError) as e:
             print ("Error")
-            print (e)
+            #print (e)
+            logger.info(e)
             want_to_exit = True
 
 def main():
+    logging.basicConfig(filename='pi_room_gateway.log', level=logging.INFO)
+    logger.info("xxxx Started new execution.")
     system_info()
 
     if len(sys.argv) < 3 or len(sys.argv) > 3:
         print ("Error CLI arguments incorrect")
         print (sys.argv)
+        logger.info("Error CLI arguments incorrect {}".format(sys.argv))
 
     config_file_name = str(sys.argv[1])
     password = str(sys.argv[2])
@@ -115,12 +132,14 @@ def main():
     except Exception as e:
         print ("Reading config file {} was not succesfull {}".format(config_file_name,config_values))
         print (e, flush=True)
+        logger.info("Reading config file {} was not succesfull {}, {}".format(config_file_name,config_values, e))
 
     try:
         gateway_network = GatewayNetwork(host=config_values['mqtt_host'],port=config_values['mqtt_port'],username=config_values['mqtt_username'],password=password,floor_id=config_values['floor_id'],max_rooms_per_floor=config_values['max_rooms_per_floor'],room_id=config_values['room_id'])
     except Exception as e:
         print ("MQTT broker not connected.")
         print (e, flush=True)
+        logger.info("MQTT broker not connected. {}".format(e))
 
     execution_cycle(sensors,actuators,gateway_network)
 

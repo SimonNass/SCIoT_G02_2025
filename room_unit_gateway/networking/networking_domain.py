@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import json
+import logging
+logger = logging.getLogger(__name__)
 
 from networking.networking_paho import MQTTEndpoint
 from sensors.sensor import SensorInterface

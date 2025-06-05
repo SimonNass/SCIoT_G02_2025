@@ -1,4 +1,6 @@
 import json
+import logging
+logger = logging.getLogger(__name__)
 
 from sensors.sensor import AnalogSensor, DigitalSensor, DigitalMultipleSensor, VirtualSensor
 from actuators.actuator import AnalogActuator, DigitalActuator
@@ -36,6 +38,7 @@ def configure_sensors(json_list: json, types: dict):
             sensors.append(sensor_object)
         except Exception as e:
             print (e, flush=True)
+            logger.info("{}".format(e))
     return sensors
 
 def configure_sensor_types(json_list: json):
@@ -81,6 +84,7 @@ def configure_actuators(json_list: json, types: dict):
             actuators.append(actuator_object)
         except Exception as e:
             print (e, flush=True)
+            logger.info("{}".format(e))
     return actuators
 
 def configure_actuator_types(json_list: json):
