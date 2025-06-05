@@ -8,6 +8,8 @@ except ImportError:
 import numpy as np
 import uuid
 from abc import ABC, abstractmethod
+import logging
+logger = logging.getLogger(__name__)
 
 from enumdef import Connectortype, Notifyinterval
 
@@ -40,7 +42,8 @@ class SensorInterface(ABC):
             return self.__dict__()
         except (Exception, IOError, TypeError) as e:
             print ("read was unsucesful")
-            print (e)
+            #print (e)
+            logger.info("read was unsucesful {}".format(e))
 
     @abstractmethod
     def read_internal_sensor(self):
@@ -65,7 +68,8 @@ class DigitalSensor(SensorInterface):
             grovepi.pinMode(self.i2c_connector,"INPUT")
         except  AttributeError as e:
             print ("pinMode was unsucesful")
-            print (e)
+            #print (e)
+            logger.info("pinMode was unsucesful {}".format(e))
         _ = self.read_sensor()
 
     def read_internal_sensor(self):
@@ -81,7 +85,8 @@ class DigitalMultipleSensor(SensorInterface):
             grovepi.pinMode(self.i2c_connector,"INPUT")
         except  AttributeError as e:
             print ("pinMode was unsucesful")
-            print (e)
+            #print (e)
+            logger.info("pinMode was unsucesful {}".format(e))
         _ = self.read_sensor()
 
     def read_internal_sensor(self):

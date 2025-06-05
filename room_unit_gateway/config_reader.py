@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import configparser
+import logging
+logger = logging.getLogger(__name__)
 
 import object_factory
 
@@ -13,6 +15,7 @@ def read_config(config_file_name):
     version = config.get('General', 'version', fallback=0)
     if version == 2:
         print ("Error wrong config version")
+        logger.info("Error wrong config version")
 
     # MQTT
     mqtt_name = config.get('MQTT', 'name', fallback='MQTT')
@@ -24,11 +27,13 @@ def read_config(config_file_name):
     room_id = config.get('Architecture', 'room_ID', fallback=0)
 
     print ("reading in sensors", flush=True)
+    logger.info("reading in sensors")
     # Sensors
     sensor_types = object_factory.configure_sensor_types(config.get('Sensors','sensor_types', fallback="[]"))
     sensor_class_list = object_factory.configure_sensors(config.get('Sensors','sensor_list', fallback="[]"), sensor_types)
 
     print ("reading in actuators", flush=True)
+    logger.info("reading in actuators")
     # Actuators
     actuator_types = object_factory.configure_actuator_types(config.get('Actuators','actuator_types', fallback="[]"))
     actuator_class_list = object_factory.configure_actuators(config.get('Actuators','actuator_list', fallback="[]"), actuator_types)

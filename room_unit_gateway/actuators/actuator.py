@@ -8,6 +8,8 @@ except ImportError:
     grovepi = None
 import uuid
 from abc import ABC, abstractmethod
+import logging
+logger = logging.getLogger(__name__)
 
 from enumdef import Connectortype
 
@@ -34,7 +36,8 @@ class ActuatorInterface(ABC):
             grovepi.pinMode(self.i2c_connector,"OUTPUT")
         except  AttributeError as e:
             print ("pinMode was unsucesful")
-            print (e)
+            #print (e)
+            logger.info("pinMode was unsucesful {}".format(e))
 
     @abstractmethod
     def __del__(self):
@@ -57,7 +60,8 @@ class ActuatorInterface(ABC):
             print ("{}: {}".format(self.name,self.last_value))
         except Exception as e:
             print ("write was unsucesful")
-            print (e)
+            #print (e)
+            logger.info("write was unsucesful {}".format(e))
 
     @abstractmethod
     def write_internal_actuator(self, value: int):

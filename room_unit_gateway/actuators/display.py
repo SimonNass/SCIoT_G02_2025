@@ -6,6 +6,8 @@ try:
 except ImportError:
     grovepi = None
     grove_rgb_lcd = None
+import logging
+logger = logging.getLogger(__name__)
 
 from enumdef import Connectortype
 from actuators.actuator import ActuatorInterface
@@ -23,9 +25,10 @@ class DisplayActuator(ActuatorInterface):
         text = split[3]
         try:
             setRGB(r,g,b)
-        except  AttributeError as e:
+        except  (Exception, AttributeError) as e:
             print ("setRGB was unsucesful")
-            print (e)
+            #print (e)
+            logger.info("setRGB was unsucesful {}".format(e))
         self.write_actuator(text)
 
     def __del__(self):
@@ -37,9 +40,10 @@ class DisplayActuator(ActuatorInterface):
         try:
             setText(text)
             setRGB(r,g,b)
-        except  AttributeError as e:
+        except  (Exception, AttributeError) as e:
             print ("setRGB or setText was unsucesful")
-            print (e)
+            #print (e)
+            logger.info("setRGB or setText was unsucesful {}".format(e))
 
     def write_actuator(self, value: str):
         write_value = value
@@ -53,7 +57,8 @@ class DisplayActuator(ActuatorInterface):
             print ("{}: {}".format(self.name,self.last_value))
         except Exception as e:
             print ("write was unsucesful")
-            print (e)
+            #print (e)
+            logger.info("write was unsucesful {}".format(e))
     
     def write_internal_actuator(self, write_value: str):
         setText(write_value)
