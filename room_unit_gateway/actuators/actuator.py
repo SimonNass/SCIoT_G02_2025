@@ -30,7 +30,11 @@ class ActuatorInterface(ABC):
         if not self.is_valid(self.initial_value):
             self.last_value = min_value
         self.off_value = max(min_value,min(max_value,off_value))
-        grovepi.pinMode(self.i2c_connector,"OUTPUT")
+        try:
+            grovepi.pinMode(self.i2c_connector,"OUTPUT")
+        except  AttributeError as e:
+            print ("pinMode was unsucesful")
+            print (e)
 
     @abstractmethod
     def __del__(self):

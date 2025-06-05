@@ -21,7 +21,11 @@ class DisplayActuator(ActuatorInterface):
         g = int(split[1])
         b = int(split[2])
         text = split[3]
-        setRGB(r,g,b)
+        try:
+            setRGB(r,g,b)
+        except  AttributeError as e:
+            print ("setRGB was unsucesful")
+            print (e)
         self.write_actuator(text)
 
     def __del__(self):
@@ -30,8 +34,12 @@ class DisplayActuator(ActuatorInterface):
         g = int(split[1])
         b = int(split[2])
         text = split[3]
-        setText(text)
-        setRGB(r,g,b)
+        try:
+            setText(text)
+            setRGB(r,g,b)
+        except  AttributeError as e:
+            print ("setRGB or setText was unsucesful")
+            print (e)
 
     def write_actuator(self, value: str):
         write_value = value
