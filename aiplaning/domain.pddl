@@ -22,11 +22,10 @@
     (is_next_to ?room1 - room ?room2 - room) ; are the rooms next to each other
     (is_ocupied ?room - room) ; is the room ocupied
     (is_cleaned ?room - room) ; is the room cleaned
-    (is_sensing ?sensor - binary_s) ; is the sensor prodicing a signal
-    ;(is_pressed ?button - button_s) ; is the button pressed
-    ;(detects_motion ?motion - motion_s) ; is a motion detected
+    (is_sensing ?sensor - sensor) ; is the sensor prodicing a signal
+    (is_sensing_high ?sensor - binary_s) ; is the sensor prodicing a signal
     (is_activated ?actuator - actuator) ; is a actuator on
-    ;(is_on ?light - light_a) ; is a lightsource on
+    (is_on ?actuator - binary_a) ; is a lightsource on
 )
 
 ; this action turns on the light
