@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 import object_factory
 
 def read_config(config_file_name):
-    config = configparser.ConfigParser()
+    config = configparser.ConfigParser(interpolation=None)
     config.read(config_file_name)
     #config.read('config.ini')
 
