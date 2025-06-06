@@ -16,9 +16,9 @@
 )
 
 (:predicates
-    (is_part_of ?room - room ?floor - floor) ; is the room part of this floor
-    ;(is_part_of ?sensor - sensor ?room - room) ; is the sensor part of this room
-    ;(is_part_of ?actuator - actuator ?room - room) ; is the actuator part of this room
+    (room_is_part_of_floor ?room - room ?floor - floor) ; is the room part of this floor
+    (sensor_is_part_of_room ?sensor - sensor ?room - room) ; is the sensor part of this room
+    (actuator_is_part_of_room ?actuator - actuator ?room - room) ; is the actuator part of this room
     (is_next_to ?room1 - room ?room2 - room) ; are the rooms next to each other
     (is_ocupied ?room - room) ; is the room ocupied
     (is_cleaned ?room - room) ; is the room cleaned
