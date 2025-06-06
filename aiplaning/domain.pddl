@@ -252,6 +252,19 @@
     )
 )
 
+; assign_floor if missing in problem file
+(:action assign_floor
+    :parameters (?room - room ?floor1 - floor)
+    :precondition (and
+        (forall (?floor2 - floor)
+            (not (room_is_part_of_floor ?room ?floor2))
+        )
+    )
+    :effect (and
+        (room_is_part_of_floor ?room ?floor1)
+    )
+)
+
 ; actuator control
 (:action turn_on
     :parameters (?sensor - binary_s ?actuator - actuator ?room - room)
