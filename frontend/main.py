@@ -44,8 +44,8 @@ class BackendClient:
 
         rooms = await backend.list_rooms(1)
         print("Rooms:", rooms)
-
-        devices = await backend.list_devices(1, 1)
+        room_extended_id = int(1) * int(100) + int(2)
+        devices = await backend.list_devices(1, room_extended_id)
         print("Devices:", devices)
 
     async def list_floors(self):
@@ -121,8 +121,9 @@ async def admin_dashboard():
             "rooms": []
         })
         for r in range(1, 11):
+            room_extended_id = int(1) * int(100) + r
             await backend.create_room(1, {
-                "room_number": str(r),
+                "room_number": str(room_extended_id),
                 "room_type": "Standard",
                 "capacity": 2
             })
@@ -134,8 +135,9 @@ async def admin_dashboard():
             "rooms": []
         })
         for r in range(1, 9):
+            room_extended_id = int(2) * int(100) + r
             await backend.create_room(2, {
-                "room_number": str(r),
+                "room_number": str(room_extended_id),
                 "room_type": "Standard",
                 "capacity": 2
             })
@@ -144,34 +146,6 @@ async def admin_dashboard():
         ui.notify("Seeded Floor 1→Rooms 1–10 and Floor 2→Rooms 1–8")
 
     ui.button("Seed Sample Data", color="secondary", on_click=seed_data)
-    # async def add_floor_dialog():
-    #     with ui.dialog() as dlg:
-    #         dlg.classes("w-80")
-    #         with ui.row():
-    #             num  = ui.number(label="Floor #", min=0, step=1)
-    #             name = ui.input(label="Name (optional)")
-
-    #         async def submit():
-    #             await backend.create_floor({"floor_number": int(num.value), "floor_name": name.value, "rooms": []})
-    #             dlg.close(); await refresh_floors(); ui.notify("Floor created")
-    #         ui.button("Create", color="primary", on_click=submit)
-    #     dlg.open()
-
-    # async def add_room_dialog():
-    #     if floor_select.value is None:
-    #         ui.notify("Select a floor first", type="warning"); return
-    #     with ui.dialog() as dlg:
-    #         dlg.classes("w-80")
-    #         rnum = ui.input(label="Room number")
-    #         rtyp = ui.input(label="Room type", value="Standard")
-    #         cap  = ui.number(label="Capacity", value=2, min=1, step=1)
-
-    #         async def submit_room():
-    #             await backend.create_room(int(floor_select.value),
-    #                 {"room_number": rnum.value, "room_type": rtyp.value, "capacity": int(cap.value)})
-    #             dlg.close(); await refresh_rooms(int(floor_select.value)); ui.notify("Room created")
-    #         ui.button("Create", color="primary", on_click=submit_room)
-    #     dlg.open()
 
     def to_room(e):
         if e.args and floor_select.value is not None:
@@ -183,7 +157,7 @@ async def admin_dashboard():
     floor_select.on("update:model-value", lambda e: refresh_rooms(int(e.value)))
     table.on("select", to_room)
 
-    await refresh_floors()
+    # await refresh_floors()
 
 # ------------------------------------------------------------------
 # 4. Guest view
