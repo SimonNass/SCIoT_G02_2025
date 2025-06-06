@@ -23,9 +23,9 @@
     (is_ocupied ?room - room) ; is the room ocupied
     (is_cleaned ?room - room) ; is the room cleaned
     (is_sensing ?sensor - sensor) ; is the sensor prodicing a signal
-    (is_sensing_high ?sensor - binary_s) ; is the sensor prodicing a signal
-    (is_activated ?actuator - actuator) ; is a actuator on
-    (is_on ?actuator - binary_a) ; is a lightsource on
+    (is_sensing_high ?sensor - binary_s) ; is the sensor prodicing a 1 signal
+    (is_activated ?actuator - actuator) ; is a actuator activated
+    (is_on ?actuator - binary_a) ; is a actuator on
 )
 
 ; this action turns on the light
