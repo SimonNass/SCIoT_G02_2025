@@ -5,7 +5,7 @@
 (:domain SCIoT_G02_2025)
 
 (:objects
-    floor1 - floor
+    floor1 floor2 - floor
     room1 room2 room3 room4 room5 room6 room7 room8 room9 room10 - room
 
     temperatur - temperature_s
@@ -19,6 +19,14 @@
     ; room topology
     (room_is_part_of_floor room1 floor1)
     (room_is_part_of_floor room2 floor1)
+    (room_is_part_of_floor room3 floor1)
+    (room_is_part_of_floor room4 floor1)
+    (room_is_part_of_floor room5 floor2)
+    (room_is_part_of_floor room6 floor1)
+    (room_is_part_of_floor room7 floor1)
+    (room_is_part_of_floor room8 floor1)
+    (room_is_part_of_floor room9 floor1)
+    (room_is_part_of_floor room10 floor1)
     
     (is_next_to room1 room2)
     (is_next_to room2 room3)
@@ -33,7 +41,7 @@
     ;(is_next_to room4 room7)
     ;(is_next_to room3 room8)
     ;(is_next_to room2 room9)
-    ;(is_next_to room1 room10)
+    (is_next_to room1 room10)
 
 
     (sensor_is_part_of_room temperatur room1)

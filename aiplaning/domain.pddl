@@ -53,8 +53,9 @@
 
 ; cleaning
 (:action simple_random_clean
-    :parameters (?room1 - room)
+    :parameters (?room1 - room ?floor - floor)
     :precondition (and
+        (room_is_part_of_floor ?room1 ?floor)
         (not (is_cleaned ?room1))
         (not (is_ocupied ?room1))
         (not (will_become_ocupied ?room1))
@@ -66,6 +67,7 @@
                         (is_next_to ?room1 ?room2)
                         (is_next_to ?room2 ?room1)
                     )
+                    (room_is_part_of_floor ?room2 ?floor)
                 )
                 (or
                     (is_cleaned ?room2)
@@ -81,14 +83,16 @@
 )
 
 (:action sequence_clean
-    :parameters (?room1 - room)
+    :parameters (?room1 - room ?floor - floor)
     :precondition (and
+        (room_is_part_of_floor ?room1 ?floor)
         (not (is_cleaned ?room1))
         (not (is_ocupied ?room1))
         (not (will_become_ocupied ?room1))
         (exists (?room2 - room)
             (and
                 (not (= ?room1 ?room2))
+                (room_is_part_of_floor ?room2 ?floor)
                 (or
                     (is_next_to ?room1 ?room2)
                     (is_next_to ?room2 ?room1)
@@ -101,6 +105,7 @@
                         (and
                             (not (= ?room1 ?room3))
                             (not (= ?room2 ?room3))
+                            (room_is_part_of_floor ?room3 ?floor)
                             (or
                                 (is_next_to ?room1 ?room3)
                                 (is_next_to ?room3 ?room1)
@@ -122,14 +127,17 @@
 )
 
 (:action cyclic_clean
-    :parameters (?room1 - room)
+    :parameters (?room1 - room ?floor - floor)
     :precondition (and
+        (room_is_part_of_floor ?room1 ?floor)
         (not (is_cleaned ?room1))
         (not (is_ocupied ?room1))
         (not (will_become_ocupied ?room1))
         (or            
             (exists (?room2 ?room3 - room)
                 (and
+                    (room_is_part_of_floor ?room2 ?floor)
+                    (room_is_part_of_floor ?room3 ?floor)
                     (not (= ?room1 ?room2))
                     (not (= ?room1 ?room3))
                     (not (= ?room2 ?room3))
@@ -155,6 +163,9 @@
             )
             (exists (?room2 ?room3 ?room4 - room)
                 (and
+                    (room_is_part_of_floor ?room2 ?floor)
+                    (room_is_part_of_floor ?room3 ?floor)
+                    (room_is_part_of_floor ?room4 ?floor)
                     (not (= ?room1 ?room2))
                     (not (= ?room1 ?room3))
                     (not (= ?room1 ?room4))
@@ -190,6 +201,10 @@
             )
             (exists (?room2 ?room3 ?room4 ?room5 - room)
                 (and
+                    (room_is_part_of_floor ?room2 ?floor)
+                    (room_is_part_of_floor ?room3 ?floor)
+                    (room_is_part_of_floor ?room4 ?floor)
+                    (room_is_part_of_floor ?room5 ?floor)
                     (not (= ?room1 ?room2))
                     (not (= ?room1 ?room3))
                     (not (= ?room1 ?room4))
