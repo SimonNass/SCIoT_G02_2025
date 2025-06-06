@@ -3,11 +3,10 @@
 (define (problem example)
 
 (:domain SCIoT_G02_2025)
-    (:requirements :disjunctive-preconditions)
 
 (:objects
     floor1 - floor
-    room1 room2 room3 room4 - room
+    room1 room2 room3 room4 room5 room6 - room
 
     temperatur - temperature_s
     lights1 lights2 - virtual_switch_s
@@ -21,9 +20,13 @@
     (room_is_part_of_floor room1 floor1)
     (room_is_part_of_floor room2 floor1)
     
+    (is_next_to room1 room5)
     (is_next_to room1 room2)
     (is_next_to room2 room3)
     (is_next_to room1 room4)
+    (is_next_to room2 room6)
+    ;(is_next_to room4 room6)
+
 
     (sensor_is_part_of_room temperatur room1)
     (sensor_is_part_of_room lights1 room1)
@@ -79,4 +82,5 @@
         )
     )
 )
+
 )
