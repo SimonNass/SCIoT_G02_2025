@@ -6,12 +6,12 @@
 
 (:types floor room sensor actuator - object
     binary_s numerical_s textual_s - sensor
-    button_s motion_s - binary_s
-    temperature_s humidity_s light_s sound_s rotation_s - numerical_s
+    button_s motion_s virtual_switch_s - binary_s
+    temperature_s humidity_s light_s sound_s rotation_s virtual_dimmer_s - numerical_s
     ; - textual_s
     binary_a numerical_a textual_a - actuator
-    switch_a light_switch_a - binary_a
-    light_dimmer_a - numerical_a
+    switch_a light_switch_a virtual_switch_a - binary_a
+    light_dimmer_a virtual_dimmer_a - numerical_a
     display_a - textual_a
 )
 
