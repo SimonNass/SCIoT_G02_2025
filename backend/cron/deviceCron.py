@@ -10,7 +10,7 @@ import atexit
 
 mark_devices_offline_after_hours = 1
 delete_after_hours = 24
-
+# Todo: Fix app_context issues with cronjobs
 def mark_devices_offline():
     """
     Mark devices as offline if they haven't been seen for mark_devices_offline_after_hours hours or more.

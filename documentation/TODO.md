@@ -6,9 +6,9 @@
     - update python version in docker for room pi
     - get the motor working
     - test pi with no / wrong sensors, pi check that with nothing conneted or connected wrong it stil works
-    - send maxi example actuator request and response
     - button add buffer to not send multiple messages if 
     - send welkome message for display
+    - sensors int of float
 - build an overview UI
 - build DB
   - metadata

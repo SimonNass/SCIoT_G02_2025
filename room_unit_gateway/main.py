@@ -8,6 +8,14 @@
 import time
 import sys
 from typing import List
+import numpy as np
+import logging
+logger = logging.getLogger(__name__)
+
+try:
+    import grovepi
+except ImportError:
+    grovepi = None
 
 import config_reader
 from networking.networking_domain import GatewayNetwork
@@ -18,6 +26,15 @@ from enumdef import Connectortype
 def system_info():
     print (sys.version)
     #print (sys.version_info)
+    logger.info(sys.version)
+    logger.info(sys.version_info)
+    try:
+        #print ("grovepi version: " + str(grovepi.version()))
+        logger.info("grovepi version: " + str(grovepi.version()))
+    except AttributeError:
+        pass
+    #print ("numpy version:" + str(np.version.version))
+    logger.info("numpy version:" + str(np.version.version))
 
 def read_all_sensors(sensors: List[SensorInterface]):
     for sensor in sensors:
@@ -35,44 +52,49 @@ def write_all_displays(displays: List[ActuatorInterface], text: str):
 
 def send_sensors(sensors: List[SensorInterface], network_connection: GatewayNetwork):
     for sensor in sensors:
-        print ("--")
-        network_connection.send_all_sensor(sensor,True)
+        print ("--", flush=True)
+        network_connection.send_all_data_sensor(sensor,True)
 
 def send_actuators(actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
     for actuator in actuators:
-        print ("--")
-        network_connection.send_all_actuator(actuator)
+        print ("--", flush=True)
+        network_connection.send_all_data_actuator(actuator)
 
 def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface], cycle: int, network_connection: GatewayNetwork):
     for sensor in sensors:
         if cycle % sensor.read_interval== 0:
-            sensor_value = sensor.read_sensor()
-            network_connection.send_all_sensor(sensor,False)
-            text = "{}: {}".format(sensor.name,str(sensor_value))
+            old_value = sensor.last_value
+            read_dict = sensor.read_sensor()
+            if abs(old_value - sensor.last_value) >= sensor.notify_change_precision:
+                network_connection.send_all_data_sensor(sensor,True)
+            text = "{}: {}".format(sensor.name,str(read_dict["last_value"]))
             write_all_displays(displays, text)
 
 def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
     print ("", flush=True)
     send_sensors(sensors,network_connection)
     send_actuators(actuators,network_connection)
-    i = 0
-    max_i = 240
+    cycle = 0
+    max_cycle_time = 240
     want_to_exit = False
     while not want_to_exit:
         print ("", flush=True)
         try:
 
-            #read_all_sensors(sensors)
-            #write_all_actuators(actuators, i % 2)
+            read_all_sensors(sensors)
+            #write_all_actuators(actuators, cycle % 2)
             #write_all_displays(actuators,"12345678910131517192123252729313335")
-            #cyclic_read(sensors,actuators,i,network_connection)
+            #cyclic_read(sensors,actuators,cycle,network_connection)
 
             # Reset
-            if i > max_i:
-                i = 0
+            if cycle > max_cycle_time:
+                cycle = 0
+                send_sensors(sensors,network_connection)
+                send_actuators(actuators,network_connection)
+
             # Increment
-            i = i + 1
-            want_to_exit = True
+            cycle = cycle + 1
+            #want_to_exit = True
             time.sleep(1)
 
         except KeyboardInterrupt:
@@ -80,15 +102,19 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
             break
         except (IOError,TypeError) as e:
             print ("Error")
-            print (e)
+            #print (e)
+            logger.info(e)
             want_to_exit = True
 
 def main():
+    logging.basicConfig(filename='pi_room_gateway.log', level=logging.INFO)
+    logger.info("xxxx Started new execution.")
     system_info()
 
     if len(sys.argv) < 3 or len(sys.argv) > 3:
         print ("Error CLI arguments incorrect")
         print (sys.argv)
+        logger.info("Error CLI arguments incorrect {}".format(sys.argv))
 
     config_file_name = str(sys.argv[1])
     password = str(sys.argv[2])
@@ -106,12 +132,14 @@ def main():
     except Exception as e:
         print ("Reading config file {} was not succesfull {}".format(config_file_name,config_values))
         print (e, flush=True)
+        logger.info("Reading config file {} was not succesfull {}, {}".format(config_file_name,config_values, e))
 
     try:
         gateway_network = GatewayNetwork(host=config_values['mqtt_host'],port=config_values['mqtt_port'],username=config_values['mqtt_username'],password=password,floor_id=config_values['floor_id'],max_rooms_per_floor=config_values['max_rooms_per_floor'],room_id=config_values['room_id'])
     except Exception as e:
         print ("MQTT broker not connected.")
         print (e, flush=True)
+        logger.info("MQTT broker not connected. {}".format(e))
 
     execution_cycle(sensors,actuators,gateway_network)
 
