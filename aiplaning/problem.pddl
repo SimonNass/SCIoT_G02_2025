@@ -7,7 +7,7 @@
 
 (:objects
     floor1 - floor
-    room1 room2 - room
+    room1 room2 room3 room4 - room
 
     temperatur - temperature_s
     lights1 lights2 - virtual_switch_s
@@ -21,7 +21,8 @@
     (room_is_part_of_floor room1 floor1)
     (room_is_part_of_floor room2 floor1)
     
-    (is_next_to room1 room2)
+    (is_next_to room2 room1)
+    (is_next_to room2 room3)
 
     (sensor_is_part_of_room temperatur room1)
     (sensor_is_part_of_room lights1 room1)
@@ -50,9 +51,9 @@
 
     ; meta context
     (is_ocupied room1)
-    (is_doing_read room1)
+    ;(is_doing_read room1)
     ;(not (is_ocupied room2))
-    (is_doing_sleep room2)
+    ;(is_doing_sleep room2)
 )
 
 (:goal
