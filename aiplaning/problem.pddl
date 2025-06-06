@@ -21,8 +21,9 @@
     (room_is_part_of_floor room1 floor1)
     (room_is_part_of_floor room2 floor1)
     
-    (is_next_to room2 room1)
+    (is_next_to room1 room2)
     (is_next_to room2 room3)
+    (is_next_to room1 room4)
 
     (sensor_is_part_of_room temperatur room1)
     (sensor_is_part_of_room lights1 room1)
@@ -50,7 +51,7 @@
     (is_activated green_led)
 
     ; meta context
-    (is_ocupied room1)
+    ;(is_ocupied room1)
     ;(is_doing_read room1)
     ;(not (is_ocupied room2))
     ;(is_doing_sleep room2)
