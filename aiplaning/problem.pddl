@@ -3,6 +3,7 @@
 (define (problem example)
 
 (:domain SCIoT_G02_2025)
+    (:requirements :disjunctive-preconditions)
 
 (:objects
     floor1 - floor
@@ -56,9 +57,24 @@
 
 (:goal
     (and
-        (is_ok temperatur)
-        (is_sensing lights1)
-        ;(is_sensing lights2)
+        (imply (is_ocupied room1)
+            (and
+                (is_ok temperatur)
+                (is_sensing lights1)   
+            )
+        )
+
+        (imply (is_ocupied room2)
+            (and  
+                (is_sensing lights2)
+            )
+        )
+
+        (forall (?room - room) 
+            (imply  (not (is_ocupied ?room))
+                (is_cleaned ?room )
+            )
+        )
     )
 )
 )

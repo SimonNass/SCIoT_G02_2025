@@ -49,6 +49,19 @@
 
 )
 
+(:action clean
+    :parameters (?room - room)
+    :precondition (and
+        (not (is_cleaned ?room))
+        (not (is_ocupied ?room))
+        (not (will_become_ocupied ?room))
+
+    )
+    :effect (and
+        (is_cleaned ?room)
+    )
+)
+
 (:action turn_on
     :parameters (?sensor - binary_s ?actuator - actuator ?room - room)
     :precondition (and
