@@ -34,7 +34,7 @@
     (is_cleaned ?room - room) ; is the room cleaned
 
     ; activity
-    (has_specified_activity ?person_in_room - room)
+    (has_specified_activity ?room - room)
     (is_doing_sleep ?person_in_room - room) ; some people in this room are sleeping
     (is_doing_bath ?person_in_room - room) ; some people in this room are in the bathroom
     (is_doing_read ?person_in_room - room) ; some people in this room are reading
@@ -50,6 +50,8 @@
     ; actuators
     (is_activated ?actuator - actuator) ; is a actuator activated
 
+    ; force checks predicate
+    (checked_activity ?room - room)
 )
 
 ; needs :derived-predicates
@@ -314,6 +316,32 @@
 )
 
 ; activity based actuator control
+(:action detect_activity
+    :parameters (?room - room)
+    :precondition (or
+        (is_doing_read ?room)
+        (is_doing_sleep ?room)
+        (is_doing_bath ?room)
+    )
+    :effect (and
+        (has_specified_activity ?room)
+        (checked_activity ?room)
+    )
+)
+
+(:action detect_no_activity
+    :parameters (?room - room)
+    :precondition (and
+        (not (is_doing_read ?room))
+        (not (is_doing_sleep ?room))
+        (not (is_doing_bath ?room))
+    )
+    :effect (and
+        (not (has_specified_activity ?room))
+        (checked_activity ?room)
+    )
+)
+
 (:action turn_on_activity
     :parameters (?sensor - binary_s ?actuator - actuator ?room - room)
     :precondition (and

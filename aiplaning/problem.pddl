@@ -79,7 +79,8 @@
     (actuator_increases_sensor blue_led lights1)
     (actuator_increases_sensor red_led lights1)
  
-    ; context
+    ;; context
+
     ; raw sensor data
     ;(is_low temperatur)
     (is_high temperatur)
@@ -88,7 +89,9 @@
     (is_activated green_led)
 
     ; meta context
-    ;(is_ocupied room1)
+    (is_ocupied room1)
+
+    ; activitys
     (is_doing_read room1)
     ;(not (is_ocupied room2))
     ;(is_doing_sleep room2)
@@ -150,6 +153,10 @@
                     ) 
                 )
             )
+        )
+        ; enforce some checks
+        (forall (?room - room) 
+            (checked_activity ?room)
         )
     )
 )
