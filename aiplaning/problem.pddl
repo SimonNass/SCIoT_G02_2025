@@ -7,7 +7,8 @@
 (:objects
     floor1 floor2 - floor
     elevator room1 room2 room3 room4 room5 room6 room7 room8 room9 room10 - room
-    cleaning_team1 - cleaning_team
+    room11 room12 room13 room14 room15 room16 room17 room18 room19 room20 - room
+    cleaning_team1 cleaning_team2 - cleaning_team
 
     temperatur - temperature_s
     lights1 lights2 - virtual_switch_s
@@ -24,7 +25,9 @@
     (room_is_part_of_floor elevator floor2)
     (is_next_to room1 elevator)
     (is_next_to room5 elevator)
+    (is_cleaned elevator)
     (is_at cleaning_team1 room1)
+    (is_at cleaning_team2 room1)
     
     (room_is_part_of_floor room1 floor2)
     (room_is_part_of_floor room2 floor2)
@@ -86,7 +89,7 @@
 
     ; meta context
     ;(is_ocupied room1)
-    ;(is_doing_read room1)
+    (is_doing_read room1)
     ;(not (is_ocupied room2))
     ;(is_doing_sleep room2)
 )
@@ -107,8 +110,23 @@
         )
 
         (forall (?room - room) 
-            (imply  (not (is_ocupied ?room))
-                (is_cleaned ?room )
+            (imply  
+                (and
+                    ; defines goal of all unocupied rooms
+                    (not (is_ocupied ?room))
+                    ; exceptions ignore these rooms in the forall
+                    (not (= ?room room10)) 
+                )
+                (and
+                    ; clean the room
+                    (is_cleaned ?room )
+                    ; turn off all actuators
+                    (forall (?actuator - actuator) 
+                        (imply  (actuator_is_part_of_room ?actuator ?room)
+                            (not (is_activated ?actuator))
+                        )
+                    ) 
+                )
             )
         )
     )
