@@ -6,7 +6,7 @@
 
 (:objects
     floor1 floor2 - floor
-    room1 room2 room3 room4 room5 room6 room7 room8 room9 room10 - room
+    elevator room1 room2 room3 room4 room5 room6 room7 room8 room9 room10 - room
     cleaning_team1 - cleaning_team
 
     temperatur - temperature_s
@@ -17,7 +17,15 @@
 )
 
 (:init
-    ; room topology
+    ;; room topology
+
+    ; needed for cleaning_team
+    (room_is_part_of_floor elevator floor1)
+    (room_is_part_of_floor elevator floor2)
+    (is_next_to room1 elevator)
+    (is_next_to room5 elevator)
+    (is_at cleaning_team1 room1)
+    
     (room_is_part_of_floor room1 floor2)
     (room_is_part_of_floor room2 floor2)
     (room_is_part_of_floor room3 floor2)
@@ -36,11 +44,12 @@
     ;(is_next_to room4 room5)
     (is_next_to room5 room6)
     (is_next_to room6 room7)
-    (is_next_to room7 room8)
-    (is_next_to room8 room9)
+    (is_next_to room7 room9)
+    ;(is_next_to room8 room9)
     (is_next_to room9 room10)
     
     (is_next_to room1 room10)
+    
 
 
 
@@ -49,7 +58,6 @@
     ;(is_next_to room2 room9)
     ;(is_next_to room1 room10)
 
-    (is_at cleaning_team1 room1)
 
     (sensor_is_part_of_room temperatur room1)
     (sensor_is_part_of_room lights1 room1)

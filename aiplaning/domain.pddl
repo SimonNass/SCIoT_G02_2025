@@ -262,7 +262,7 @@
 )
 
 ; can only influence one sensor at a time
-(:action decrerase_s_by_a_in_r
+(:action decrease_s_by_a_in_r
     :parameters (?sensor - numerical_s ?actuator - actuator ?room - room)
     :precondition (and
         (sensor_is_part_of_room ?sensor ?room)
@@ -282,7 +282,7 @@
     )
 )
 
-(:action decrerase_s_by_na_in_r
+(:action decrease_s_by_na_in_r
     :parameters (?sensor - numerical_s ?actuator - actuator ?room - room)
     :precondition (and
         (sensor_is_part_of_room ?sensor ?room)
