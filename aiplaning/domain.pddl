@@ -5,7 +5,7 @@
 (:requirements :adl)
 ; :adl >>> :strips :typing :negative-preconditions :equality :disjunctive-preconditions
 
-(:types floor room sensor actuator - object
+(:types floor room sensor actuator cleaning_team - object
    
     binary_s numerical_s textual_s - sensor
     button_s motion_s virtual_switch_s - binary_s
@@ -26,6 +26,7 @@
     (actuator_increases_sensor ?actuator - actuator ?sensor - sensor) ; is the actuator influencing this sensor
     (actuator_decreases_sensor ?actuator - actuator ?sensor - sensor) ; is the actuator influencing this sensor
     (is_next_to ?room1 - room ?room2 - room) ; are the rooms next to each other
+    (is_at ?cleaning_team - cleaning_team ?room - room) ;
 
     ;; meta context
     (is_ocupied ?room - room) ; is the room ocupied
@@ -50,218 +51,64 @@
 
 )
 
+; needs :derived-predicates
+;(:derived (is_connected ?r1 ?r2)
+;  (or (is_next_to ?r1 ?r2) (is_next_to ?r2 ?r1))
+;)
+;(:derived (can_clean_now ?room - room)
+;  (and
+;    (not (is_ocupied ?room))
+;    (not (will_become_ocupied ?room))
+;    (not (is_cleaned ?room))
+;  )
+;)
 
 ; cleaning
-(:action simple_random_clean
-    :parameters (?room1 - room ?floor - floor)
+(:action move_to_floor
+    :parameters (?cleaning_team - cleaning_team ?curent_room ?next_room - room ?curent_floor ?next_floor - floor)
     :precondition (and
-        (room_is_part_of_floor ?room1 ?floor)
-        (not (is_cleaned ?room1))
-        (not (is_ocupied ?room1))
-        (not (will_become_ocupied ?room1))
-        (forall (?room2 - room)
-            (imply 
-                (and
-                    (not (= ?room1 ?room2))
-                    (or
-                        (is_next_to ?room1 ?room2)
-                        (is_next_to ?room2 ?room1)
-                    )
-                    (room_is_part_of_floor ?room2 ?floor)
-                )
-                (or
-                    (is_cleaned ?room2)
-                    (is_ocupied ?room2)
-                    (will_become_ocupied ?room2)
-                )
-            )
+        (is_at ?cleaning_team ?curent_room)
+        (or
+            (is_next_to ?curent_room ?next_room)
+            (is_next_to ?next_room ?curent_room)
         )
+        (room_is_part_of_floor ?curent_room ?curent_floor)
+        (room_is_part_of_floor ?next_room ?next_floor)
+        (not (= ?curent_floor ?next_floor))
     )
     :effect (and
-        (is_cleaned ?room1)
+        (not (is_at ?cleaning_team ?curent_room))
+        (is_at ?cleaning_team ?next_room)
     )
 )
 
-(:action sequence_clean
-    :parameters (?room1 - room ?floor - floor)
+(:action move_to_room
+    :parameters (?cleaning_team - cleaning_team ?curent ?next - room ?floor - floor)
     :precondition (and
-        (room_is_part_of_floor ?room1 ?floor)
-        (not (is_cleaned ?room1))
-        (not (is_ocupied ?room1))
-        (not (will_become_ocupied ?room1))
-        (exists (?room2 - room)
-            (and
-                (not (= ?room1 ?room2))
-                (room_is_part_of_floor ?room2 ?floor)
-                (or
-                    (is_next_to ?room1 ?room2)
-                    (is_next_to ?room2 ?room1)
-                )
-                (not (is_cleaned ?room2))
-                (not (is_ocupied ?room2))
-                (not (will_become_ocupied ?room2))
-                (forall (?room3 - room)
-                    (imply 
-                        (and
-                            (not (= ?room1 ?room3))
-                            (not (= ?room2 ?room3))
-                            (room_is_part_of_floor ?room3 ?floor)
-                            (or
-                                (is_next_to ?room1 ?room3)
-                                (is_next_to ?room3 ?room1)
-                            )
-                        )
-                        (or
-                            (is_cleaned ?room3)
-                            (is_ocupied ?room3)
-                            (will_become_ocupied ?room3)
-                        )
-                    )
-                )
-            )
+        (is_at ?cleaning_team ?curent)
+        (or
+            (is_next_to ?curent ?next)
+            (is_next_to ?next ?curent)
         )
+        (room_is_part_of_floor ?curent ?floor)
+        (room_is_part_of_floor ?next ?floor)
     )
     :effect (and
-        (is_cleaned ?room1)
+        (not (is_at ?cleaning_team ?curent))
+        (is_at ?cleaning_team ?next)
     )
 )
 
-(:action cyclic_clean
-    :parameters (?room1 - room ?floor - floor)
+(:action team_clean
+    :parameters (?cleaning_team - cleaning_team ?room - room)
     :precondition (and
-        (room_is_part_of_floor ?room1 ?floor)
-        (not (is_cleaned ?room1))
-        (not (is_ocupied ?room1))
-        (not (will_become_ocupied ?room1))
-        (or            
-            (exists (?room2 ?room3 - room)
-                (and
-                    (room_is_part_of_floor ?room2 ?floor)
-                    (room_is_part_of_floor ?room3 ?floor)
-                    (not (= ?room1 ?room2))
-                    (not (= ?room1 ?room3))
-                    (not (= ?room2 ?room3))
-                    (or
-                        (is_next_to ?room1 ?room2)
-                        (is_next_to ?room2 ?room1)
-                    )
-                    (or
-                        (is_next_to ?room2 ?room3)
-                        (is_next_to ?room3 ?room2)
-                    )
-                    (or
-                        (is_next_to ?room1 ?room3)
-                        (is_next_to ?room3 ?room1)
-                    )
-                    (not (is_cleaned ?room2))
-                    (not (is_ocupied ?room2))
-                    (not (will_become_ocupied ?room2))
-                    (not (is_cleaned ?room3))
-                    (not (is_ocupied ?room3))
-                    (not (will_become_ocupied ?room3))
-                )
-            )
-            (exists (?room2 ?room3 ?room4 - room)
-                (and
-                    (room_is_part_of_floor ?room2 ?floor)
-                    (room_is_part_of_floor ?room3 ?floor)
-                    (room_is_part_of_floor ?room4 ?floor)
-                    (not (= ?room1 ?room2))
-                    (not (= ?room1 ?room3))
-                    (not (= ?room1 ?room4))
-                    (not (= ?room2 ?room3))
-                    (not (= ?room2 ?room4))
-                    (not (= ?room3 ?room4))
-                    (or
-                        (is_next_to ?room1 ?room2)
-                        (is_next_to ?room2 ?room1)
-                    )
-                    (or
-                        (is_next_to ?room2 ?room3)
-                        (is_next_to ?room3 ?room2)
-                    )
-                    (or
-                        (is_next_to ?room3 ?room4)
-                        (is_next_to ?room4 ?room3)
-                    )
-                    (or
-                        (is_next_to ?room1 ?room4)
-                        (is_next_to ?room4 ?room1)
-                    )
-                    (not (is_cleaned ?room2))
-                    (not (is_ocupied ?room2))
-                    (not (will_become_ocupied ?room2))
-                    (not (is_cleaned ?room3))
-                    (not (is_ocupied ?room3))
-                    (not (will_become_ocupied ?room3))
-                    (not (is_cleaned ?room4))
-                    (not (is_ocupied ?room4))
-                    (not (will_become_ocupied ?room4))
-                )
-            )
-        )
+        (is_at ?cleaning_team ?room)
+        (not (is_cleaned ?room))
+        (not (is_ocupied ?room))
+        (not (will_become_ocupied ?room))
     )
     :effect (and
-        (is_cleaned ?room1)
-    )
-)
-
-(:action chain_5_clean
-    :parameters (?room1 - room ?floor - floor)
-    :precondition (and
-        (room_is_part_of_floor ?room1 ?floor)
-        (not (is_cleaned ?room1))
-        (not (is_ocupied ?room1))
-        (not (will_become_ocupied ?room1))
-        (exists (?room2 ?room3 ?room4 ?room5 - room)
-            (and
-                (room_is_part_of_floor ?room2 ?floor)
-                (room_is_part_of_floor ?room3 ?floor)
-                (room_is_part_of_floor ?room4 ?floor)
-                (room_is_part_of_floor ?room5 ?floor)
-                (not (= ?room1 ?room2))
-                (not (= ?room1 ?room3))
-                (not (= ?room1 ?room4))
-                (not (= ?room1 ?room5))
-                (not (= ?room2 ?room3))
-                (not (= ?room2 ?room4))
-                (not (= ?room2 ?room5))
-                (not (= ?room3 ?room4))
-                (not (= ?room3 ?room5))
-                (not (= ?room4 ?room5))
-                (or
-                    (is_next_to ?room1 ?room2)
-                    (is_next_to ?room2 ?room1)
-                )
-                (or
-                    (is_next_to ?room2 ?room3)
-                    (is_next_to ?room3 ?room2)
-                )
-                (or
-                    (is_next_to ?room3 ?room4)
-                    (is_next_to ?room4 ?room3)
-                )
-                (or
-                    (is_next_to ?room4 ?room5)
-                    (is_next_to ?room5 ?room4)
-                )
-                (not (is_cleaned ?room2))
-                (not (is_ocupied ?room2))
-                (not (will_become_ocupied ?room2))
-                (not (is_cleaned ?room3))
-                (not (is_ocupied ?room3))
-                (not (will_become_ocupied ?room3))
-                (not (is_cleaned ?room4))
-                (not (is_ocupied ?room4))
-                (not (will_become_ocupied ?room4))
-                (not (is_cleaned ?room5))
-                (not (is_ocupied ?room5))
-                (not (will_become_ocupied ?room5))
-            )
-        )
-    )
-    :effect (and
-        (is_cleaned ?room1)
+        (is_cleaned ?room)
     )
 )
 

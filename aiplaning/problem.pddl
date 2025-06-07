@@ -7,6 +7,7 @@
 (:objects
     floor1 floor2 - floor
     room1 room2 room3 room4 room5 room6 room7 room8 room9 room10 - room
+    cleaning_team1 - cleaning_team
 
     temperatur - temperature_s
     lights1 lights2 - virtual_switch_s
@@ -38,12 +39,17 @@
     (is_next_to room7 room8)
     (is_next_to room8 room9)
     (is_next_to room9 room10)
+    
+    (is_next_to room1 room10)
+
+
 
     ;(is_next_to room4 room7)
     ;(is_next_to room3 room8)
     ;(is_next_to room2 room9)
     ;(is_next_to room1 room10)
 
+    (is_at cleaning_team1 room1)
 
     (sensor_is_part_of_room temperatur room1)
     (sensor_is_part_of_room lights1 room1)
