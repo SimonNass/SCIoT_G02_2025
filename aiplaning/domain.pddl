@@ -99,6 +99,25 @@
     )
 )
 
+(:action move_to_isolated_room
+    :parameters (?cleaning_team - cleaning_team ?curent ?next - room ?floor - floor)
+    :precondition (and
+        (is_at ?cleaning_team ?curent)
+        (room_is_part_of_floor ?curent ?floor)
+        (room_is_part_of_floor ?next ?floor)
+        (forall (?other - room)
+            (and
+                (not (is_next_to ?other ?next))
+                (not (is_next_to ?next ?other))
+            )
+        )
+    )
+    :effect (and
+        (not (is_at ?cleaning_team ?curent))
+        (is_at ?cleaning_team ?next)
+    )
+)
+
 (:action team_clean
     :parameters (?cleaning_team - cleaning_team ?room - room)
     :precondition (and
