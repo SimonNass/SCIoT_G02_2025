@@ -1,14 +1,25 @@
+#include <MFRC522.h>
+#include <MFRC522Extended.h>
+#include <deprecated.h>
+#include <require_cpp11.h>
+
 //lib MFRC522 by GithubCommunity installed
 #include "MFRC522.h"
 #include <SPI.h>
+//lib DHT sensor library by Adafruit installed + dependencies
+#include "DHT.h"
 #include <Servo.h>
 
-#define SDA 10
-#define RST 9
+#define SS_PIN 10
+#define RST_PIN 9
 #define servo_pin 3
+#define DHTPIN 2
+#define DHTTYPE DHT11
+#define sound_pin 0
 
-MFRC522 mfrc522(SDA, RST);
+MFRC522 mfrc522(SS_PIN, RST_PIN);
 Servo servo;  // create servo object to control a servo
+DHT dht(DHTPIN, DHTTYPE);
 String input_str = "";
 boolean string_complete = false;
 
@@ -16,18 +27,32 @@ void setup() {
   // comunication chanel
   Serial.begin(9600); // opens serial port, sets data rate to 9600 bps
   input_str.reserve(200);
+
   // RFID
-  SPI.begin();
-  mfrc522.PCD_Init();
+  //SPI.begin();
+  //mfrc522.PCD_Init();
+  //delay(15);
+  //mfrc522.PCD_DumpVersionToSerial();
+  //if (mfrc522.PCD_PerformSelfTest()) Serial.println("Passed Self-Test");
+
   // servo motor
   servo.attach(servo_pin); // attaches the servo on pin 9 to the servo object
   if (!servo.attached()) {
     // TODO not attached
   }
+
+  // temperature sensor
+  dht.begin(); // initialize the sensor
+  
+  // sound sensor
+  pinMode(sound_pin, INPUT);
 }
 
 void loop() {
-  activateRFID();
+  delay(2000);
+  senseSound();
+  senseDHT();
+  //activateRFID();
   /*
   if (string_complete) {
     String type = input_str.substring(0,0+1);
@@ -59,6 +84,7 @@ void activateRFID() {
   delay(1000);
   if (!mfrc522.PICC_IsNewCardPresent())
   {
+     Serial.println("stop");
     // Wenn keine Karte in Reichweite ist ..
     // .. wird die Abfrage wiederholt.
     return;
@@ -70,7 +96,6 @@ void activateRFID() {
     // .. wird die Abfrage wiederholt.
     return;
   }
-  Serial.println("picked");
   Serial.println("Karte entdeckt!");
   String WertDEZ;
   // Dezimal-Wert in Strings schreiben
@@ -91,4 +116,32 @@ void activateServo(int pos) {
     servo.write(val);
     Serial.println(val);
   }
+}
+
+
+void senseDHT() {
+  delay(2000);
+  float humi  = dht.readHumidity();
+  float tempC = dht.readTemperature();
+  if (isnan(humi) || isnan(tempC)) {
+    Serial.println("Failed to read from DHT sensor!");
+    Serial.print(humi);
+    Serial.print(tempC);
+  } else {
+    Serial.print("Humidity: ");
+    Serial.print(humi);
+    Serial.print("%");
+
+    Serial.print("  |  "); 
+
+    Serial.print("Temperature: ");
+    Serial.print(tempC);
+    Serial.print("°C ~ ");
+  }
+}
+
+void senseSound() {
+  int currentState = analogRead(sound_pin);
+  Serial.println("The sound has been detected");
+  Serial.println(currentState);
 }
