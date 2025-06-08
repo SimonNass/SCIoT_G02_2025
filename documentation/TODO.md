@@ -20,10 +20,10 @@
 
 ## Meeting 27.05
 
-- [ ] Communication gateway -> backend (MQTT)
+- [x] Communication gateway -> backend (MQTT)
 - [ ] Communication backend->gateway (MQTT)
 - [ ] Making motor work
-- [ ] AI Planning
+- [] AI Planning
   - [ ] Overarching Goals
   - [ ] Conversion of DB values to inital state
   - [ ] First attempts at lecture implementation
