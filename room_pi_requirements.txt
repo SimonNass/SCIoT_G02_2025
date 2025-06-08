@@ -1,5 +1,6 @@
 configparser
-pika
+#pika
 typing_extensions
 paho-mqtt==2.1.0
 numpy
+pyserial

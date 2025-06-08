@@ -50,10 +50,11 @@ void setup() {
 
 void loop() {
   delay(2000);
+  Serial.println("---");
   senseSound();
-  senseDHT();
+  senseHumidity();
+  senseTemperature();
   //activateRFID();
-  /*
   if (string_complete) {
     String type = input_str.substring(0,0+1);
     String body = input_str.substring(0+2,input_str.length());
@@ -65,7 +66,6 @@ void loop() {
     input_str = "";
     string_complete = false;
   }
-  */
 }
 
 void serialEvent() {
@@ -119,29 +119,30 @@ void activateServo(int pos) {
 }
 
 
-void senseDHT() {
-  delay(2000);
+void senseHumidity() {
+  //delay(2000);
   float humi  = dht.readHumidity();
-  float tempC = dht.readTemperature();
-  if (isnan(humi) || isnan(tempC)) {
+  if (isnan(humi)) {
     Serial.println("Failed to read from DHT sensor!");
-    Serial.print(humi);
-    Serial.print(tempC);
   } else {
     Serial.print("Humidity: ");
-    Serial.print(humi);
-    Serial.print("%");
+    Serial.println(humi);
+  }
+}
 
-    Serial.print("  |  "); 
-
+void senseTemperature() {
+  //delay(2000);
+  float tempC = dht.readTemperature();
+  if (isnan(tempC)) {
+    Serial.println("Failed to read from DHT sensor!");
+  } else {
     Serial.print("Temperature: ");
-    Serial.print(tempC);
-    Serial.print("°C ~ ");
+    Serial.println(tempC);
   }
 }
 
 void senseSound() {
   int currentState = analogRead(sound_pin);
-  Serial.println("The sound has been detected");
+  Serial.print("Soundlevel: ");
   Serial.println(currentState);
 }
