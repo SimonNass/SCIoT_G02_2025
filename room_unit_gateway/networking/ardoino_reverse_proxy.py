@@ -9,6 +9,7 @@ class ArdoinoReverseProxy():
         self.usb_channel_type = usb_channel_type
         self.usb_channel_data_rate = usb_channel_data_rate
         # in bps
+        self.ardoino_serial = None
         try:
             self.ardoino_serial = serial.Serial(self.usb_channel_type, self.usb_channel_data_rate, timeout=1)
             time.sleep(2)
@@ -28,16 +29,20 @@ class ArdoinoReverseProxy():
     
     def remote_call(self, type_name: str, value):
         try:
-            request_str = str(type_name).encode() + b':' + str(value).encode() + b'\n'
+            request_str = str(type_name) + ':' + str(value) + '\n'
             #print("Request > {} \n".format(request_str))
-            self.ardoino_serial.write(request_str)
+            self.ardoino_serial.write(request_str.encode('UTF-8'))
             time.sleep(1)
-            data = "Start"
-            while(data != str(self.message_end_signal).encode()):
+            data = b'Start'
+            while (str(remove_line_ending(data.decode('utf-8'))) !=(str(self.message_end_signal))):
                 data = self.ardoino_serial.readline()
-                print (data)
-            return "result"
+                print (str(remove_line_ending(data.decode('utf-8'))))
+            return 0
         except (Exception, KeyboardInterrupt) as e:
             print("Stopping")
             print(e)
-            self.ardoino_serial.close()
+
+def remove_line_ending(string: str):
+    return string.strip()
+    #return string.replace("\r","").replace("\n","")
+    

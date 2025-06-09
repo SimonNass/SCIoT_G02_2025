@@ -32,12 +32,6 @@ class ActuatorInterface(ABC):
         if not self.is_valid(self.initial_value):
             self.last_value = min_value
         self.off_value = max(min_value,min(max_value,off_value))
-        try:
-            grovepi.pinMode(self.i2c_connector,"OUTPUT")
-        except  AttributeError as e:
-            print ("pinMode was unsucesful")
-            #print (e)
-            logger.info("pinMode was unsucesful {}".format(e))
 
     @abstractmethod
     def __del__(self):
@@ -79,6 +73,12 @@ class AnalogActuator(ActuatorInterface):
         if connector_types != Connectortype.Analog:
             raise ValueError("Connector_type is not Analog.")
         super().__init__(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+        try:
+            grovepi.pinMode(self.i2c_connector,"OUTPUT")
+        except  AttributeError as e:
+            print ("pinMode was unsucesful")
+            #print (e)
+            logger.info("pinMode was unsucesful {}".format(e))
         self.write_actuator(self.initial_value)
 
     def __del__(self):
@@ -97,6 +97,12 @@ class DigitalActuator(ActuatorInterface):
         if connector_types != Connectortype.Digital:
             raise ValueError("Connector_type is not Analog.")
         super().__init__(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+        try:
+            grovepi.pinMode(self.i2c_connector,"OUTPUT")
+        except  AttributeError as e:
+            print ("pinMode was unsucesful")
+            #print (e)
+            logger.info("pinMode was unsucesful {}".format(e))
         self.write_actuator(self.initial_value)
 
     def __del__(self):

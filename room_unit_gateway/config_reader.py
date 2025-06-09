@@ -57,6 +57,7 @@ def read_config(config_file_name):
         'mqtt_host': mqtt_host,
         'mqtt_port': mqtt_port,
         'mqtt_username': mqtt_username,
+        'ardoino_serial': ardoino_serial,
         'floor_id': floor_id,
         'max_rooms_per_floor': max_rooms_per_floor,
         'room_id': room_id,

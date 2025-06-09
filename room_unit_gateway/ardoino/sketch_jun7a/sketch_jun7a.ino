@@ -74,6 +74,7 @@ void serialEvent() {
 
 void handleRequest(String input) {
   //Serial.print("echo request: ");
+  String end_of_serial = "EndOfSerial";
   //Serial.print(input);
   int index = input.indexOf(":");
   String type_name = input.substring(0,index);
@@ -82,15 +83,21 @@ void handleRequest(String input) {
   //Serial.print(body);
   if (type_name.equals("motor")) {
     activateServo(body.toInt());
+    Serial.println(end_of_serial);
   } else if (type_name.equals("soundlevel")) {
     senseSound();
+    Serial.println(end_of_serial);
   } else if (type_name.equals("humidity")) {
     senseHumidity();
+    Serial.println(end_of_serial);
   } else if (type_name.equals("temperature")) {
     senseTemperature();
+    Serial.println(end_of_serial);
   } else if (type_name.equals("rfid")) {
     //activateRFID();
+    Serial.println(end_of_serial);
   } else if (type_name.equals("exit")) {
+    Serial.println(end_of_serial);
     exit(0);
   }
   //delay(15);

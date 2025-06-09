@@ -7,10 +7,10 @@ def remote_call(ardoino_serial: serial, message_end_signal: str, type_name: str,
         #print("Request > {} \n".format(request_str))
         ardoino_serial.write(request_str)
         time.sleep(1)
-        data = "Start"
-        while(data != str(message_end_signal).encode()):
+        data = b'Start'
+        while (data.decode('utf-8').strip() != message_end_signal):
             data = ardoino_serial.readline()
-            print (data)
+            print (data.decode('utf-8').strip())
     except (Exception, KeyboardInterrupt) as e:
         print("Stopping")
         print(e)

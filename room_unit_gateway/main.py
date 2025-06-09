@@ -125,10 +125,12 @@ def main():
     sensors = []
     actuators = []
     gateway_network = None
+    ardoino_serial = None
     try:
         config_values = config_reader.read_config(config_file_name)
         sensors = config_values['sensor_class_list']
         actuators = config_values['actuator_class_list']
+        ardoino_serial = config_values['ardoino_serial']
     except Exception as e:
         print ("Reading config file {} was not succesfull {}".format(config_file_name,config_values))
         print (e, flush=True)
@@ -143,6 +145,7 @@ def main():
 
     execution_cycle(sensors,actuators,gateway_network)
 
+    del ardoino_serial
     for sensor in sensors:
         del sensor
     for actuator in actuators:
