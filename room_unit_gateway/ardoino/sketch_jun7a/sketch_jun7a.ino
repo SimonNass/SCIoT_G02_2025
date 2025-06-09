@@ -73,24 +73,29 @@ void serialEvent() {
 }
 
 void handleRequest(String input) {
-    String type = input.substring(0,0+1);
-    String body = input.substring(0+2,input.length());
-    if (type.equals("motor")) {
-      activateServo(body.toInt());
-    } else if (type.equals("soundlevel")) {
-      senseSound();
-    } else if (type.equals("humidity")) {
-      senseHumidity();
-    } else if (type.equals("temperature")) {
-      senseTemperature();
-    } else if (type.equals("rfid")) {
-      //activateRFID();
-    } else if (type.equals("exit")) {
-      exit(0);
-    }
-    //delay(15);
-    input_str = "";
-    string_complete = false;
+  //Serial.print("echo request: ");
+  //Serial.print(input);
+  int index = input.indexOf(":");
+  String type_name = input.substring(0,index);
+  String body = input.substring(index+1,input.length());
+  //Serial.print(type_name);
+  //Serial.print(body);
+  if (type_name.equals("motor")) {
+    activateServo(body.toInt());
+  } else if (type_name.equals("soundlevel")) {
+    senseSound();
+  } else if (type_name.equals("humidity")) {
+    senseHumidity();
+  } else if (type_name.equals("temperature")) {
+    senseTemperature();
+  } else if (type_name.equals("rfid")) {
+    //activateRFID();
+  } else if (type_name.equals("exit")) {
+    exit(0);
+  }
+  //delay(15);
+  input_str = "";
+  string_complete = false;
 }
 
 void activateRFID() {
