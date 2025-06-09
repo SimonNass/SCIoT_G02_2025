@@ -9,8 +9,13 @@ class ArdoinoReverseProxy():
         self.usb_channel_type = usb_channel_type
         self.usb_channel_data_rate = usb_channel_data_rate
         # in bps
-        self.ardoino_serial = serial.Serial(self.usb_channel_type, self.usb_channel_data_rate, timeout=1)
-        time.sleep(2)
+        try:
+            self.ardoino_serial = serial.Serial(self.usb_channel_type, self.usb_channel_data_rate, timeout=1)
+            time.sleep(2)
+        except (Exception, IOError, TypeError, AttributeError) as e:
+            print ("connection to ardoino_serial was unsucesful")
+            #print (e)
+            logger.info("connection to ardoino_serial was unsucesful {}".format(e))
 
     def __del__(self):
         try:
