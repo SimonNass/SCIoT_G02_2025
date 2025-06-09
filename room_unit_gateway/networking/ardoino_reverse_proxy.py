@@ -10,7 +10,7 @@ class ArdoinoReverseProxy():
         self.usb_channel_data_rate = usb_channel_data_rate
         # in bps
         self.ardoino_serial = serial.Serial(self.usb_channel_type, self.usb_channel_data_rate, timeout=1)
-        #time.sleep(2)
+        time.sleep(2)
 
     def __del__(self):
         try:

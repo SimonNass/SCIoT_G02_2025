@@ -11,12 +11,16 @@ def read_config(config_file_name):
     config.read(config_file_name)
     #config.read('config.ini')
 
+    print ("reading in general", flush=True)
+    logger.info("reading in general")
     # General
     version = config.get('General', 'version', fallback=0)
     if version == 2:
         print ("Error wrong config version")
         logger.info("Error wrong config version")
 
+    print ("reading in MQTT", flush=True)
+    logger.info("reading in MQTT")
     # MQTT
     mqtt_name = config.get('MQTT', 'name', fallback='MQTT')
     mqtt_host = config.get('MQTT', 'host', fallback='0.0.0.0')
@@ -26,17 +30,26 @@ def read_config(config_file_name):
     max_rooms_per_floor = config.get('MQArchitectureTT', 'max_rooms_per_floor', fallback=100)
     room_id = config.get('Architecture', 'room_ID', fallback=0)
 
+    
+    print ("reading in ardoino", flush=True)
+    logger.info("reading in ardoino")
+    # Ardoino connection
+    message_end_signal = config.get('Ardoino', 'message_end_signal', fallback='')
+    usb_channel_type = config.get('Ardoino', 'usb_channel_type', fallback='COM6')
+    usb_channel_data_rate = config.get('Ardoino', 'usb_channel_data_rate', fallback=9600)
+    ardoino_serial = object_factory.configure_ardoino_connection(message_end_signal=message_end_signal,usb_channel_type=usb_channel_type,usb_channel_data_rate=usb_channel_data_rate)
+
     print ("reading in sensors", flush=True)
     logger.info("reading in sensors")
     # Sensors
     sensor_types = object_factory.configure_sensor_types(config.get('Sensors','sensor_types', fallback="[]"))
-    sensor_class_list = object_factory.configure_sensors(config.get('Sensors','sensor_list', fallback="[]"), sensor_types)
+    sensor_class_list = object_factory.configure_sensors(config.get('Sensors','sensor_list', fallback="[]"), sensor_types, ardoino_serial)
 
     print ("reading in actuators", flush=True)
     logger.info("reading in actuators")
     # Actuators
     actuator_types = object_factory.configure_actuator_types(config.get('Actuators','actuator_types', fallback="[]"))
-    actuator_class_list = object_factory.configure_actuators(config.get('Actuators','actuator_list', fallback="[]"), actuator_types)
+    actuator_class_list = object_factory.configure_actuators(config.get('Actuators','actuator_list', fallback="[]"), actuator_types, ardoino_serial)
 
     # returnobject
     config_values = {

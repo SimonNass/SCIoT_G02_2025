@@ -7,6 +7,7 @@ class Connectortype(Enum):
     Digital_multiple_1 = 4
     I2C_display = 5
     Virtual = 6
+    Ardoino = 7
 
 class Notifyinterval(Enum):
     on_read = 1 # send a value every time the value is read independent of the notify_change_precision
