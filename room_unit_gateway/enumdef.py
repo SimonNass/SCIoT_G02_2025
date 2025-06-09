@@ -7,7 +7,11 @@ class Connectortype(Enum):
     Digital_multiple_1 = 4
     I2C_display = 5
     Virtual = 6
-    Ardoino = 7
+    Ardoino_temperature = 7
+    Ardoino_humidity = 8
+    Ardoino_soundlevel = 9
+    Ardoino_motor = 10
+    # TODO make x_y mapping not with enums but in the generation itself
 
 class Notifyinterval(Enum):
     on_read = 1 # send a value every time the value is read independent of the notify_change_precision

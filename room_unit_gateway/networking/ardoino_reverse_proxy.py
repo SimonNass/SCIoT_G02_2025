@@ -19,6 +19,7 @@ class ArdoinoReverseProxy():
 
     def __del__(self):
         try:
+            self.remote_call(exit,0)
             self.ardoino_serial.close()
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("closing ardoino_serial was unsucesful")

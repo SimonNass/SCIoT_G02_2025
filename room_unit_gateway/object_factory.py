@@ -57,7 +57,7 @@ def choose_sensor_class(name: str, type_name: str, connector: int, connector_typ
         elif connector_types == Connectortype.Virtual:
             return VirtualSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
         elif connector_types == Connectortype.Ardoino:
-            return ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial)
+            return ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="test")
         else:
             raise ValueError("Connector_type is not implemented.")
     except Exception as e:
@@ -113,8 +113,12 @@ def choose_actuator_class(name: str, type_name: str, connector: int, connector_t
             return AnalogActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
         elif connector_types == Connectortype.Digital:
             return DigitalActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
-        elif connector_types == Connectortype.Ardoino:
-            return ArdoinoActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value,ardoino_serial=ardoino_serial)
+        elif connector_types == Connectortype.Ardoino_temperature:
+            return ArdoinoActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value,ardoino_serial=ardoino_serial,type_name_ardoino="temperature")
+        elif connector_types == Connectortype.Ardoino_humidity:
+            return ArdoinoActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value,ardoino_serial=ardoino_serial,type_name_ardoino="humidity")
+        elif connector_types == Connectortype.Ardoino_soundlevel:
+            return ArdoinoActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value,ardoino_serial=ardoino_serial,type_name_ardoino="soundlevel")
         else:
             raise ValueError("Connector_type is not implemented.")
     except Exception as e:
