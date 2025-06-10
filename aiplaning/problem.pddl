@@ -156,7 +156,7 @@
         )
         ; enforce some checks
         (forall (?room - room) 
-            (checked_activity ?room)
+            (fulfilled_activity ?room)
         )
     )
 )

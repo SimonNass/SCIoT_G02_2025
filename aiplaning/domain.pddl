@@ -51,7 +51,8 @@
     (is_activated ?actuator - actuator) ; is a actuator activated
 
     ; force checks predicate
-    (checked_activity ?room - room)
+    (fulfilled_activity ?room - room) ; a lock that prevents actuators to change the state further after an action detects that the curent state fulfilles the activity requests 
+    ; we expect that this is the last thing a planer does normaly
 )
 
 ; needs :derived-predicates
@@ -153,6 +154,7 @@
 (:action turn_on
     :parameters (?sensor - binary_s ?actuator - actuator ?room - room)
     :precondition (and
+        (not (fulfilled_activity ?room))
         (sensor_is_part_of_room ?sensor ?room)
         (actuator_is_part_of_room ?actuator ?room)
         (actuator_increases_sensor ?actuator ?sensor)
@@ -172,6 +174,7 @@
 (:action turn_off
     :parameters (?sensor - binary_s ?actuator - actuator ?room - room)
     :precondition (and
+        (not (fulfilled_activity ?room))
         (sensor_is_part_of_room ?sensor ?room)
         (actuator_is_part_of_room ?actuator ?room)
         (actuator_increases_sensor ?actuator ?sensor)
@@ -191,6 +194,7 @@
 (:action turn_on_inverted
     :parameters (?sensor - binary_s ?actuator - actuator ?room - room)
     :precondition (and
+        (not (fulfilled_activity ?room))
         (sensor_is_part_of_room ?sensor ?room)
         (actuator_is_part_of_room ?actuator ?room)
         (actuator_decreases_sensor ?actuator ?sensor)
@@ -210,6 +214,7 @@
 (:action turn_off_inverted
     :parameters (?sensor - binary_s ?actuator - actuator ?room - room)
     :precondition (and
+        (not (fulfilled_activity ?room))
         (sensor_is_part_of_room ?sensor ?room)
         (actuator_is_part_of_room ?actuator ?room)
         (actuator_decreases_sensor ?actuator ?sensor)
@@ -229,6 +234,7 @@
 (:action increase_s_by_a_in_r
     :parameters (?sensor - numerical_s ?actuator - actuator ?room - room)
     :precondition (and
+        (not (fulfilled_activity ?room))
         (sensor_is_part_of_room ?sensor ?room)
         (actuator_is_part_of_room ?actuator ?room)
         (actuator_increases_sensor ?actuator ?sensor)
@@ -249,6 +255,7 @@
 (:action increase_s_by_na_in_r
     :parameters (?sensor - numerical_s ?actuator - actuator ?room - room)
     :precondition (and
+        (not (fulfilled_activity ?room))
         (sensor_is_part_of_room ?sensor ?room)
         (actuator_is_part_of_room ?actuator ?room)
         (actuator_decreases_sensor ?actuator ?sensor)
@@ -270,6 +277,7 @@
 (:action decrease_s_by_a_in_r
     :parameters (?sensor - numerical_s ?actuator - actuator ?room - room)
     :precondition (and
+        (not (fulfilled_activity ?room))
         (sensor_is_part_of_room ?sensor ?room)
         (actuator_is_part_of_room ?actuator ?room)
         (actuator_decreases_sensor ?actuator ?sensor)
@@ -290,6 +298,7 @@
 (:action decrease_s_by_na_in_r
     :parameters (?sensor - numerical_s ?actuator - actuator ?room - room)
     :precondition (and
+        (not (fulfilled_activity ?room))
         (sensor_is_part_of_room ?sensor ?room)
         (actuator_is_part_of_room ?actuator ?room)
         (actuator_increases_sensor ?actuator ?sensor)
@@ -317,7 +326,6 @@
     )
     :effect (and
         (has_specified_activity ?room)
-        (checked_activity ?room)
     )
 )
 
@@ -330,172 +338,32 @@
     )
     :effect (and
         (not (has_specified_activity ?room))
-        (checked_activity ?room)
     )
 )
 
-(:action turn_on_activity
-    :parameters (?sensor - binary_s ?actuator - actuator ?room - room)
-    :precondition (and
-        (sensor_is_part_of_room ?sensor ?room)
-        (actuator_is_part_of_room ?actuator ?room)
-        (actuator_increases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
-        (not (is_sensing ?sensor))
-        (not (is_activated ?actuator))
-        (has_specified_activity ?room)
+; TODO make one check peer activity if it is fulfilled
+(:action fulfill_activity
+    :parameters (?room - room)
+    :precondition (or
+        (is_doing_read ?room)
+        (is_doing_sleep ?room)
+        (is_doing_bath ?room)
     )
     :effect (and
-        (is_sensing ?sensor)
-        (is_activated ?actuator)
+        (fulfilled_activity ?room)
     )
 )
 
-(:action turn_off_activity
-    :parameters (?sensor - binary_s ?actuator - actuator ?room - room)
+(:action fulfill_no_activity
+    :parameters (?room - room)
     :precondition (and
-        (sensor_is_part_of_room ?sensor ?room)
-        (actuator_is_part_of_room ?actuator ?room)
-        (actuator_increases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
-        (is_sensing ?sensor)
-        (is_activated ?actuator)
-        (has_specified_activity ?room)
+        (not (has_specified_activity ?room))
+        (not (is_doing_read ?room))
+        (not (is_doing_sleep ?room))
+        (not (is_doing_bath ?room))
     )
     :effect (and
-        (not (is_sensing ?sensor))
-        (not (is_activated ?actuator))
-    )
-)
-
-(:action turn_on_inverted_activity
-    :parameters (?sensor - binary_s ?actuator - actuator ?room - room)
-    :precondition (and
-        (sensor_is_part_of_room ?sensor ?room)
-        (actuator_is_part_of_room ?actuator ?room)
-        (actuator_decreases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
-        (not (is_sensing ?sensor))
-        (is_activated ?actuator)
-        (has_specified_activity ?room)
-    )
-    :effect (and
-        (is_sensing ?sensor)
-        (not (is_activated ?actuator))
-    )
-)
-
-(:action turn_off_inverted_activity
-    :parameters (?sensor - binary_s ?actuator - actuator ?room - room)
-    :precondition (and
-        (sensor_is_part_of_room ?sensor ?room)
-        (actuator_is_part_of_room ?actuator ?room)
-        (actuator_decreases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
-        (is_sensing ?sensor)
-        (not (is_activated ?actuator))
-        (has_specified_activity ?room)
-    )
-    :effect (and
-        (not (is_sensing ?sensor))
-        (is_activated ?actuator)
-    )
-)
-
-(:action increase_s_by_a_in_r_activity
-    :parameters (?sensor - numerical_s ?actuator - actuator ?room - room)
-    :precondition (and
-        (sensor_is_part_of_room ?sensor ?room)
-        (actuator_is_part_of_room ?actuator ?room)
-        (actuator_increases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
-        (is_low ?sensor)
-        (not (is_activated ?actuator))
-        (has_specified_activity ?room)
-    )
-    :effect (and
-        (is_activated ?actuator)
-        (not (is_low ?sensor))
-        (is_ok ?sensor)
-    )
-)
-
-(:action increase_s_by_na_in_r_activity
-    :parameters (?sensor - numerical_s ?actuator - actuator ?room - room)
-    :precondition (and
-        (sensor_is_part_of_room ?sensor ?room)
-        (actuator_is_part_of_room ?actuator ?room)
-        (actuator_decreases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
-        (is_low ?sensor)
-        (is_activated ?actuator)
-        (has_specified_activity ?room)
-    )
-    :effect (and
-        (not (is_activated ?actuator))
-        (not (is_low ?sensor))
-        (is_ok ?sensor)
-    )
-)
-
-; can only influence one sensor at a time
-(:action decrease_s_by_a_in_r_activity
-    :parameters (?sensor - numerical_s ?actuator - actuator ?room - room)
-    :precondition (and
-        (sensor_is_part_of_room ?sensor ?room)
-        (actuator_is_part_of_room ?actuator ?room)
-        (actuator_decreases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
-        (is_high ?sensor)
-        (not (is_activated ?actuator))
-        (has_specified_activity ?room)
-    )
-    :effect (and
-        (is_activated ?actuator)
-        (not (is_high ?sensor))
-        (is_ok ?sensor)
-    )
-)
-
-(:action decrease_s_by_na_in_r_activity
-    :parameters (?sensor - numerical_s ?actuator - actuator ?room - room)
-    :precondition (and
-        (sensor_is_part_of_room ?sensor ?room)
-        (actuator_is_part_of_room ?actuator ?room)
-        (actuator_increases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
-        (is_high ?sensor)
-        (is_activated ?actuator)
-        (has_specified_activity ?room)
-    )
-    :effect (and
-        (not (is_activated ?actuator))
-        (not (is_high ?sensor))
-        (is_ok ?sensor)
+        (fulfilled_activity ?room)
     )
 )
 
