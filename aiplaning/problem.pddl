@@ -121,6 +121,7 @@
 
 (:goal
     (and
+        ; specific goals for ocupied rooms
         (imply (is_ocupied room1)
             (and
                 (is_ok temperatur)
@@ -134,6 +135,7 @@
             )
         )
 
+        ; general goals for all unocupied rooms
         (forall (?room - room) 
             (imply  
                 (and
