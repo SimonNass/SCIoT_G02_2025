@@ -162,7 +162,6 @@
         )
         (not (is_sensing ?sensor))
         (not (is_activated ?actuator))
-        (not (has_specified_activity ?room))
     )
     :effect (and
         (is_sensing ?sensor)
@@ -182,7 +181,6 @@
         )
         (is_sensing ?sensor)
         (is_activated ?actuator)
-        (not (has_specified_activity ?room))
     )
     :effect (and
         (not (is_sensing ?sensor))
@@ -202,7 +200,6 @@
         )
         (not (is_sensing ?sensor))
         (is_activated ?actuator)
-        (not (has_specified_activity ?room))
     )
     :effect (and
         (is_sensing ?sensor)
@@ -222,7 +219,6 @@
         )
         (is_sensing ?sensor)
         (not (is_activated ?actuator))
-        (not (has_specified_activity ?room))
     )
     :effect (and
         (not (is_sensing ?sensor))
@@ -242,7 +238,6 @@
         )
         (is_low ?sensor)
         (not (is_activated ?actuator))
-        (not (has_specified_activity ?room))
     )
     :effect (and
         (is_activated ?actuator)
@@ -263,7 +258,6 @@
         )
         (is_low ?sensor)
         (is_activated ?actuator)
-        (not (has_specified_activity ?room))
     )
     :effect (and
         (not (is_activated ?actuator))
@@ -285,7 +279,6 @@
         )
         (is_high ?sensor)
         (not (is_activated ?actuator))
-        (not (has_specified_activity ?room))
     )
     :effect (and
         (is_activated ?actuator)
@@ -306,7 +299,6 @@
         )
         (is_high ?sensor)
         (is_activated ?actuator)
-        (not (has_specified_activity ?room))
     )
     :effect (and
         (not (is_activated ?actuator))
