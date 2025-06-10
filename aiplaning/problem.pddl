@@ -10,6 +10,9 @@
     room11 room12 room13 room14 room15 room16 room17 room18 room19 room20 - room
     cleaning_team1 cleaning_team2 - cleaning_team
 
+    overall_room bed closet window - room_position
+    ;overall_room sleeping_area dressing_area window_area reading_area - room_position
+
     temperatur - temperature_s
     lights1 lights2 - virtual_switch_s
     
@@ -79,6 +82,16 @@
     (actuator_increases_sensor blue_led lights1)
     (actuator_increases_sensor red_led lights1)
  
+    ; iot position mapping
+    (positioned_at temperatur overall_room)
+    (positioned_at lights1 overall_room)
+    (positioned_at lights2 overall_room)
+    (positioned_at heater overall_room)
+    (positioned_at ac overall_room)
+    (positioned_at green_led overall_room)
+    (positioned_at blue_led overall_room)
+    (positioned_at red_led overall_room)
+
     ;; context
 
     ; raw sensor data
@@ -92,7 +105,7 @@
     (is_ocupied room1)
 
     ; activitys
-    (is_doing_read room1)
+    (is_doing_read_at room1 overall_room)
     ;(not (is_ocupied room2))
     ;(is_doing_sleep room2)
 
@@ -117,6 +130,7 @@
     ;(is_cleaned room18)
     ;(is_cleaned room19)
     ;(is_cleaned room20)
+
 )
 
 (:goal
@@ -158,7 +172,9 @@
         )
         ; enforce some checks
         (forall (?room - room) 
-            (fulfilled_activity ?room)
+            (forall (?room_position - room_position) 
+                (fulfilled_activity ?room ?room_position)
+            )
         )
     )
 )
