@@ -72,7 +72,7 @@
 ;  )
 ;)
 
-; cleaning
+;;( cleaning
 (:action move_to_floor
     :parameters (?cleaning_team - cleaning_team ?curent_room ?next_room - room ?curent_floor ?next_floor - floor)
     :precondition (and
@@ -141,8 +141,9 @@
         (is_cleaned ?room)
     )
 )
+;;)
 
-;; assign if missing in problem file
+;;( assign if missing in problem file
 
 ; floor
 (:action assign_floor
@@ -171,8 +172,9 @@
         )
     )
 )
+;;)
 
-; actuator control
+;;( actuator control
 (:action turn_on
     :parameters (?sensor - binary_s ?actuator - actuator ?room - room ?room_position - room_position)
     :precondition (and
@@ -345,8 +347,9 @@
         (is_ok ?sensor)
     )
 )
+;;)
 
-; activity based actuator control
+;;( activity based checks
 (:action detect_activity
     :parameters (?room - room ?room_position - room_position)
     :precondition (or
@@ -424,8 +427,10 @@
         (fulfilled_activity ?room ?room_position)
     )
 )
+;;)
 
-; optimisation for energy
+;;( optimisation for energy
+
 ; what if actuator of another room influences this sensor
 (:action cancle_out_actuator
     :parameters (?sensor - numerical_s ?actuator_1 ?actuator_2 - actuator ?room - room)
@@ -459,5 +464,6 @@
 
     )
 )
+;;)
 
 )

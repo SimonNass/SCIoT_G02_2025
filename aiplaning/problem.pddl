@@ -21,7 +21,9 @@
 )
 
 (:init
-    ;; room topology
+    ;; topology
+
+    ;;( room topology
 
     ; needed for cleaning_team
     (room_is_part_of_floor elevator floor1)
@@ -64,7 +66,9 @@
     ;(is_next_to room2 room9)
     ;(is_next_to room1 room10)
 
+    ;;)
 
+    ;;(iot to room papping
     (sensor_is_part_of_room temperatur room1)
     (sensor_is_part_of_room lights1 room1)
     (sensor_is_part_of_room lights2 room2)
@@ -74,15 +78,17 @@
     (actuator_is_part_of_room red_led room1)
     (actuator_is_part_of_room heater room1)
     (actuator_is_part_of_room ac room1)
+    ;;)
     
-    ; sensor actuator mapping
+    ;;( sensor actuator mapping
     (actuator_increases_sensor heater temperatur)
     (actuator_decreases_sensor ac temperatur)
     (actuator_increases_sensor green_led lights1)
     (actuator_increases_sensor blue_led lights1)
     (actuator_increases_sensor red_led lights1)
- 
-    ; iot position mapping
+    ;;)
+    
+    ;;( iot position mapping
     (positioned_at temperatur overall_room)
     (positioned_at lights1 overall_room)
     (positioned_at lights2 overall_room)
@@ -91,17 +97,19 @@
     (positioned_at green_led overall_room)
     (positioned_at blue_led overall_room)
     (positioned_at red_led overall_room)
+    ;;)
 
     ;; context
 
-    ; raw sensor data
+    ;;( raw sensor data
     ;(is_low temperatur)
     (is_high temperatur)
 
     ; raw actuator data
     (is_activated green_led)
-
-    ; meta context
+    ;;)
+    
+    ;;( meta context
     (is_ocupied room1)
 
     ; activitys
@@ -130,12 +138,13 @@
     ;(is_cleaned room18)
     ;(is_cleaned room19)
     ;(is_cleaned room20)
+    ;;)
 
 )
 
 (:goal
     (and
-        ; specific goals for ocupied rooms
+        ;;( specific goals for ocupied rooms
         (imply (is_ocupied room1)
             (and
                 (is_ok temperatur)
@@ -148,8 +157,9 @@
                 (is_sensing lights2)
             )
         )
+        ;;)
 
-        ; general goals for all unocupied rooms
+        ;;( general goals for all unocupied rooms
         (forall (?room - room) 
             (imply  
                 (and
@@ -170,12 +180,15 @@
                 )
             )
         )
-        ; enforce some checks
+        ;;)
+
+        ;;( enforce some checks
         (forall (?room - room) 
             (forall (?room_position - room_position) 
                 (fulfilled_activity ?room ?room_position)
             )
         )
+        ;;)
     )
 )
 
