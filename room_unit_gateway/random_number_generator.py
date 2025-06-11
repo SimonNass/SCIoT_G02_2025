@@ -3,7 +3,7 @@ import numpy as np
 def simple_random(min_value: int, max_value: int):
     random_change = np.random.random()
     result = min_value + (max_value - min_value) * random_change
-    return result
+    return min(max(result,min_value),max_value)
 
 def complex_random(min_value: int, max_value: int, precision: int):
     random_change = np.random.random()
@@ -30,4 +30,4 @@ def random_value(last_value: int, min_value: int, max_value: int, precision: int
     deviation = precision * 2.0
     random_change = np.random.normal(loc = mean, scale = deviation)
     result = last_value + alpha * (random_change - last_value)
-    return result
+    return min(max(result,min_value),max_value)
