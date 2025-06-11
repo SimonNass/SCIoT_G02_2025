@@ -20,6 +20,7 @@ from networking.networking_domain import GatewayNetwork
 from sensors.sensor import SensorInterface
 from actuators.actuator import ActuatorInterface
 from enumdef import Connectortype
+import help_methods
 
 def system_info():
     print (sys.version)
@@ -34,44 +35,10 @@ def system_info():
     #print ("numpy version:" + str(np.version.version))
     logger.info("numpy version:" + str(np.version.version))
 
-def read_all_sensors(sensors: List[SensorInterface]):
-    for sensor in sensors:
-        _ = sensor.read_sensor()
-
-def write_all_actuators(actuators: List[ActuatorInterface], value: int):
-    for actuator in actuators:
-        actuator.write_actuator(value)
-
-def write_all_displays(displays: List[ActuatorInterface], text: str):
-    for display in displays:
-        if display.connector_types != Connectortype.I2C_display:
-            continue
-        display.write_actuator(text)
-
-def send_sensors(sensors: List[SensorInterface], network_connection: GatewayNetwork):
-    for sensor in sensors:
-        print ("--", flush=True)
-        network_connection.send_all_data_sensor(sensor,True)
-
-def send_actuators(actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
-    for actuator in actuators:
-        print ("--", flush=True)
-        network_connection.send_all_data_actuator(actuator)
-
-def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface], cycle: int, network_connection: GatewayNetwork):
-    for sensor in sensors:
-        if cycle % sensor.read_interval== 0:
-            old_value = sensor.last_value
-            read_dict = sensor.read_sensor()
-            if abs(old_value - sensor.last_value) >= sensor.notify_change_precision:
-                network_connection.send_all_data_sensor(sensor,True)
-            text = "{}: {}".format(sensor.name,str(read_dict["last_value"]))
-            write_all_displays(displays, text)
-
 def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
     print ("", flush=True)
-    send_sensors(sensors,network_connection)
-    send_actuators(actuators,network_connection)
+    help_methods.send_sensors(sensors,network_connection)
+    help_methods.send_actuators(actuators,network_connection)
     cycle = 0
     max_cycle_time = 240
     want_to_exit = False
@@ -79,16 +46,16 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
         print ("", flush=True)
         try:
 
-            read_all_sensors(sensors)
-            #write_all_actuators(actuators, cycle % 2)
-            #write_all_displays(actuators,"12345678910131517192123252729313335")
-            #cyclic_read(sensors,actuators,cycle,network_connection)
+            help_methods.read_all_sensors(sensors)
+            #help_methods.write_all_actuators(actuators, cycle % 2)
+            #help_methods.write_all_displays(actuators,"12345678910131517192123252729313335")
+            #help_methods.cyclic_read(sensors,actuators,cycle,network_connection)
 
             # Reset
             if cycle > max_cycle_time:
                 cycle = 0
-                send_sensors(sensors,network_connection)
-                send_actuators(actuators,network_connection)
+                help_methods.send_sensors(sensors,network_connection)
+                help_methods.send_actuators(actuators,network_connection)
 
             # Increment
             cycle = cycle + 1
