@@ -7,6 +7,7 @@ try:
 except ImportError:
     grovepi = None
 import uuid
+import time
 from abc import ABC, abstractmethod
 import logging
 logger = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ class ActuatorInterface(ABC):
         self.unit = unit
         self.initial_value = max(min_value,min(max_value,initial_value))
         self.last_value = self.initial_value
+        self.last_value_timestamp = time.time()
         if not self.is_valid(self.initial_value):
             self.last_value = min_value
         self.off_value = max(min_value,min(max_value,off_value))
@@ -41,7 +43,7 @@ class ActuatorInterface(ABC):
         return str(self.__dict__())
 
     def __dict__(self):
-        return {"id":str(self.id),"name":self.name,"type_name":self.type,"connector":self.i2c_connector,"connector_type":str(self.connector_type),"min":self.min_value, "max":self.max_value, "datatype":self.datatype, "unit":self.unit, "initial_value":self.initial_value, "off_value":self.off_value, "last_value":self.last_value}
+        return {"id":str(self.id),"name":self.name,"type_name":self.type,"connector":self.i2c_connector,"connector_type":str(self.connector_type),"min":self.min_value, "max":self.max_value, "datatype":self.datatype, "unit":self.unit, "initial_value":self.initial_value, "off_value":self.off_value, "last_value":self.last_value, "last_value_timestamp":self.last_value_timestamp}
 
     def write_actuator(self, value: int):
         write_value = max(self.min_value,min(self.max_value,value))
@@ -50,6 +52,7 @@ class ActuatorInterface(ABC):
             raise ValueError(text)
         try:
             _ = self.write_internal_actuator(write_value)
+            self.last_value_timestamp = time.time()
             self.last_value = write_value
             self.datatype = str(type(self.last_value))
             print ("{}: {} {}".format(self.name,self.last_value, self.datatype))

@@ -6,6 +6,7 @@ try:
 except ImportError:
     grovepi = None
     grove_rgb_lcd = None
+import time
 import logging
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,7 @@ class DisplayActuator(ActuatorInterface):
                 #raise ValueError("Text is too long")
                 write_value = write_value[:self.char_limit]
             _ = self.write_internal_actuator(write_value)
+            self.last_value_timestamp = time.time()
             self.last_value = write_value
             self.datatype = str(type(self.last_value))
             print ("{}: {} {}".format(self.name,self.last_value, self.datatype))

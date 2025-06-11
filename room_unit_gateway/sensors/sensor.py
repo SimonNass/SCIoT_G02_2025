@@ -7,6 +7,7 @@ except ImportError:
     grovepi = None
 import numpy as np
 import uuid
+import time
 from abc import ABC, abstractmethod
 import logging
 logger = logging.getLogger(__name__)
@@ -28,16 +29,18 @@ class SensorInterface(ABC):
         self.notify_interval = notify_interval
         self.notify_change_precision = notify_change_precision
         self.last_value = self.min_value
+        self.last_value_timestamp = time.time()
 
     def __str__(self):
         return str(self.__dict__())
 
     def __dict__(self):
-        return {"id":str(self.id),"name":self.name,"type_name":self.type,"connector":self.i2c_connector,"connector_type":str(self.connector_type),"min":self.min_value, "max":self.max_value, "datatype":self.datatype, "unit":self.unit, "read_interval":self.read_interval, "notify_interval":str(self.notify_interval), "notify_change_precision":self.notify_change_precision, "last_value":self.last_value}
+        return {"id":str(self.id),"name":self.name,"type_name":self.type,"connector":self.i2c_connector,"connector_type":str(self.connector_type),"min":self.min_value, "max":self.max_value, "datatype":self.datatype, "unit":self.unit, "read_interval":self.read_interval, "notify_interval":str(self.notify_interval), "notify_change_precision":self.notify_change_precision, "last_value":self.last_value, "last_value_timestamp":self.last_value_timestamp}
 
     def read_sensor(self):
         try:
             self.last_value = self.read_internal_sensor()
+            self.last_value_timestamp = time.time()
             self.datatype = str(type(self.last_value))
             print ("{}: {} {}".format(self.name,self.last_value, self.datatype))
             return self.__dict__()
