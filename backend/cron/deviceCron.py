@@ -10,8 +10,8 @@ import atexit
 
 mark_devices_offline_after_hours = 1
 delete_after_hours = 24
-# Todo: Fix app_context issues with cronjobs
-def mark_devices_offline():
+
+def _mark_devices_offline():
     """
     Mark devices as offline if they haven't been seen for mark_devices_offline_after_hours hours or more.
     Runs every 30 minutes.
@@ -41,10 +41,16 @@ def mark_devices_offline():
                 
     except Exception as e:
         logging.error(f"Error in mark_devices_offline cronjob: {str(e)}")
-        db.session.rollback()
+        # Only rollback if we're still within the app context
+        try:
+            with current_app.app_context():
+                db.session.rollback()
+        except RuntimeError:
+            # If we can't get app context, just log the error
+            logging.error("Could not rollback database session - no application context available")
 
 
-def cleanup_old_devices():
+def _cleanup_old_devices():
     """
     Delete devices that haven't been seen for {delete_after_hours} hours or more.
     Also removes them from the device cache.
@@ -86,7 +92,12 @@ def cleanup_old_devices():
                 
     except Exception as e:
         logging.error(f"Error in cleanup_old_devices cronjob: {str(e)}")
-        db.session.rollback()
+        # Only rollback if app context is available 
+        try:
+            with current_app.app_context():
+                db.session.rollback()
+        except RuntimeError:
+            logging.error("Could not rollback database session - no application context available")
 
 
 def start_scheduler(app):
@@ -96,19 +107,28 @@ def start_scheduler(app):
     
     scheduler = BackgroundScheduler()
     
-    # Job 1: Mark devices offline every 30 minutes
+    # Wrapper functions that ensure app context is available
+    def mark_devices_offline():
+        with app.app_context():
+            _mark_devices_offline()
+    
+    def cleanup_old_devices():
+        with app.app_context():
+            _cleanup_old_devices()
+    
+    # Job 1: Mark devices offline
     scheduler.add_job(
         func=mark_devices_offline,
-        trigger=IntervalTrigger(minutes=30),
+        trigger=IntervalTrigger(hours=mark_devices_offline_after_hours),
         id='mark_devices_offline',
         name=f'Mark devices offline if not seen for {mark_devices_offline_after_hours} hours',
         replace_existing=True
     )
     
-    # Job 2: Cleanup old devices every hour
+    # Job 2: Cleanup old devices
     scheduler.add_job(
         func=cleanup_old_devices,
-        trigger=IntervalTrigger(hours=1),
+        trigger=IntervalTrigger(hours=delete_after_hours),
         id='cleanup_old_devices',
         name=f'Delete devices not seen for {delete_after_hours} hours',
         replace_existing=True

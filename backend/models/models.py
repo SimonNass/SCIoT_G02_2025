@@ -72,6 +72,7 @@ class Device(db.Model):
     datatype: Mapped[Optional[str]] = mapped_column(String(50))
     unit: Mapped[Optional[str]] = mapped_column(String(20))
     last_value: Mapped[Optional[str]] = mapped_column(Text)
+    # Todo: Add PDDL info
     
     # Sensor-specific fields
     read_interval: Mapped[Optional[int]] = mapped_column(Integer)

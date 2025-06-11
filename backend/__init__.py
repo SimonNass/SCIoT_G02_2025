@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 import logging
 from backend.config import Config
@@ -23,15 +24,16 @@ def create_app(config_class=Config):
     
     try:
         with app.app_context():
-            # Only creates new tabels if they don't already exist
+            # Only creates new tables if they don't already exist
             db.create_all()
     except Exception as e:
         app.logger.error(f"Error initializing database: {e}")
     
     register_routes(app)
-    start_mqtt_client(app)
-
-    # Start the scheduler for device management cronjobs
-    start_scheduler(app)
+    
+    # Should prevent double initialization when debug=True (hopefully)
+    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+        start_mqtt_client(app)
+        start_scheduler(app)
     
     return app
