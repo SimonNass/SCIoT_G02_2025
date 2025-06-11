@@ -12,17 +12,28 @@ import os
 BASE_DIR = os.path.join(os.getcwd(), "configs")
 os.makedirs(BASE_DIR, exist_ok=True)
 
-COMMON_HEADER = """[General]
+COMMON_HEADER_GENERAL = """[General]
 version = 2
 
-[MQTT]
+"""
+
+COMMON_HEADER_MQTT = """[MQTT]
 name       = "MascitoMQTT"
-host       = "192.168.178.43"
+host       = "localhost"
 port       = 1884
 username   = "test"
 base_topic = "SCIoT_G02_2025"
 
-[Architecture]
+"""
+
+COMMON_HEADER_ARDOINO = """[Ardoino]
+message_end_signal = EndOfSerial
+usb_channel_type = COM6
+usb_channel_data_rate = 9600 
+
+"""
+
+COMMON_HEADER_ARCHITECTURE = """[Architecture]
 max_rooms_per_floor = 100
 """
 
@@ -52,7 +63,7 @@ EMPTY_ACTUATOR_TYPES_JSON = "[]"
 EMPTY_ACTUATOR_LIST_JSON  = "[]"
 
 def make_config(floor_id: int, room_id: int):
-    header = COMMON_HEADER + f"floor_ID            = {floor_id}\nroom_ID             = {room_id}\n\n"
+    header = COMMON_HEADER_ARCHITECTURE + f"floor_ID            = {floor_id}\nroom_ID             = {room_id}\n\n"
 
     sensors_section = (
         "[Sensors]\n"
@@ -67,12 +78,13 @@ def make_config(floor_id: int, room_id: int):
         f"actuator_list  = {EMPTY_ACTUATOR_LIST_JSON}\n"
     )
 
-    content = header + sensors_section + actuators_section
+    content = COMMON_HEADER_GENERAL + COMMON_HEADER_MQTT + COMMON_HEADER_ARDOINO + header + sensors_section + actuators_section
     filename = f"config_room_f{floor_id}_r{room_id}.ini"
     path = os.path.join(BASE_DIR, filename)
     with open(path, "w") as f:
         f.write(content)
-    print(f"Generated {filename}")
+        print(f"Generated {filename}")
+    #print(f"Generated {filename}")
 
 def main():
     # Floor 1: rooms 1–6
