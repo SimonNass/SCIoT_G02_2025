@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 import logging
 logger = logging.getLogger(__name__)
 
+import random_number_generator as rng
 from enumdef import Connectortype, Notifyinterval
 
 class SensorInterface(ABC):
@@ -107,13 +108,12 @@ class VirtualSensor(SensorInterface):
         if connector_types != Connectortype.Virtual:
             raise ValueError("connector_type is not Digital.")
         super().__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
-        #self.rng = np.random.default_rng(seed = self.i2c_connector) #doas not work on pi
         _ = self.read_sensor()
 
     def read_internal_sensor(self):
-        mean = (self.min_value + self.max_value) / 2.0
-        deviation = self.notify_change_precision / 2.0
-        alpha = 0.5
-        #random_change = self.rng.normal(loc = mean, scale = deviation)
-        random_change = np.random.normal(loc = mean, scale = deviation)
-        return self.last_value + alpha * (random_change - self.last_value)
+        return rng.random_value(
+            last_value=self.last_value, 
+            min_value=self.min_value, 
+            max_value=self.max_value,
+            precision= self.notify_change_precision,
+            alpha=0.5)
