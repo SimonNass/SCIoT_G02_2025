@@ -1,14 +1,13 @@
 # TODO
 
-- Define API interfaces and MQTT topology
-- make docker components talk to each other
+- Define API interfaces
 - pi
     - update python version in docker for room pi
-    - get the motor working
+    - check if ardoino as part of the pi works
     - test pi with no / wrong sensors, pi check that with nothing conneted or connected wrong it stil works
     - button add buffer to not send multiple messages if 
     - send welkome message for display
-    - sensors int of float
+    - automatic discovery
 - build an overview UI
 - build DB
   - metadata
@@ -20,13 +19,13 @@
 
 ## Meeting 27.05
 
-- [x] Communication gateway -> backend (MQTT)
+- [X] Communication gateway -> backend (MQTT)
 - [ ] Communication backend->gateway (MQTT)
-- [ ] Making motor work
+- [X] Making motor work
 - [] AI Planning
-  - [ ] Overarching Goals
+  - [X] Overarching Goals
   - [ ] Conversion of DB values to inital state
-  - [ ] First attempts at lecture implementation
+  - [X] First attempts at lecture implementation
 - [ ] Frontend
   - [ ] Needed Backend Endpoints
 - [ ] Simulation
