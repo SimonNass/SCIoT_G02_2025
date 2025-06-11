@@ -37,6 +37,7 @@ def on_connect(client, userdata, flags, rc):
         subscribe_topic = app_instance.config['MQTT_TOPIC_SUBSCRIBE']
         client.subscribe(subscribe_topic, qos=MQTT_QOS)
         logging.info(f"Subscribed to {subscribe_topic}")
+        logging.info(f"MQTT_QOS: {MQTT_QOS}")
     else:
         logging.error(f"Failed to connect to MQTT broker with code: {rc}")
         return
