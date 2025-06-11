@@ -51,7 +51,8 @@ class ActuatorInterface(ABC):
         try:
             _ = self.write_internal_actuator(write_value)
             self.last_value = write_value
-            print ("{}: {}".format(self.name,self.last_value))
+            self.datatype = str(type(self.last_value))
+            print ("{}: {} {}".format(self.name,self.last_value, self.datatype))
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("write was unsucesful")
             #print (e)
