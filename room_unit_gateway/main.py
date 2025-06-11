@@ -69,14 +69,20 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
             want_to_exit = True
 
 def main():
+    """
+    Usage:
+      python main.py <config_folder>/<config_file.ini> <mqtt_password>
+    """
     logging.basicConfig(filename='pi_room_gateway.log', level=logging.INFO)
     logger.info("xxxx Started new execution.")
     system_info()
 
     if len(sys.argv) < 3 or len(sys.argv) > 3:
         print ("Error CLI arguments incorrect")
+        print("Usage: python main.py <config_folder>/<config_file.ini> <mqtt_password>")
         print (sys.argv)
         logger.info("Error CLI arguments incorrect {}".format(sys.argv))
+        sys.exit(1)
 
     config_file_name = str(sys.argv[1])
     password = str(sys.argv[2])
@@ -84,28 +90,56 @@ def main():
     print ("", flush=True)
 
     config_values = {}
-    sensors = []
-    actuators = []
-    gateway_network = None
-    ardoino_serial = None
     try:
         config_values = config_reader.read_config(config_file_name)
-        sensors = config_values['sensor_class_list']
-        actuators = config_values['actuator_class_list']
-        ardoino_serial = config_values['ardoino_serial']
     except Exception as e:
         print ("Reading config file {} was not succesfull {}".format(config_file_name,config_values))
         print (e, flush=True)
         logger.info("Reading config file {} was not succesfull {}, {}".format(config_file_name,config_values, e))
 
+    sensors = []
+    actuators = []
+    mqtt_host = None
+    mqtt_port = None
+    mqtt_username = None
+    floor_id = None
+    max_rooms = None
+    room_id = None
+    ardoino_serial = None
     try:
-        gateway_network = GatewayNetwork(host=config_values['mqtt_host'],port=config_values['mqtt_port'],username=config_values['mqtt_username'],password=password,floor_id=config_values['floor_id'],max_rooms_per_floor=config_values['max_rooms_per_floor'],room_id=config_values['room_id'])
+        sensors   = config_values['sensor_class_list']
+        actuators = config_values['actuator_class_list']
+        mqtt_host     = config_values['mqtt_host']
+        mqtt_port     = config_values['mqtt_port']
+        mqtt_username = config_values['mqtt_username']
+        floor_id      = config_values['floor_id']
+        max_rooms     = config_values['max_rooms_per_floor']
+        room_id       = config_values['room_id']
+        ardoino_serial = config_values['ardoino_serial']
+    except Exception as e:
+        print ("Reading config_values {} was not succesfull {}".format(config_file_name,config_values))
+        print (e, flush=True)
+        logger.info("Reading config_values {} was not succesfull {}, {}".format(config_file_name,config_values, e))
+
+    gateway_network = None
+    try:
+        gateway_network = GatewayNetwork(
+            host=mqtt_host,
+            port=mqtt_port,
+            username=mqtt_username,
+            password=password,
+            floor_id=floor_id,
+            max_rooms_per_floor=max_rooms,
+            room_id=room_id
+        )
     except Exception as e:
         print ("MQTT broker not connected.")
         print (e, flush=True)
         logger.info("MQTT broker not connected. {}".format(e))
 
+    logger.info(f"[Starting execution cycle for floor {floor_id}, room {room_id}")
     execution_cycle(sensors,actuators,gateway_network)
+    logger.info(f"[Execution cycle ended.")
 
     del ardoino_serial
     for sensor in sensors:
