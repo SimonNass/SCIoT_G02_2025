@@ -32,6 +32,13 @@ def random_value(last_value: float = 0.5, min_value: float = 0, max_value: float
     result = last_value + alpha * (random_change - last_value)
     return min(max(result,min_value),max_value)
 
+def predefined_sequence(min_value: float = 0, max_value: float = 1, seed: int = 0, index: int = 0):
+    sequence = [[0,0.1,0.2,0.3,0.4,0.5,0.4,0.5,0.6,0.7,0.8,0.7,0.6,0.7,0.8,0.9,1],[0,0.1,0.2,0.3,0.4,0.5,0.4,0.5,0.6,0.7,0.8,0.7,0.6,0.7,0.8,0.9,1]]
+    chosen_sequence = sequence[seed % len(sequence)]
+    random_change = chosen_sequence[index % len(chosen_sequence)]
+    result = min_value + (max_value - min_value) * random_change
+    return min(max(result,min_value),max_value)
+
 def random_value_actuator_influence(last_value: float = 0.5, min_value: float = 0, max_value: float = 1, precision: float = 0.2, alpha: float = 0.5, actuator_influence: float = 0):
     result = random_value(last_value,min_value,max_value,precision,alpha) + actuator_influence
     return min(max(result,min_value),max_value)
