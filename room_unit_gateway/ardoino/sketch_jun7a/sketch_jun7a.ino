@@ -1,10 +1,5 @@
-#include <MFRC522.h>
-#include <MFRC522Extended.h>
-#include <deprecated.h>
-#include <require_cpp11.h>
-
 //lib MFRC522 by GithubCommunity installed
-#include "MFRC522.h"
+#include <MFRC522.h>
 #include <SPI.h>
 //lib DHT sensor library by Adafruit installed + dependencies
 #include "DHT.h"
