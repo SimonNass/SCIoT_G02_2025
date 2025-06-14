@@ -33,7 +33,7 @@ def system_info():
     logger.info("numpy version:" + str(np.version.version))
 
 def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork, max_cycle_time: int = 100):
-    logger.info("max_cycle_time: " + max_cycle_time)
+    logger.info("max_cycle_time: " + str(max_cycle_time))
     print ("", flush=True)
     help_methods.send_sensors(sensors,network_connection)
     help_methods.send_actuators(actuators,network_connection)
