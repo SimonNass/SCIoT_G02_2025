@@ -108,16 +108,16 @@ def main():
     room_id = None
     ardoino_serial = None
     try:
-        max_cycle_time   = config_values['max_cycle_time']
+        max_cycle_time   = int(config_values['max_cycle_time'])
         sensors   = config_values['sensor_class_list']
         actuators = config_values['actuator_class_list']
-        mqtt_host     = config_values['mqtt_host']
-        mqtt_port     = config_values['mqtt_port']
-        mqtt_username = config_values['mqtt_username']
-        floor_id      = config_values['floor_id']
-        max_rooms     = config_values['max_rooms_per_floor']
-        room_id       = config_values['room_id']
-        ardoino_serial = config_values['ardoino_serial']
+        mqtt_host     = str(config_values['mqtt_host'])
+        mqtt_port     = int(config_values['mqtt_port'])
+        mqtt_username = str(config_values['mqtt_username'])
+        floor_id      = int(config_values['floor_id'])
+        max_rooms     = int(config_values['max_rooms_per_floor'])
+        room_id       = int(config_values['room_id'])
+        ardoino_serial = str(config_values['ardoino_serial'])
     except Exception as e:
         print ("Reading config_values {} was not succesfull {}".format(config_file_name,config_values))
         print (e, flush=True)
