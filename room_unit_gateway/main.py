@@ -37,7 +37,7 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
     help_methods.send_sensors(sensors,network_connection)
     help_methods.send_actuators(actuators,network_connection)
     cycle = 0
-    max_cycle_time = 240
+    max_cycle_time = 4
     want_to_exit = False
     while not want_to_exit:
         print ("", flush=True)
@@ -137,9 +137,9 @@ def main():
         print (e, flush=True)
         logger.info("MQTT broker not connected. {}".format(e))
 
-    logger.info(f"[Starting execution cycle for floor {floor_id}, room {room_id}")
+    logger.info(f"Starting execution cycle for floor {floor_id}, room {room_id}")
     execution_cycle(sensors,actuators,gateway_network)
-    logger.info(f"[Execution cycle ended.")
+    logger.info(f"Execution cycle ended.")
 
     del ardoino_serial
     for sensor in sensors:
