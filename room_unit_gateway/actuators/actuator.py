@@ -55,11 +55,12 @@ class ActuatorInterface(ABC):
             self.last_value_timestamp = time.time()
             self.last_value = write_value
             self.datatype = str(type(self.last_value))
-            print ("{}: {} {}".format(self.name,self.last_value, self.datatype))
+            print ("{}: {}".format(self.name,self.last_value))
+            logger.info("{}: {} {}".format(self.name,self.last_value, self.datatype))
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("write was unsucesful")
             #print (e)
-            logger.info("write was unsucesful {}".format(e))
+            logger.info("{}: write was unsucesful {}".format(self.name, e))
 
     @abstractmethod
     def write_internal_actuator(self, value: int):
@@ -82,7 +83,7 @@ class AnalogActuator(ActuatorInterface):
         except  AttributeError as e:
             print ("pinMode was unsucesful")
             #print (e)
-            logger.info("pinMode was unsucesful {}".format(e))
+            logger.info("{}: pinMode was unsucesful {}".format(self.name, e))
         self.write_actuator(self.initial_value)
 
     def __del__(self):
@@ -91,7 +92,7 @@ class AnalogActuator(ActuatorInterface):
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("write was unsucesful")
             #print (e)
-            logger.info("write was unsucesful {}".format(e))
+            logger.info("{}: write was unsucesful {}".format(self.name, e))
 
     def write_internal_actuator(self, write_value: int):
         return grovepi.analogWrite(self.i2c_connector,write_value)
@@ -106,7 +107,7 @@ class DigitalActuator(ActuatorInterface):
         except  AttributeError as e:
             print ("pinMode was unsucesful")
             #print (e)
-            logger.info("pinMode was unsucesful {}".format(e))
+            logger.info("{}: pinMode was unsucesful {}".format(self.name, e))
         self.write_actuator(self.initial_value)
 
     def __del__(self):
@@ -115,7 +116,7 @@ class DigitalActuator(ActuatorInterface):
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("write was unsucesful")
             #print (e)
-            logger.info("write was unsucesful {}".format(e))
+            logger.info("{}: write was unsucesful {}".format(self.name, e))
 
     def write_internal_actuator(self, write_value: int):
         return grovepi.digitalWrite(self.i2c_connector,write_value)

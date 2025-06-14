@@ -43,12 +43,13 @@ class SensorInterface(ABC):
             self.last_value = self.read_internal_sensor()
             self.last_value_timestamp = time.time()
             self.datatype = str(type(self.last_value))
-            print ("{}: {} {}".format(self.name,self.last_value, self.datatype))
+            print ("{}: {}".format(self.name,self.last_value))
+            logger.info("{}: {} {}".format(self.name,self.last_value, self.datatype))
             return self.__dict__()
         except (Exception, IOError, TypeError) as e:
             print ("read was unsucesful")
             #print (e)
-            logger.info("read was unsucesful {}".format(e))
+            logger.info("{}: read was unsucesful {}".format(self.name, e))
 
     @abstractmethod
     def read_internal_sensor(self):
@@ -74,7 +75,7 @@ class DigitalSensor(SensorInterface):
         except  AttributeError as e:
             print ("pinMode was unsucesful")
             #print (e)
-            logger.info("pinMode was unsucesful {}".format(e))
+            logger.info("{}: pinMode was unsucesful {}".format(self.name, e))
         _ = self.read_sensor()
 
     def read_internal_sensor(self):
@@ -91,7 +92,7 @@ class DigitalMultipleSensor(SensorInterface):
         except  AttributeError as e:
             print ("pinMode was unsucesful")
             #print (e)
-            logger.info("pinMode was unsucesful {}".format(e))
+            logger.info("{}: pinMode was unsucesful {}".format(self.name, e))
         _ = self.read_sensor()
 
     def read_internal_sensor(self):
