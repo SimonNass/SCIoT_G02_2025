@@ -32,12 +32,12 @@ def system_info():
     #print ("numpy version:" + str(np.version.version))
     logger.info("numpy version:" + str(np.version.version))
 
-def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
+def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork, max_cycle_time: int = 100):
+    logger.info("max_cycle_time: " + max_cycle_time)
     print ("", flush=True)
     help_methods.send_sensors(sensors,network_connection)
     help_methods.send_actuators(actuators,network_connection)
     cycle = 0
-    max_cycle_time = 4
     want_to_exit = False
     while not want_to_exit:
         print ("", flush=True)
@@ -97,6 +97,7 @@ def main():
         print (e, flush=True)
         logger.info("Reading config file {} was not succesfull {}, {}".format(config_file_name,config_values, e))
 
+    max_cycle_time = 100
     sensors = []
     actuators = []
     mqtt_host = None
@@ -107,6 +108,7 @@ def main():
     room_id = None
     ardoino_serial = None
     try:
+        max_cycle_time   = config_values['max_cycle_time']
         sensors   = config_values['sensor_class_list']
         actuators = config_values['actuator_class_list']
         mqtt_host     = config_values['mqtt_host']
@@ -138,7 +140,7 @@ def main():
         logger.info("MQTT broker not connected. {}".format(e))
 
     logger.info(f"Starting execution cycle for floor {floor_id}, room {room_id}")
-    execution_cycle(sensors,actuators,gateway_network)
+    execution_cycle(sensors,actuators,gateway_network, max_cycle_time)
     logger.info(f"Execution cycle ended.")
 
     del ardoino_serial

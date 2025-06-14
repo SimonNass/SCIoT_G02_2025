@@ -18,6 +18,7 @@ def read_config(config_file_name):
     if version == 2:
         print ("Error wrong config version")
         logger.info("Error wrong config version")
+    max_cycle_time = config.get('General', 'max_cycle_time', fallback=100)
 
     print ("reading in MQTT", flush=True)
     logger.info("reading in MQTT")
@@ -53,6 +54,7 @@ def read_config(config_file_name):
 
     # returnobject
     config_values = {
+        'max_cycle_time': max_cycle_time,
         'mqtt_name': mqtt_name,
         'mqtt_host': mqtt_host,
         'mqtt_port': mqtt_port,
