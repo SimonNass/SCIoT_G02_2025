@@ -39,7 +39,7 @@ class MQTTEndpoint:
             self.mqtt_client.loop_start()
         except Exception as e:
             print ("Connection unable to establisch.")
-            #print (e)
+            print (e)
             logger.info("Connection unable to establisch. {}".format(e))
 
     def send(self, topic: str, message: str):
