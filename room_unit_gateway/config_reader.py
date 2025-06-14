@@ -25,7 +25,7 @@ def read_config(config_file_name):
     # MQTT
     mqtt_name = config.get('MQTT', 'name', fallback='MQTT')
     mqtt_host = config.get('MQTT', 'host', fallback='0.0.0.0')
-    mqtt_port = config.getint('MQTT', 'port', fallback=1234)
+    mqtt_port = config.getint('MQTT', 'port', fallback=1884)
     mqtt_username = config.get('MQTT', 'username', fallback='root')
     floor_id = config.get('Architecture', 'floor_ID', fallback=0)
     max_rooms_per_floor = config.get('MQArchitectureTT', 'max_rooms_per_floor', fallback=100)
