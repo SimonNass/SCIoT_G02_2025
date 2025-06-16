@@ -3,15 +3,19 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 
+from networking.discovery import find_serial_port
+
 class ArdoinoReverseProxy():
     def __init__(self, message_end_signal: str, usb_channel_type: str, usb_channel_data_rate: int):
         self.message_end_signal = message_end_signal
-        self.usb_channel_type = usb_channel_type
+        self.usb_channel_type_default = usb_channel_type
+        self.usb_channel_type_discovered = find_serial_port()
+        print (self.usb_channel_type_discovered)
         self.usb_channel_data_rate = usb_channel_data_rate
         # in bps
         self.ardoino_serial = None
         try:
-            self.ardoino_serial = serial.Serial(self.usb_channel_type, self.usb_channel_data_rate, timeout=1)
+            self.ardoino_serial = serial.Serial(self.usb_channel_type_discovered, self.usb_channel_data_rate, timeout=1)
             time.sleep(2)
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("connection to ardoino_serial was unsucesful")
