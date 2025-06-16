@@ -7,4 +7,4 @@ def find_serial_port():
     logger.info(f"{len(ports)}, ports found")
     for p in ports:
         logger.info(f"Serial port: {p.device}: {p.description}")
-    return (str(p.device) for p in ports)
+    return list((str(p.device) for p in ports))
