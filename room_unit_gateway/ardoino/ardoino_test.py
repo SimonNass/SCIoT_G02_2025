@@ -7,7 +7,7 @@ def find_serial_port():
     for p in ports:
         print(p.device)
     print(len(ports), 'ports found')
-    return str(ports[0].device)
+    return (str(p.device) for p in ports)
 
 
 
@@ -41,7 +41,7 @@ def loop(ardoino_serial,message_end_signal: str):
 
 def main():
     message_end_signal = ''
-    usb_channel_type = find_serial_port()
+    usb_channel_type = find_serial_port()[0]
     usb_channel_data_rate = 9600
     # in bps
     ardoino_serial = serial.Serial(usb_channel_type, usb_channel_data_rate, timeout=1)
