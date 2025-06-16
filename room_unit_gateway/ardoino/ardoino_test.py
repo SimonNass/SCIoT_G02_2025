@@ -7,7 +7,7 @@ def find_serial_port():
     for p in ports:
         print(p.device)
     print(len(ports), 'ports found')
-    return (str(p.device) for p in ports)
+    return list((str(p.device) for p in ports))
 
 
 
