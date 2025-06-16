@@ -17,6 +17,7 @@ from networking.networking_domain import GatewayNetwork
 from sensors.sensor import SensorInterface
 from actuators.actuator import ActuatorInterface
 from enumdef import Connectortype
+from networking.discovery import find_mqtt_broker_ip
 import help_methods
 
 def system_info():
@@ -73,6 +74,10 @@ def main():
     Usage:
       python main.py <config_folder>/<config_file.ini> <mqtt_password>
     """
+
+    discovered_ip_address = find_mqtt_broker_ip()
+    sys.exit(1)
+
     logging.basicConfig(filename='pi_room_gateway.log', level=logging.INFO)
     logger.info("xxxx Started new execution.")
     system_info()
