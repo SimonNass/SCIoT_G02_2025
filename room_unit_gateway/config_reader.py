@@ -36,7 +36,7 @@ def read_config(config_file_name):
     logger.info("reading in ardoino")
     # Ardoino connection
     message_end_signal = config.get('Ardoino', 'message_end_signal', fallback='')
-    usb_channel_type = config.get('Ardoino', 'usb_channel_type', fallback='COM6')
+    usb_channel_type = config.get('Ardoino', 'usb_channel_type_default', fallback='/dev/ttyACM0')
     usb_channel_data_rate = config.get('Ardoino', 'usb_channel_data_rate', fallback=9600)
     ardoino_serial = object_factory.configure_ardoino_connection(message_end_signal=message_end_signal,usb_channel_type=usb_channel_type,usb_channel_data_rate=usb_channel_data_rate)
 
