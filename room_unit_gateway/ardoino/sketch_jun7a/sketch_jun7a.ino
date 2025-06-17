@@ -10,7 +10,7 @@
 #define servo_pin 3
 #define DHTPIN 2
 #define DHTTYPE DHT11
-#define sound_pin 0
+#define sound_pin 0 //analog pin A0
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 Servo servo;  // create servo object to control a servo
