@@ -38,9 +38,9 @@ class MQTTEndpoint:
             self.mqtt_client.connect(host=self.host, port=self.port, keepalive=self.timeout)
             self.mqtt_client.loop_start()
         except Exception as e:
-            print ("Connection unable to establisch.")
-            print (e)
-            logger.info("Connection unable to establisch. {}".format(e))
+            print ("MQTT Connection unable to establisch.")
+            #print (e)
+            logger.info("MQTT Connection unable to establisch. {}".format(e))
 
     def send(self, topic: str, message: str):
         if not self.is_connected():
