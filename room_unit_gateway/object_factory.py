@@ -21,6 +21,23 @@ def configure_ardoino_connection(message_end_signal: str, usb_channel_type: str,
         logger.info("{}".format(e))
     return ardoino_serial
 
+def configure_environment_map(json_list: json):
+    init_list = json.loads(json_list)
+    mapping = {}
+    for m in init_list:
+        actuator_name = str(m['actuator_name'])
+        sensor_name = str(m['sensor_name'])
+        impact_amount = int(m['impact_amount'])
+        fade_in = int(m['fade_in'])
+        impact_duration = int(m['impact_duration'])
+        fade_out = int(m['fade_out'])
+        try:
+            mapping.update({(actuator_name,sensor_name):(impact_amount,fade_in,impact_duration,fade_out)})
+        except Exception as e:
+            print (e, flush=True)
+            logger.info("{}".format(e))
+    return mapping
+
 def configure_sensors(json_list: json, types: dict, ardoino_serial: ArdoinoReverseProxy):
     init_list = json.loads(json_list)
     sensors = []

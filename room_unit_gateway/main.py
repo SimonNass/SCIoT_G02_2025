@@ -109,6 +109,7 @@ def main():
     max_rooms = None
     room_id = None
     ardoino_serial = None
+    virtual_enfironment_list = {}
     try:
         max_cycle_time   = int(config_values['max_cycle_time'])
         sensors   = config_values['sensor_class_list']
@@ -120,6 +121,7 @@ def main():
         max_rooms     = int(config_values['max_rooms_per_floor'])
         room_id       = int(config_values['room_id'])
         ardoino_serial = str(config_values['ardoino_serial'])
+        virtual_enfironment_list = config_values['virtual_enfironment_list']
     except Exception as e:
         print ("Reading config_values {} was not succesfull {}".format(config_file_name,config_values))
         print (e, flush=True)

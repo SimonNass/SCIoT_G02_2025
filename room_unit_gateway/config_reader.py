@@ -52,6 +52,11 @@ def read_config(config_file_name):
     actuator_types = object_factory.configure_actuator_types(config.get('Actuators','actuator_types', fallback="[]"))
     actuator_class_list = object_factory.configure_actuators(config.get('Actuators','actuator_list', fallback="[]"), actuator_types, ardoino_serial)
 
+    print ("reading in VirtualEnfironment mapping", flush=True)
+    logger.info("reading in VirtualEnfironment mapping")
+    # VirtualEnfironment
+    virtual_enfironment_list = object_factory.configure_environment_map(config.get('VirtualEnfironment','virtual_enfironment_list', fallback="{}"))
+
     # returnobject
     config_values = {
         'max_cycle_time': max_cycle_time,
@@ -64,7 +69,8 @@ def read_config(config_file_name):
         'max_rooms_per_floor': max_rooms_per_floor,
         'room_id': room_id,
         'sensor_class_list': sensor_class_list,
-        'actuator_class_list': actuator_class_list
+        'actuator_class_list': actuator_class_list,
+        'virtual_enfironment_list':virtual_enfironment_list
     }
 
     return config_values
