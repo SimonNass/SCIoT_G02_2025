@@ -120,3 +120,16 @@ class DigitalActuator(ActuatorInterface):
 
     def write_internal_actuator(self, write_value: int):
         return grovepi.digitalWrite(self.i2c_connector,write_value)
+
+class VirtualActuator(ActuatorInterface):
+    def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: int, off_value: int):
+        if connector_types != Connectortype.Virtual:
+            raise ValueError("Connector_type is not Virtual.")
+        super().__init__(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+        self.write_actuator(self.initial_value)
+
+    def __del__(self):
+        pass
+
+    def write_internal_actuator(self, write_value: int):
+        return write_value

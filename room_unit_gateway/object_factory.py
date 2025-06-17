@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 from sensors.sensor import AnalogSensor, DigitalSensor, DigitalMultipleSensor, VirtualSensor
 from sensors.ardoino_sensor import ArdoinoSensor
 
-from actuators.actuator import AnalogActuator, DigitalActuator
+from actuators.actuator import AnalogActuator, DigitalActuator, VirtualActuator
 from actuators.display import DisplayActuator
 from actuators.ardoino_actuator import ArdoinoActuator
 
@@ -117,6 +117,8 @@ def choose_actuator_class(name: str, type_name: str, connector: int, connector_t
             return AnalogActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
         elif connector_types == Connectortype.Digital:
             return DigitalActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+        elif connector_types == Connectortype.Virtual:
+            return VirtualActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
         elif connector_types == Connectortype.Ardoino_motor:
             return ArdoinoActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value,ardoino_serial=ardoino_serial,type_name_ardoino="motor")
         else:
