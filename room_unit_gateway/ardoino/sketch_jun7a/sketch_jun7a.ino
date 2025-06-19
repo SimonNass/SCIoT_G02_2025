@@ -24,11 +24,11 @@ void setup() {
   input_str.reserve(200);
 
   // RFID
-  //SPI.begin();
-  //mfrc522.PCD_Init();
-  //delay(15);
-  //mfrc522.PCD_DumpVersionToSerial();
-  //if (mfrc522.PCD_PerformSelfTest()) Serial.println("Passed Self-Test");
+  SPI.begin();
+  mfrc522.PCD_Init();
+  delay(15);
+  mfrc522.PCD_DumpVersionToSerial();
+  if (mfrc522.PCD_PerformSelfTest()) Serial.println("Passed Self-Test");
 
   // servo motor
   servo.attach(servo_pin); // attaches the servo on pin 9 to the servo object
@@ -49,10 +49,10 @@ void loop() {
   //senseSound();
   //senseHumidity();
   //senseTemperature();
-  //activateRFID();
+  activateRFID();
   //activateServo(0);
   if (string_complete) {
-    handleRequest(input_str);
+    //handleRequest(input_str);
   }
 }
 
@@ -105,10 +105,9 @@ void activateRFID() {
   if (!mfrc522.PICC_IsNewCardPresent())
   {
     delay(1000);
-    //Serial.println("stop");
     // Wenn keine Karte in Reichweite ist ..
     // .. wird die Abfrage wiederholt.
-    return;
+    return 0;
   }
   //Serial.println("new");
   if (!mfrc522.PICC_ReadCardSerial())
@@ -116,7 +115,7 @@ void activateRFID() {
     delay(1000);
     // Wenn kein RFID-Sender ausgewählt wurde ..
     // .. wird die Abfrage wiederholt.
-    return;
+    return 0;
   }
   //Serial.println("Karte entdeckt!");
   String WertDEZ;
@@ -131,6 +130,7 @@ void activateRFID() {
   Serial.println(WertDEZ);
   // kurze Pause, damit nur ein Wert gelesen wird
   delay(1000);
+  return WertDEZ;
 }
 
 void activateServo(int pos) {
