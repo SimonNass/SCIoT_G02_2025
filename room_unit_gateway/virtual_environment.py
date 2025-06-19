@@ -1,67 +1,104 @@
 from typing import List, Dict
+import logging
+logger = logging.getLogger(__name__)
 
 from sensors.sensor import SensorInterface
 from actuators.actuator import ActuatorInterface
 
 class Virtual_environment():
-    def __init__(self, sensors: List[SensorInterface], actuator: List[ActuatorInterface], mapping: Dict):
+    def __init__(self, sensors: List[SensorInterface], actuator: List[ActuatorInterface], mapping: List[str]):
         self.sensors = sensors
         self.actuator = actuator
-        # TODO make this code more efficient?
-        self.mapping_actuators_to_sensors = {} # '<uuid_actuator>':'<uuid_sensor>'
-        self.mapping_values = {} # ('<uuid_actuator>','<uuid_sensor>'):(0,0,0,0)
+        self.mapping_values = {} # ('<uuid_actuator>','<uuid_sensor>'):{impact_amount:0, fade_in:0, impact_duration:0, fade_out:0}
 
-        self.active_influences_cycle = {} # ('<uuid_actuator>','<uuid_sensor>'):0
-        self.active_influences_amount = {} # ('<uuid_actuator>','<uuid_sensor>'):0
+        self.active_influences = {} # ('<uuid_actuator>','<uuid_sensor>'):{cycle:0, amount:0}
+        self.convert_environment_map(mapping)
 
-    def check_all_actuators_for_intraced_influences(self):
+    def check_if_actuators_has_influenc(self, actuator_name: str):
         for actuator in self.actuator:
-            if (actuator.last_value == actuator.off_value):
-                # the actuator is off and therefore it is not influencing sensors
+            if actuator.name != actuator_name:
                 continue
-            for sensor in self.mapping_actuators_to_sensors.at(actuator):
-                if self.active_influences_cycle.contains((actuator,sensor)):
-                    # the actuator sensor pair is already in the active_influences_cycle
-                    continue
-                # add them to active_influences_cycle
-                self.active_influences_cycle.update({(actuator,sensor):0})
+            else:
+                return actuator.last_value != actuator.off_value
+        logger.info('Environment bug check_if_actuators_has_influenc')
+        return False
 
     def calculate_next_active_influences_amount(self):
-        for (key, value) in self.active_influences_cycle:
-            impact = self.mapping.at(key)[0]
-            fade_in = self.mapping.at(key)[1]
-            impact_duration = self.mapping.at(key)[2]
-            fade_out = self.mapping.at(key)[3]
+        for (key, value) in self.mapping_values:
+            actuator = key[0]
+            if not self.check_if_actuators_has_influenc(actuator):
+                continue
+            impact = value['impact_amount']
+            fade_in = value['fade_in']
+            impact_duration = value['impact_duration']
+            fade_out = value['fade_out']
 
-            if value + 1 > fade_in + impact_duration + fade_out:
+            cycle = self.active_influences.get(key)['cycle']
+            _ = self.active_influences.get(key)['amount']
+
+            if cycle + 1 > fade_in + impact_duration + fade_out:
                 # impact of actuator ended
-                self.active_influences_cycle.pop(key, "Key not found")
-                # TODO turn Actuator off?
+                self.active_influences.update({key:{'cycle':0, 'amount':0}})
                 continue
 
             next_impact = 0
-            if value + 1 <= fade_in:
+            if cycle + 1 <= fade_in:
                 # fade_in
                 step_impact = impact / fade_in
-                next_impact = step_impact * value + 1
-            elif value + 1 <= fade_in + impact_duration:
+                next_impact = step_impact * cycle + 1
+            elif cycle + 1 <= fade_in + impact_duration:
                 # impact_duration
                 next_impact = impact
-            elif value + 1 <= fade_in + impact_duration + fade_out:
+            elif cycle + 1 <= fade_in + impact_duration + fade_out:
                 # fade_out
                 step_impact = impact / fade_out
-                next_impact = step_impact * (value + 1 - fade_in - impact_duration)
+                next_impact = step_impact * (cycle + 1 - fade_in - impact_duration)
             else:
-                raise ArithmeticError('Environment bug')
-            self.active_influences_cycle.update({key:value+1})
-            self.active_influences_amount.update({key:next_impact})
+                logger.info('Environment bug')
+                raise ArithmeticError('Environment bug calculate_next_active_influences_amount')
+            self.active_influences.update({key:{'cycle':cycle+1, 'amount':next_impact}})
+
+    def aggregate_impact_per_sensor(self):
+        sensor_dict: Dict[SensorInterface, int] = {}
+        sensor_dict.setdefault(0)
+        for (key, value) in self.active_influences:
+            sensor = key[1]
+            impact_amount = sensor_dict.get(sensor)
+            impact_amount = impact_amount + value['amount']
+            sensor_dict.update({sensor:impact_amount})
+
+        return sensor_dict
 
     def apply_active_influences_amount(self):
-        for (key, value) in self.active_influences_amount:
-            pass
-        # TODO
+        sensor_dict: Dict[SensorInterface, int] = self.aggregate_impact_per_sensor()
+
+        for sensor in self.sensors:
+            impact = sensor_dict.get(sensor.name)
+            sensor.virtual_environment_impact = impact
 
     def performe_environment_step(self):
-        self.check_all_actuators_for_intraced_influences()
         self.calculate_next_active_influences_amount()
         self.apply_active_influences_amount()
+
+    def convert_environment_map(self, mapping: List[str]):
+        for dictionary_map in mapping:
+            try:
+                actuator_name = str(dictionary_map['actuator_name'])
+                sensor_name = str(dictionary_map['sensor_name'])
+                impact_amount = int(dictionary_map['impact_amount'])
+                fade_in = int(dictionary_map['fade_in'])
+                impact_duration = int(dictionary_map['impact_duration'])
+                fade_out = int(dictionary_map['fade_out'])
+                dictionary = {
+                    'impact_amount':impact_amount, 
+                    'fade_in':fade_in, 
+                    'impact_duration':impact_duration, 
+                    'fade_out':fade_out
+                }
+            except Exception as e:
+                print (e, flush=True)
+                logger.info("{}".format(e))
+
+            self.mapping_values.update({(actuator_name,sensor_name):dictionary})
+            self.active_influences.update({(actuator_name,sensor_name):{'cycle':0, 'amount':0}})
+

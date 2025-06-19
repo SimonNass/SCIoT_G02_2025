@@ -55,7 +55,7 @@ def read_config(config_file_name):
     print ("reading in VirtualEnfironment mapping", flush=True)
     logger.info("reading in VirtualEnfironment mapping")
     # VirtualEnfironment
-    virtual_enfironment_list = object_factory.configure_environment_map(config.get('VirtualEnfironment','virtual_enfironment_list', fallback="{}"))
+    virtual_enfironment_list = object_factory.configure_environment_map(config.get('VirtualEnfironment','virtual_enfironment_list', fallback="[]"))
 
     # returnobject
     config_values = {

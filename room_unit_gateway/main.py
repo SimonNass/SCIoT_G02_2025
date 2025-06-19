@@ -14,6 +14,7 @@ except ImportError:
 
 import config_reader
 from networking.networking_domain import GatewayNetwork
+from virtual_environment import Virtual_environment
 from sensors.sensor import SensorInterface
 from actuators.actuator import ActuatorInterface
 from enumdef import Connectortype
@@ -33,7 +34,7 @@ def system_info():
     #print ("numpy version:" + str(np.version.version))
     logger.info("numpy version:" + str(np.version.version))
 
-def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork, max_cycle_time: int = 100):
+def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork, virtual_environment: Virtual_environment, max_cycle_time: int = 100):
     logger.info("max_cycle_time: " + str(max_cycle_time))
     print ("", flush=True)
     help_methods.send_sensors(sensors,network_connection)
@@ -56,6 +57,7 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
                 help_methods.send_actuators(actuators,network_connection)
 
             # Increment
+            virtual_environment.performe_environment_step()
             cycle = cycle + 1
             #want_to_exit = True
             time.sleep(1)
@@ -109,7 +111,7 @@ def main():
     max_rooms = None
     room_id = None
     ardoino_serial = None
-    virtual_enfironment_list = {}
+    virtual_enfironment_list = []
     try:
         max_cycle_time   = int(config_values['max_cycle_time'])
         sensors   = config_values['sensor_class_list']
@@ -142,9 +144,21 @@ def main():
         print ("MQTT broker not connected.")
         print (e, flush=True)
         logger.info("MQTT broker not connected. {}".format(e))
+    
+    virtual_environment = None
+    try:
+        virtual_environment = Virtual_environment(
+            sensors=sensors,
+            actuator=actuator,
+            mapping=virtual_enfironment_list
+        )
+    except Exception as e:
+        print ("virtual_environment not initialised.")
+        print (e, flush=True)
+        logger.info("virtual_environment not initialised. {}".format(e))
 
     logger.info(f"Starting execution cycle for floor {floor_id}, room {room_id}")
-    execution_cycle(sensors,actuators,gateway_network, max_cycle_time)
+    execution_cycle(sensors,actuators,gateway_network, virtual_environment, max_cycle_time)
     logger.info(f"Execution cycle ended.")
 
     del ardoino_serial
