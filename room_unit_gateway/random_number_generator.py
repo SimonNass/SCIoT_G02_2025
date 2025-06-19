@@ -1,5 +1,8 @@
 import numpy as np
 
+def constant(last_value: float = 0.5, min_value: float = 0, max_value: float = 1):
+    return min(max(last_value,min_value),max_value)
+
 def simple_random(min_value: float = 0, max_value: float = 1):
     random_change = np.random.random()
     result = min_value + (max_value - min_value) * random_change
