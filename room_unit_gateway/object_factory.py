@@ -80,6 +80,8 @@ def choose_sensor_class(name: str, type_name: str, connector: int, connector_typ
             return ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="humidity")
         elif connector_types == Connectortype.Ardoino_soundlevel:
             return ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="soundlevel")
+        elif connector_types == Connectortype.Ardoino_rfid:
+            return ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="rfid")
         else:
             raise ValueError("Connector_type is not implemented.")
     except Exception as e:

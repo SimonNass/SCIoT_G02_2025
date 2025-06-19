@@ -10,7 +10,8 @@ class Connectortype(Enum):
     Ardoino_temperature = 7
     Ardoino_humidity = 8
     Ardoino_soundlevel = 9
-    Ardoino_motor = 10
+    Ardoino_rfid = 10
+    Ardoino_motor = 11
     # TODO make x_y mapping not with enums but in the generation itself
 
 class Notifyinterval(Enum):
