@@ -41,11 +41,12 @@ class SensorInterface(ABC):
 
     def read_sensor(self):
         try:
-            self.last_value = self.read_internal_sensor() + self.virtual_environment_impact
+            roaw_sensor_value = self.read_internal_sensor()
+            self.last_value = roaw_sensor_value + self.virtual_environment_impact
             self.last_value_timestamp = time.time()
             self.datatype = str(type(self.last_value))
-            print ("{}: {}".format(self.name,self.last_value))
-            logger.info("{}: {} {}".format(self.name,self.last_value, self.datatype))
+            print ("{}: {} = {} + {}".format(self.name,self.last_value, roaw_sensor_value, self.virtual_environment_impact))
+            logger.info("{}: {} {} = {} + {}".format(self.name,self.last_value, self.datatype, roaw_sensor_value, self.virtual_environment_impact))
             return self.__dict__()
         except (Exception, IOError, TypeError) as e:
             print ("read was unsucesful")

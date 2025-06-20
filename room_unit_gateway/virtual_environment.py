@@ -6,9 +6,9 @@ from sensors.sensor import SensorInterface
 from actuators.actuator import ActuatorInterface
 
 class Virtual_environment():
-    def __init__(self, sensors: List[SensorInterface], actuator: List[ActuatorInterface], mapping: List[str]):
+    def __init__(self, sensors: List[SensorInterface], actuators: List[ActuatorInterface], mapping: List[str]):
         self.sensors = sensors
-        self.actuator = actuator
+        self.actuator = actuators
         self.mapping_values = {} # ('<uuid_actuator>','<uuid_sensor>'):{impact_amount:0, fade_in:0, impact_duration:0, fade_out:0}
 
         self.active_influences = {} # ('<uuid_actuator>','<uuid_sensor>'):{cycle:0, amount:0}
@@ -24,14 +24,14 @@ class Virtual_environment():
         return False
 
     def calculate_next_active_influences_amount(self):
-        for (key, value) in self.mapping_values:
+        for key, value in self.mapping_values.items():
             actuator = key[0]
             if not self.check_if_actuators_has_influenc(actuator):
                 continue
-            impact = value['impact_amount']
-            fade_in = value['fade_in']
-            impact_duration = value['impact_duration']
-            fade_out = value['fade_out']
+            impact = int(value['impact_amount'])
+            fade_in = int(value['fade_in'])
+            impact_duration = int(value['impact_duration'])
+            fade_out = int(value['fade_out'])
 
             cycle = self.active_influences.get(key)['cycle']
             _ = self.active_influences.get(key)['amount']
@@ -60,10 +60,12 @@ class Virtual_environment():
 
     def aggregate_impact_per_sensor(self):
         sensor_dict: Dict[SensorInterface, int] = {}
-        sensor_dict.setdefault(0)
-        for (key, value) in self.active_influences:
+
+        for key, value in self.active_influences.items():
             sensor = key[1]
-            impact_amount = sensor_dict.get(sensor)
+            impact_amount = 0
+            if sensor in sensor_dict:
+                impact_amount = int(sensor_dict.get(sensor))
             impact_amount = impact_amount + value['amount']
             sensor_dict.update({sensor:impact_amount})
 
@@ -73,7 +75,9 @@ class Virtual_environment():
         sensor_dict: Dict[SensorInterface, int] = self.aggregate_impact_per_sensor()
 
         for sensor in self.sensors:
-            impact = sensor_dict.get(sensor.name)
+            impact = 0
+            if sensor in sensor_dict:
+                impact = sensor_dict.get(sensor.name)
             sensor.virtual_environment_impact = impact
 
     def performe_environment_step(self):

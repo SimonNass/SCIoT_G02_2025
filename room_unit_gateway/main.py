@@ -149,7 +149,7 @@ def main():
     try:
         virtual_environment = Virtual_environment(
             sensors=sensors,
-            actuator=actuator,
+            actuators=actuators,
             mapping=virtual_enfironment_list
         )
     except Exception as e:
