@@ -13,7 +13,6 @@ MAX_PAYLOAD_SIZE = 1024 * 10  # 10KB
 mqtt_client = None
 app_instance = None
 
-
 def validate_mqtt_message(topic, payload):
     """
     Validate MQTT message for security and format
@@ -69,7 +68,7 @@ def on_message(client, userdata, msg):
         # Parse the topic
         parsed = parse_mqtt_topic(topic, app_instance)
         if not parsed:
-            logging.warning(f"Skipping message with invalid topic: {topic}")
+            logging.warning(f"Skipping message with topic: {topic}")
             return
         
         floor_number, room_number, device_type, device_id = parsed
@@ -123,6 +122,7 @@ def start_mqtt_client(app):
         # Start the loop in a background thread
         mqtt_client.loop_start()
         logging.info(f"MQTT client started and connecting to {host}:{port}")
+        return mqtt_client
     except Exception as e:
         logging.error(f"Failed to connect to MQTT broker: {str(e)}")
         return None

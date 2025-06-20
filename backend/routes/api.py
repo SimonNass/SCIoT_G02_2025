@@ -3,6 +3,7 @@ from backend.extensions import db
 from backend.models import models
 from sqlalchemy.exc import IntegrityError
 from backend.routes.auth.simple_auth import require_api_key
+from backend.mqtt.utils.mqttPublish import request_actuator_update, request_current_sensor_value
 
 api = Blueprint('api', __name__)
 
@@ -344,3 +345,180 @@ def get_device_details(floor_number, room_number, device_id):
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@api.route('/devices/<string:device_id>/set', methods=['POST'])
+# Todo: Add authentication decorator
+def set_actuator_value(device_id):
+    """
+    Set actuator value for a specific device
+    
+    Expected JSON format:
+    {
+        "new_value": "value_to_set"
+    }
+    
+    Path: /devices/{device_id}/set
+    """
+    try:
+        # Get request data
+        data = request.get_json()
+        if not data or 'new_value' not in data:
+            return jsonify({'error': 'new_value is required'}), 400
+        
+        new_value = data['new_value']
+        
+        # Use device.id (UUID) for MQTT communication
+        success = request_actuator_update(device_id, new_value)
+        
+        if success:
+            return jsonify({
+                'message': f'Actuator update request sent successfully',
+                'device_id': device_id,
+                'device_uuid': device_id,
+                'new_value': new_value
+            }), 200
+        else:
+            return jsonify({
+                'error': 'Failed to send actuator update request. Please refer to server logs for more details.'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({'error': 'An error occurred while processing your request'}), 500
+
+
+@api.route('/devices/<string:device_id>/get', methods=['POST'])
+# Todo: Add authentication decorator
+def request_current_value(device_id):
+    """
+    Request current value from a sensor or actuator. It does not return the value directly.
+    
+    Path: /devices/{device_id}/get
+    """
+    try:
+        # Use device.id (UUID) for MQTT communication
+        success = request_current_sensor_value(device_id)
+        
+        if success:
+            return jsonify({
+                'message': f'Current value request sent successfully',
+                'device_id': device_id,
+                'device_uuid': device_id,
+            }), 200
+        else:
+            return jsonify({
+                'error': 'Failed to send current value request.  Please refer to server logs for more details.'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({'error': 'An error occurred while processing your request'}), 500
+
+
+# Alternative endpoints using the hierarchical path structure
+@api.route('/floors/<int:floor_number>/rooms/<string:room_number>/devices/<string:device_id>/set', methods=['POST'])
+@require_api_key
+def set_actuator_value_hierarchical(floor_number, room_number, device_id):
+    """
+    Set actuator value using hierarchical path
+    
+    Expected JSON format:
+    {
+        "new_value": "value_to_set"
+    }
+    """
+    try:
+        # Verify the hierarchical path exists
+        floor = models.Floor.query.filter_by(floor_number=floor_number).first()
+        if not floor:
+            return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
+        
+        room = models.Room.query.filter_by(
+            room_number=room_number, 
+            floor_id=floor.id
+        ).first()
+        if not room:
+            return jsonify({'error': f'Room {room_number} does not exist on floor {floor_number}'}), 404
+        
+        device = models.Device.query.filter_by(
+            device_id=device_id,
+            room_id=room.id
+        ).first()
+        if not device:
+            return jsonify({'error': f'Device {device_id} does not exist in room {room_number} on floor {floor_number}'}), 404
+        
+        # Get request data
+        data = request.get_json()
+        if not data or 'new_value' not in data:
+            return jsonify({'error': 'new_value is required'}), 400
+        
+        new_value = data['new_value']
+        
+        # Use device_id (UUID) for MQTT communication
+        success = request_actuator_update(device.device_id, new_value)
+
+        if success:
+            return jsonify({
+                'message': f'Actuator update request sent successfully',
+                'location': {
+                    'floor_number': floor_number,
+                    'room_number': room_number,
+                    'device_id': device_id
+                },
+                'device_uuid': device.device_id,
+                'new_value': new_value
+            }), 200
+        else:
+            return jsonify({
+                'error': 'Failed to send actuator update command. Please refer to server logs for more details.'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({'error': 'An error occurred while processing your request'}), 500
+
+
+@api.route('/floors/<int:floor_number>/rooms/<string:room_number>/devices/<string:device_id>/get', methods=['POST'])
+@require_api_key
+def request_current_value_hierarchical(floor_number, room_number, device_id):
+    """
+    Request current value using hierarchical path
+    """
+    try:
+        # Verify the hierarchical path exists
+        floor = models.Floor.query.filter_by(floor_number=floor_number).first()
+        if not floor:
+            return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
+        
+        room = models.Room.query.filter_by(
+            room_number=room_number, 
+            floor_id=floor.id
+        ).first()
+        if not room:
+            return jsonify({'error': f'Room {room_number} does not exist on floor {floor_number}'}), 404
+        
+        device = models.Device.query.filter_by(
+            device_id=device_id,
+            room_id=room.id
+        ).first()
+        if not device:
+            return jsonify({'error': f'Device {device_id} does not exist in room {room_number} on floor {floor_number}'}), 404
+        
+        # Use device_id (UUID) for MQTT communication
+        success = request_current_sensor_value(device.device_id)
+        
+        if success:
+            return jsonify({
+                'message': f'Current value request sent successfully',
+                'location': {
+                    'floor_number': floor_number,
+                    'room_number': room_number,
+                    'device_id': device_id
+                },
+                'device_uuid': device.device_id,
+                'note': 'The device should respond with current value via MQTT'
+            }), 200
+        else:
+            return jsonify({
+                'error': 'Failed to send current value request. Please refer to server logs for more details.'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({'error': 'An error occurred while processing your request'}), 500
