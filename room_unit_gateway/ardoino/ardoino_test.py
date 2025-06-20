@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import serial as serial
 import time
 
