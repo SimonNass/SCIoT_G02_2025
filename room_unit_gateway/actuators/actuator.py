@@ -56,6 +56,7 @@ class ActuatorInterface(ABC):
             self.last_value = write_value
             self.datatype = str(type(self.last_value))
             print ("{}: {}".format(self.name,self.last_value))
+            print ("{}: {}".format(self.name,str(self.id)))
             logger.info("{}: {} {}".format(self.name,self.last_value, self.datatype))
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("write was unsucesful")

@@ -46,6 +46,7 @@ class SensorInterface(ABC):
             self.last_value_timestamp = time.time()
             self.datatype = str(type(self.last_value))
             print ("{}: {} = {} + {}".format(self.name,self.last_value, roaw_sensor_value, self.virtual_environment_impact))
+            print ("{}: {}".format(self.name,str(self.id)))
             logger.info("{}: {} {} = {} + {}".format(self.name,self.last_value, self.datatype, roaw_sensor_value, self.virtual_environment_impact))
             return self.__dict__()
         except (Exception, IOError, TypeError) as e:
