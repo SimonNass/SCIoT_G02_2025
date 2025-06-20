@@ -138,7 +138,8 @@ def main():
             password=password,
             floor_id=floor_id,
             max_rooms_per_floor=max_rooms,
-            room_id=room_id
+            room_id=room_id,
+            actuators=actuators
         )
     except Exception as e:
         print ("MQTT broker not connected.")
