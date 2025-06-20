@@ -32,8 +32,7 @@ def create_app(config_class=Config):
     register_routes(app)
     
     # Should prevent double initialization when debug=True (hopefully)
-    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
-        start_mqtt_client(app)
-        start_scheduler(app)
+    app.mqtt_client = start_mqtt_client(app)
+    start_scheduler(app)
     
     return app
