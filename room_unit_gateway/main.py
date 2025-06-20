@@ -45,10 +45,10 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
         print ("", flush=True)
         try:
 
-            help_methods.read_all_sensors(sensors)
+            #help_methods.read_all_sensors(sensors)
             #help_methods.write_all_actuators(actuators, cycle % 2)
             #help_methods.write_all_displays(actuators,"12345678910131517192123252729313335")
-            #help_methods.cyclic_read(sensors,actuators,cycle,network_connection)
+            help_methods.cyclic_read(sensors,actuators,cycle,network_connection)
 
             # Reset
             if cycle > max_cycle_time:

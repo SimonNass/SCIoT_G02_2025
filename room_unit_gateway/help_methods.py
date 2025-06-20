@@ -17,7 +17,7 @@ def write_all_actuators(actuators: List[ActuatorInterface], value: int):
 
 def write_all_displays(displays: List[ActuatorInterface], text: str):
     for display in displays:
-        if display.connector_types != Connectortype.I2C_display:
+        if display.connector_type != Connectortype.I2C_display:
             continue
         display.write_actuator(text)
 
