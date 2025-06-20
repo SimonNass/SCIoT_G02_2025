@@ -9,8 +9,12 @@ class ArdoinoReverseProxy():
     def __init__(self, message_end_signal: str, usb_channel_type: str, usb_channel_data_rate: int):
         self.message_end_signal = message_end_signal
         self.usb_channel_type_default = usb_channel_type
-        self.usb_channel_type_discovered = find_serial_port()[0]
-        # TODO iterate over discovered ones and find the right one
+        self.usb_channel_type_discovered = self.usb_channel_type_default
+        try:
+            # TODO iterate over discovered ones and find the right one
+            self.usb_channel_type_discovered = find_serial_port()[0]
+        except (Exception, IOError, TypeError, AttributeError) as e:
+            logger.info("no serial port found {}".format(e))
         print (self.usb_channel_type_discovered)
         self.usb_channel_data_rate = usb_channel_data_rate
         # in bps
