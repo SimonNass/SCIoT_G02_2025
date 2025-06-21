@@ -3,7 +3,7 @@
 # TODO 
 # make an issue with minimal example (:requirements :typing :adl) does not work without the :typing
 
-# pip install pddl
+# pip install pddl==0.4.3
 from pddl.logic import Predicate, constants, variables, base
 from pddl.core import Domain, Problem
 from pddl.action import Action
@@ -75,7 +75,7 @@ def create():
     actuator = variables("actuator", types=["actuator"])[0]
     
     binary_s, numerical_s, textual_s = variables("binary_s numerical_s textual_s", types=["sensor"])
-    binary_a, numerical_a, textual_a = variables("binary_s numerical_s textual_s", types=["actuator"])
+    binary_a, numerical_a, textual_a = variables("binary_a numerical_a textual_a", types=["actuator"])
 
     # define predicates
     predicates_list = []
@@ -155,7 +155,7 @@ def create():
     actions_list.append(a1)
 
     # define the domain object.
-    requirements = [Requirements.STRIPS, Requirements.TYPING]
+    requirements = [Requirements.STRIPS, Requirements.TYPING, Requirements.ADL]
     domain = Domain(domain_name,
                     requirements=requirements,
                     types=type_dict,
@@ -172,54 +172,116 @@ def create():
     all_objekts = []
 
     number_floors = 2
+    number_rooms = 10
+    number_cleaning_teams = 2
+    number_sensors = 2
+    number_actuators = 2
+    names_room_positions = ['overall_room', 'bed', 'closet', 'window']
+    rooms_per_floor = [5, 5]
+    
     floors = create_objects(number_floors, "floor")
     all_objekts = all_objekts + floors
 
-    number_rooms = 10
     rooms = create_objects(number_rooms, "room")
     all_objekts = all_objekts + rooms
 
-    number_cleaning_teams = 2
     cleaning_teams = create_objects(number_cleaning_teams, "cleaning_team")
     all_objekts = all_objekts + cleaning_teams
 
-    number_actuators = 2
+    sensors = create_objects(number_sensors, "numerical_s")
+    all_objekts = all_objekts + sensors
+
     actuators = create_objects(number_actuators, "actuator")
     all_objekts = all_objekts + actuators
+
+    room_positions = create_objects(len(names_room_positions), "room_position")
+    all_objekts = all_objekts + room_positions
 
     # create initial state
     initial_state = []
     
-    rooms_per_floor = [5, 5]
     comulative_rooms_bevore = [sum(rooms_per_floor[:i]) for i in range(len(rooms_per_floor))]
     #print (comulative_rooms_bevore)
-    for i in range(len(floors)):
+    for i in range(len(rooms_per_floor)):
         for j in range(rooms_per_floor[i]):
             next_room_floor_mapping = room_is_part_of_floor(rooms[comulative_rooms_bevore[i]+j], floors[i])
             initial_state.append(next_room_floor_mapping)
 
+    clean_starting_room = rooms[0]
+    for cleaning_team in cleaning_teams:
+        next_is_at = is_at(cleaning_team, clean_starting_room)
+        initial_state.append(next_is_at)
+
+    # iot to room papping
+    #sensor_room = rooms[0]
+    #for sensor_object in sensors:
+    #    print (sensor_object.type_tag)
+    #    print (sensor_room.type_tag)
+    #    next_part_of_room = sensor_is_part_of_room(sensor_object, sensor_room)
+    #    initial_state.append(next_part_of_room)
+
+    #actuator_room = rooms[0]
+    #for actuator_object in actuators:
+        #next_part_of_room = actuator_is_part_of_room(actuator_object, actuator_room)
+        #initial_state.append(next_part_of_room)
+
+    # sensor actuator mapping
+
+    #for actuator_object in actuators:
+    #    for sensor_object in sensors:
+    #        if True:
+    #            next_influence = actuator_increases_sensor(actuator_object, sensor_object)
+    #            initial_state.append(next_influence)
+    #        if False:
+    #            next_influence = actuator_decreases_sensor(actuator_object, sensor_object)
+    #            initial_state.append(next_influence)
+
+    # iot position mapping
+    #room_positions_default = room_positions[0]
+    #for sensor_object in sensors:
+    #    next_pos = positioned_at(sensor_object, room_positions_default)
+    #    initial_state.append(next_pos)
+
+    #for actuator_object in actuators:
+    #    next_pos = positioned_at(actuator_object, room_positions_default)
+    #    initial_state.append(next_pos)
+
+    # context
+    # raw sensor data
+    
+    #for sensor_object in sensors:
+    #    state = is_high(sensor_object)
+    #    initial_state.append(state)
+
+    #for actuator_object in actuators:
+    #    state = is_activated(actuator_object)
+    #    initial_state.append(state)
+
+    for room in rooms:
+        initial_state.append(is_ocupied(room))
+
 
     # create goal
-    goal_state = ''
+    goal_state = None
 
     goal_for_ocupied_rooms = None
 
     if_case = base.And(base.Not(is_ocupied(room)))
     then_clean_case = is_cleaned(room)
-    c = actuator_is_part_of_room(actuator, room)
-    b = base.Not(is_activated(actuator))
-    a = base.Imply(c,b)
-    then_actuators_off_case = base.ForallCondition(a,[actuator])
+    turn_off_actuator = base.Imply(actuator_is_part_of_room(actuator, room),base.Not(is_activated(actuator)))
+    then_actuators_off_case = base.ForallCondition(turn_off_actuator,[actuator])
     implication_for_unocupied_rooms = base.Imply(if_case, base.And(then_clean_case,then_actuators_off_case))
     goal_for_unocupied_rooms = base.ForallCondition(implication_for_unocupied_rooms, [room])
 
-    envorce_checks = None
-    goal_state = base.And(goal_for_unocupied_rooms) #base.Imply(is_ocupied(rooms[0]),is_ocupied(rooms[1]))
+    envorce_checks = base.ForallCondition(base.ForallCondition(fulfilled_activity(room, room_position), [room_position]), [room])
+
+    goal_state = base.And(goal_for_unocupied_rooms, envorce_checks) #base.Imply(is_ocupied(rooms[0]),is_ocupied(rooms[1]))
 
     problem = Problem(
         problem_name,
         domain=domain,
         requirements=domain.requirements,
+        
         objects=all_objekts,
         init=initial_state,
         goal=goal_state
