@@ -42,16 +42,35 @@ def create():
         "binary_a": "actuator",
         "numerical_a": "actuator",
         "textual_a": "actuator",
+
+        "button_s": "binary_s",
+        "motion_s": "binary_s",
+        "virtual_switch_s": "binary_s",
+
+        "temperature_s": "numerical_s",
+        "humidity_s": "numerical_s",
+        "light_s": "numerical_s",
+        "sound_s": "numerical_s",
+        "rotation_s": "numerical_s",
+        "virtual_dimmer_s": "numerical_s",
+
+        "switch_a": "binary_a",
+        "light_switch_a": "binary_a",
+        "virtual_switch_a": "binary_a",
+
+        "light_dimmer_a": "numerical_a",
+        "virtual_dimmer_a": "numerical_a",
+
+        "display_a": "textual_a",
     }
 
     # set up variables and constants
-    #object = variables("object", types=["object"])
     floor = variables("floor", types=["floor"])[0]
-    room = variables("room", types=["room"])[0]
+    room, room2 = variables("room room2", types=["room"])
     room_position = variables("room_position", types=["room_position"])[0]
     iot = variables("iot", types=["iot"])[0]
     cleaning_team = variables("cleaning_team", types=["cleaning_team"])[0]
-    iot = variables("iot", types=["iot"])[0]
+
     sensor = variables("sensor", types=["sensor"])[0]
     actuator = variables("actuator", types=["actuator"])[0]
     
@@ -60,18 +79,70 @@ def create():
 
     # define predicates
     predicates_list = []
+
+    # topology
     room_is_part_of_floor = Predicate("room_is_part_of_floor", room, floor)
     predicates_list.append(room_is_part_of_floor)
+
     sensor_is_part_of_room = Predicate("sensor_is_part_of_room", sensor, room)
     predicates_list.append(sensor_is_part_of_room)
-    is_ocupied = Predicate("is_ocupied", room)
-    predicates_list.append(is_ocupied)
-    is_cleaned = Predicate("is_cleaned", room)
-    predicates_list.append(is_cleaned)
     actuator_is_part_of_room = Predicate("actuator_is_part_of_room", actuator, room)
     predicates_list.append(actuator_is_part_of_room)
+    # problem to lock down a sensor that is part of two room positions
+    positioned_at = Predicate("positioned_at", iot, room_position)
+    predicates_list.append(positioned_at)
+
+    actuator_increases_sensor = Predicate("actuator_increases_sensor", actuator, sensor)
+    predicates_list.append(actuator_increases_sensor)
+    actuator_decreases_sensor = Predicate("actuator_decreases_sensor", actuator, sensor)
+    predicates_list.append(actuator_decreases_sensor)
+
+    is_next_to = Predicate("is_next_to", room, room2)
+    predicates_list.append(is_next_to)
+
+    is_at = Predicate("is_at", cleaning_team, room2)
+    predicates_list.append(is_at)
+
+    # meta context
+
+    is_ocupied = Predicate("is_ocupied", room)
+    predicates_list.append(is_ocupied)
+
+    will_become_ocupied = Predicate("will_become_ocupied", room)
+    predicates_list.append(will_become_ocupied)
+
+    is_cleaned = Predicate("is_cleaned", room)
+    predicates_list.append(is_cleaned)
+
+    # activity
+    has_specified_activity_at = Predicate("has_specified_activity_at", room, room_position)
+    predicates_list.append(has_specified_activity_at)
+    
+    activity_names = ['read','sleep']
+    is_doing_activitys_at = {}
+    for activity in activity_names:
+        is_doing_a_at = Predicate(f"is_doing_{activity}_at", room, room_position)
+        is_doing_activitys_at.update({f"is_doing_{activity}_at":is_doing_a_at})
+        predicates_list.append(is_doing_a_at)
+
+    # sensors
+    is_sensing = Predicate("is_sensing", sensor)
+    predicates_list.append(is_sensing)
+
+    is_low = Predicate("is_low", numerical_s)
+    predicates_list.append(is_low)
+    is_ok = Predicate("is_ok", numerical_s)
+    predicates_list.append(is_ok)
+    is_high = Predicate("is_high", numerical_s)
+    predicates_list.append(is_high)
+
+    # actuators
     is_activated = Predicate("is_activated", actuator)
     predicates_list.append(is_activated)
+
+    # force checks predicate
+    fulfilled_activity = Predicate("fulfilled_activity", room, room_position)
+    predicates_list.append(fulfilled_activity)
 
     # define actions
     actions_list = []
@@ -113,7 +184,7 @@ def create():
     all_objekts = all_objekts + cleaning_teams
 
     number_actuators = 2
-    actuators = create_objects(number_cleaning_teams, "actuator")
+    actuators = create_objects(number_actuators, "actuator")
     all_objekts = all_objekts + actuators
 
     # create initial state
@@ -135,9 +206,12 @@ def create():
 
     if_case = base.And(base.Not(is_ocupied(room)))
     then_clean_case = is_cleaned(room)
-    then_actuators_off_case = base.ForallCondition(base.Imply(actuator_is_part_of_room(actuator, room),base.Not(is_activated(actuator))),actuators)
+    c = actuator_is_part_of_room(actuator, room)
+    b = base.Not(is_activated(actuator))
+    a = base.Imply(c,b)
+    then_actuators_off_case = base.ForallCondition(a,[actuator])
     implication_for_unocupied_rooms = base.Imply(if_case, base.And(then_clean_case,then_actuators_off_case))
-    goal_for_unocupied_rooms = base.ForallCondition(implication_for_unocupied_rooms, rooms)
+    goal_for_unocupied_rooms = base.ForallCondition(implication_for_unocupied_rooms, [room])
 
     envorce_checks = None
     goal_state = base.And(goal_for_unocupied_rooms) #base.Imply(is_ocupied(rooms[0]),is_ocupied(rooms[1]))
@@ -152,10 +226,11 @@ def create():
     )
     
     print(problem)
+    return problem
 
 def main():
     domaine_file_name = 'domain.pddl'
-    problem_file_name = 'problem.pddl'
+    problem_file_name = 'test_problem.pddl'
     
     #domain = parse_domain(domaine_file_name)
     #print(domain)
@@ -164,7 +239,10 @@ def main():
 
     #d = create_domain()
     #create_problem("test", domain)
-    create()
+    p = create()
+    
+    with open(problem_file_name,'w') as f:
+        f.write(p.__str__())
 
 
 if __name__ == '__main__':
