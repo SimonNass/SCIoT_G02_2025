@@ -18,53 +18,10 @@ def create_objects(amount: int, type_name: str):
     objects = constants(names, type_=type_name + '_type')
     return objects
 
-def create():
-#def create_domain():
-    domain_name = "test_SCIoT_G02_2025"
-
-    # set up types
-    type_dict = {
-        "object_type": None,
-
-        "floor_type": "object_type",
-        "room_type": "object_type",
-        "room_position_type": "object_type",
-        "iot_type": "object_type",
-        "cleaning_team_type": "object_type",
-        
-        "sensor_type": "iot_type",
-        "actuator_type": "iot_type",
-
-        "binary_s_type": "sensor_type",
-        "numerical_s_type": "sensor_type",
-        "textual_s_type": "sensor_type",
-
-        "binary_a_type": "actuator_type",
-        "numerical_a_type": "actuator_type",
-        "textual_a_type": "actuator_type",
-
-        "button_s_type": "binary_s_type",
-        "motion_s_type": "binary_s_type",
-        "virtual_switch_s_type": "binary_s_type",
-
-        "temperature_s_type": "numerical_s_type",
-        "humidity_s_type": "numerical_s_type",
-        "light_s_type": "numerical_s_type",
-        "sound_s_type": "numerical_s_type",
-        "rotation_s_type": "numerical_s_type",
-        "virtual_dimmer_s_type": "numerical_s_type",
-
-        "switch_a_type": "binary_a_type",
-        "light_switch_a_type": "binary_a_type",
-        "virtual_switch_a_type": "binary_a_type",
-
-        "light_dimmer_a_type": "numerical_a_type",
-        "virtual_dimmer_a_type": "numerical_a_type",
-
-        "display_a_type": "textual_a_type",
-    }
-
+def create_type_variables():
     # set up variables and constants
+    global floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, actuator_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type
+
     floor_type, floor2_type = variables("floor_type floor2_type", types=["floor_type"])
     room_type, room2_type, room3_type = variables("room_type room2_type room3_type", types=["room_type"])
     room_position_type = variables("room_position_type", types=["room_position_type"])[0]
@@ -77,7 +34,12 @@ def create():
     binary_s_type, numerical_s_type, textual_s_type = variables("binary_s_type numerical_s_type textual_s_type", types=["sensor_type"])
     binary_a_type, numerical_a_type, textual_a_type = variables("binary_a_type numerical_a_type textual_a_type", types=["actuator_type"])
 
+def create_predicates_variables():
     # define predicates
+    global room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_ocupied, will_become_ocupied, is_cleaned, has_specified_activity_at, activity_names, is_doing_activitys_at
+    global is_sensing, is_low, is_ok, is_high, is_activated
+    global fulfilled_activity
+
     predicates_list = []
 
     # topology
@@ -144,8 +106,11 @@ def create():
     fulfilled_activity = Predicate("fulfilled_activity", room_type, room_position_type)
     predicates_list.append(fulfilled_activity)
 
-    # define actions
+    return predicates_list
+
+def create_cleaning_actions():
     actions_list = []
+
     move_to_floor = Action(
         "move_to_floor",
         parameters=[cleaning_team_type, room_type, room2_type, floor_type, floor2_type],
@@ -191,6 +156,11 @@ def create():
     )
     actions_list.append(team_clean)
 
+    return actions_list
+
+def create_assign_actions():
+    actions_list = []
+
     assign_floor = Action(
         "assign_floor",
         parameters=[room_type, floor_type],
@@ -206,6 +176,11 @@ def create():
         effect=base.ForallCondition((positioned_at(iot_type, room_position_type)), [room_position_type])
     )
     actions_list.append(assign_room_position)
+
+    return actions_list
+
+def create_actuator_actions():
+    actions_list = []
 
     turn_on = Action(
         "turn_on",
@@ -319,6 +294,11 @@ def create():
     )
     actions_list.append(decrease_s_by_na_in_r)
 
+    return actions_list
+
+def create_activity_actions():
+    actions_list = []
+
     is_doing_read_at = is_doing_activitys_at['read']
     is_doing_bath_at = is_doing_activitys_at['bath']
     is_doing_sleep_at = is_doing_activitys_at['sleep']
@@ -380,6 +360,11 @@ def create():
     )
     actions_list.append(fulfill_no_activity)
 
+    return actions_list
+
+def create_energy_saveing_actions():
+    actions_list = []
+
     #cancle_out_actuator = Action(
     #    "cancle_out_actuator",
     #    parameters=[room_type, room_position_type],
@@ -398,6 +383,67 @@ def create():
         effect=~is_activated(actuator_type)
     )
     actions_list.append(save_energy)
+
+    return actions_list
+
+
+def create():
+#def create_domain():
+    domain_name = "test_SCIoT_G02_2025"
+
+    # set up types
+    type_dict = {
+        "object_type": None,
+
+        "floor_type": "object_type",
+        "room_type": "object_type",
+        "room_position_type": "object_type",
+        "iot_type": "object_type",
+        "cleaning_team_type": "object_type",
+        
+        "sensor_type": "iot_type",
+        "actuator_type": "iot_type",
+
+        "binary_s_type": "sensor_type",
+        "numerical_s_type": "sensor_type",
+        "textual_s_type": "sensor_type",
+
+        "binary_a_type": "actuator_type",
+        "numerical_a_type": "actuator_type",
+        "textual_a_type": "actuator_type",
+
+        "button_s_type": "binary_s_type",
+        "motion_s_type": "binary_s_type",
+        "virtual_switch_s_type": "binary_s_type",
+
+        "temperature_s_type": "numerical_s_type",
+        "humidity_s_type": "numerical_s_type",
+        "light_s_type": "numerical_s_type",
+        "sound_s_type": "numerical_s_type",
+        "rotation_s_type": "numerical_s_type",
+        "virtual_dimmer_s_type": "numerical_s_type",
+
+        "switch_a_type": "binary_a_type",
+        "light_switch_a_type": "binary_a_type",
+        "virtual_switch_a_type": "binary_a_type",
+
+        "light_dimmer_a_type": "numerical_a_type",
+        "virtual_dimmer_a_type": "numerical_a_type",
+
+        "display_a_type": "textual_a_type",
+    }
+
+    create_type_variables()
+    predicates_list = create_predicates_variables()
+
+
+    # define actions
+    actions_list = []
+    actions_list = actions_list + create_cleaning_actions()
+    actions_list = actions_list + create_assign_actions()
+    actions_list = actions_list + create_actuator_actions()
+    actions_list = actions_list + create_activity_actions()
+    actions_list = actions_list + create_energy_saveing_actions()
 
     # define the domain object.
     requirements = [Requirements.STRIPS, Requirements.TYPING, Requirements.ADL]
