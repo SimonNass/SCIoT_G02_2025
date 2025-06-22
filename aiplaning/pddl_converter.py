@@ -10,149 +10,188 @@ from pddl.action import Action
 from pddl.requirements import Requirements
 from pddl import parse_domain, parse_problem
 
-def create_objects(amount: int, type: str):
+def create_objects(amount: int, type_name: str):
     names = ''
     for i in range(amount):
-        names = names + str(f'{type}_{i} ')
+        names = names + str(f'{type_name}_{i} ')
 
-    objects = constants(names, type_=type)
+    objects = constants(names, type_=type_name + '_type')
     return objects
 
 def create():
 #def create_domain():
-    domain_name = "SCIoT_G02_2025"
+    domain_name = "test_SCIoT_G02_2025"
 
     # set up types
     type_dict = {
-        "object": None,
+        "object_type": None,
 
-        "floor": "object",
-        "room": "object",
-        "room_position": "object",
-        "iot": "object",
-        "cleaning_team": "object",
+        "floor_type": "object_type",
+        "room_type": "object_type",
+        "room_position_type": "object_type",
+        "iot_type": "object_type",
+        "cleaning_team_type": "object_type",
         
-        "sensor": "iot",
-        "actuator": "iot",
+        "sensor_type": "iot_type",
+        "actuator_type": "iot_type",
 
-        "binary_s": "sensor",
-        "numerical_s": "sensor",
-        "textual_s": "sensor",
+        "binary_s_type": "sensor_type",
+        "numerical_s_type": "sensor_type",
+        "textual_s_type": "sensor_type",
 
-        "binary_a": "actuator",
-        "numerical_a": "actuator",
-        "textual_a": "actuator",
+        "binary_a_type": "actuator_type",
+        "numerical_a_type": "actuator_type",
+        "textual_a_type": "actuator_type",
 
-        "button_s": "binary_s",
-        "motion_s": "binary_s",
-        "virtual_switch_s": "binary_s",
+        "button_s_type": "binary_s_type",
+        "motion_s_type": "binary_s_type",
+        "virtual_switch_s_type": "binary_s_type",
 
-        "temperature_s": "numerical_s",
-        "humidity_s": "numerical_s",
-        "light_s": "numerical_s",
-        "sound_s": "numerical_s",
-        "rotation_s": "numerical_s",
-        "virtual_dimmer_s": "numerical_s",
+        "temperature_s_type": "numerical_s_type",
+        "humidity_s_type": "numerical_s_type",
+        "light_s_type": "numerical_s_type",
+        "sound_s_type": "numerical_s_type",
+        "rotation_s_type": "numerical_s_type",
+        "virtual_dimmer_s_type": "numerical_s_type",
 
-        "switch_a": "binary_a",
-        "light_switch_a": "binary_a",
-        "virtual_switch_a": "binary_a",
+        "switch_a_type": "binary_a_type",
+        "light_switch_a_type": "binary_a_type",
+        "virtual_switch_a_type": "binary_a_type",
 
-        "light_dimmer_a": "numerical_a",
-        "virtual_dimmer_a": "numerical_a",
+        "light_dimmer_a_type": "numerical_a_type",
+        "virtual_dimmer_a_type": "numerical_a_type",
 
-        "display_a": "textual_a",
+        "display_a_type": "textual_a_type",
     }
 
     # set up variables and constants
-    floor = variables("floor", types=["floor"])[0]
-    room, room2 = variables("room room2", types=["room"])
-    room_position = variables("room_position", types=["room_position"])[0]
-    iot = variables("iot", types=["iot"])[0]
-    cleaning_team = variables("cleaning_team", types=["cleaning_team"])[0]
+    floor_type, floor2_type, floor3_type = variables("floor_type floor2_type floor3_type", types=["floor_type"])
+    room_type, room2_type, room3_type = variables("room_type room2_type room3_type", types=["room_type"])
+    room_position_type = variables("room_position_type", types=["room_position_type"])[0]
+    iot_type = variables("iot_type", types=["iot_type"])[0]
+    cleaning_team_type = variables("cleaning_team_type", types=["cleaning_team_type"])[0]
 
-    sensor = variables("sensor", types=["sensor"])[0]
-    actuator = variables("actuator", types=["actuator"])[0]
+    sensor_type = variables("sensor_type", types=["sensor_type"])[0]
+    actuator_type = variables("actuator_type", types=["actuator_type"])[0]
     
-    binary_s, numerical_s, textual_s = variables("binary_s numerical_s textual_s", types=["sensor"])
-    binary_a, numerical_a, textual_a = variables("binary_a numerical_a textual_a", types=["actuator"])
+    binary_s_type, numerical_s_type, textual_s_type = variables("binary_s_type numerical_s_type textual_s_type", types=["sensor_type"])
+    binary_a_type, numerical_a_type, textual_a_type = variables("binary_a_type numerical_a_type textual_a_type", types=["actuator_type"])
 
     # define predicates
     predicates_list = []
 
     # topology
-    room_is_part_of_floor = Predicate("room_is_part_of_floor", room, floor)
+    room_is_part_of_floor = Predicate("room_is_part_of_floor", room_type, floor_type)
     predicates_list.append(room_is_part_of_floor)
 
-    sensor_is_part_of_room = Predicate("sensor_is_part_of_room", sensor, room)
+    sensor_is_part_of_room = Predicate("sensor_is_part_of_room", sensor_type, room_type)
     predicates_list.append(sensor_is_part_of_room)
-    actuator_is_part_of_room = Predicate("actuator_is_part_of_room", actuator, room)
+    actuator_is_part_of_room = Predicate("actuator_is_part_of_room", actuator_type, room_type)
     predicates_list.append(actuator_is_part_of_room)
     # problem to lock down a sensor that is part of two room positions
-    positioned_at = Predicate("positioned_at", iot, room_position)
+    positioned_at = Predicate("positioned_at", iot_type, room_position_type)
     predicates_list.append(positioned_at)
 
-    actuator_increases_sensor = Predicate("actuator_increases_sensor", actuator, sensor)
+    actuator_increases_sensor = Predicate("actuator_increases_sensor", actuator_type, sensor_type)
     predicates_list.append(actuator_increases_sensor)
-    actuator_decreases_sensor = Predicate("actuator_decreases_sensor", actuator, sensor)
+    actuator_decreases_sensor = Predicate("actuator_decreases_sensor", actuator_type, sensor_type)
     predicates_list.append(actuator_decreases_sensor)
 
-    is_next_to = Predicate("is_next_to", room, room2)
+    is_next_to = Predicate("is_next_to", room_type, room2_type)
     predicates_list.append(is_next_to)
 
-    is_at = Predicate("is_at", cleaning_team, room2)
+    is_at = Predicate("is_at", cleaning_team_type, room_type)
     predicates_list.append(is_at)
 
     # meta context
 
-    is_ocupied = Predicate("is_ocupied", room)
+    is_ocupied = Predicate("is_ocupied", room_type)
     predicates_list.append(is_ocupied)
 
-    will_become_ocupied = Predicate("will_become_ocupied", room)
+    will_become_ocupied = Predicate("will_become_ocupied", room_type)
     predicates_list.append(will_become_ocupied)
 
-    is_cleaned = Predicate("is_cleaned", room)
+    is_cleaned = Predicate("is_cleaned", room_type)
     predicates_list.append(is_cleaned)
 
     # activity
-    has_specified_activity_at = Predicate("has_specified_activity_at", room, room_position)
+    has_specified_activity_at = Predicate("has_specified_activity_at", room_type, room_position_type)
     predicates_list.append(has_specified_activity_at)
     
     activity_names = ['read','sleep']
     is_doing_activitys_at = {}
     for activity in activity_names:
-        is_doing_a_at = Predicate(f"is_doing_{activity}_at", room, room_position)
+        is_doing_a_at = Predicate(f"is_doing_{activity}_at", room_type, room_position_type)
         is_doing_activitys_at.update({f"is_doing_{activity}_at":is_doing_a_at})
         predicates_list.append(is_doing_a_at)
 
     # sensors
-    is_sensing = Predicate("is_sensing", sensor)
+    is_sensing = Predicate("is_sensing", sensor_type)
     predicates_list.append(is_sensing)
 
-    is_low = Predicate("is_low", numerical_s)
+    is_low = Predicate("is_low", numerical_s_type)
     predicates_list.append(is_low)
-    is_ok = Predicate("is_ok", numerical_s)
+    is_ok = Predicate("is_ok", numerical_s_type)
     predicates_list.append(is_ok)
-    is_high = Predicate("is_high", numerical_s)
+    is_high = Predicate("is_high", numerical_s_type)
     predicates_list.append(is_high)
 
     # actuators
-    is_activated = Predicate("is_activated", actuator)
+    is_activated = Predicate("is_activated", actuator_type)
     predicates_list.append(is_activated)
 
     # force checks predicate
-    fulfilled_activity = Predicate("fulfilled_activity", room, room_position)
+    fulfilled_activity = Predicate("fulfilled_activity", room_type, room_position_type)
     predicates_list.append(fulfilled_activity)
 
     # define actions
     actions_list = []
-    a1 = Action(
-        "action-1",
-        parameters=[room, floor, sensor],
-        precondition=sensor_is_part_of_room(sensor, room) & ~room_is_part_of_floor(room, floor),
-        effect=room_is_part_of_floor(room, floor)
+    move_to_floor = Action(
+        "move_to_floor",
+        parameters=[cleaning_team_type, room_type, room2_type, floor_type, floor2_type],
+        precondition=is_at(cleaning_team_type,room_type)
+                    & (base.Or(is_next_to(room_type, room2_type), is_next_to(room2_type, room_type))) 
+                    & room_is_part_of_floor(room_type, floor_type) 
+                    & room_is_part_of_floor(room2_type, floor2_type),
+                    #& ~ =(floor_type, floor2_type),
+        effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
     )
-    actions_list.append(a1)
+    actions_list.append(move_to_floor)
+
+    move_to_room = Action(
+        "move_to_room",
+        parameters=[cleaning_team_type, room_type, room2_type, floor_type],
+        precondition=is_at(cleaning_team_type,room_type)
+                    & (base.Or(is_next_to(room_type, room2_type), is_next_to(room2_type, room_type))) 
+                    & room_is_part_of_floor(room_type, floor_type) 
+                    & room_is_part_of_floor(room2_type, floor_type),
+                    #& ~ =(floor_type, floor2_type),
+        effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
+    )
+    actions_list.append(move_to_room)
+
+    move_to_isolated_room = Action(
+        "move_to_isolated_room",
+        parameters=[cleaning_team_type, room_type, room2_type, floor_type],
+        precondition=is_at(cleaning_team_type,room_type)
+                    & (base.ForallCondition((base.Or(~is_next_to(room3_type, room2_type), ~is_next_to(room2_type, room3_type))) , [room3_type])) 
+                    & room_is_part_of_floor(room_type, floor_type) 
+                    & room_is_part_of_floor(room2_type, floor_type),
+                    #& ~ =(floor_type, floor2_type),
+        effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
+    )
+    actions_list.append(move_to_isolated_room)
+
+    team_clean = Action(
+        "team_clean",
+        parameters=[cleaning_team_type, room_type],
+        precondition=is_at(cleaning_team_type,room_type)
+                    & ~is_cleaned(room_type) 
+                    & ~is_ocupied(room_type) 
+                    & ~will_become_ocupied(room_type),
+        effect=is_cleaned(room_type) 
+    )
+    actions_list.append(team_clean)
 
     # define the domain object.
     requirements = [Requirements.STRIPS, Requirements.TYPING, Requirements.ADL]
@@ -213,12 +252,12 @@ def create():
         initial_state.append(next_is_at)
 
     # iot to room papping
-    #sensor_room = rooms[0]
-    #for sensor_object in sensors:
-    #    print (sensor_object.type_tag)
-    #    print (sensor_room.type_tag)
-    #    next_part_of_room = sensor_is_part_of_room(sensor_object, sensor_room)
-    #    initial_state.append(next_part_of_room)
+    sensor_room = rooms[0]
+    for sensor_object in sensors:
+        print (sensor_object.type_tags)
+        print (sensor_room.type_tags)
+        next_part_of_room = sensor_is_part_of_room(sensor_object, sensor_room)
+        initial_state.append(next_part_of_room)
 
     #actuator_room = rooms[0]
     #for actuator_object in actuators:
@@ -257,8 +296,8 @@ def create():
     #    state = is_activated(actuator_object)
     #    initial_state.append(state)
 
-    for room in rooms:
-        initial_state.append(is_ocupied(room))
+    #for room_o in rooms:
+    #    initial_state.append(is_ocupied(room_o))
 
 
     # create goal
@@ -266,14 +305,14 @@ def create():
 
     goal_for_ocupied_rooms = None
 
-    if_case = base.And(base.Not(is_ocupied(room)))
-    then_clean_case = is_cleaned(room)
-    turn_off_actuator = base.Imply(actuator_is_part_of_room(actuator, room),base.Not(is_activated(actuator)))
-    then_actuators_off_case = base.ForallCondition(turn_off_actuator,[actuator])
+    if_case = base.And(base.Not(is_ocupied(room_type)))
+    then_clean_case = is_cleaned(room_type)
+    turn_off_actuator = base.Imply(actuator_is_part_of_room(actuator_type, room_type),base.Not(is_activated(actuator_type)))
+    then_actuators_off_case = base.ForallCondition(turn_off_actuator,[actuator_type])
     implication_for_unocupied_rooms = base.Imply(if_case, base.And(then_clean_case,then_actuators_off_case))
-    goal_for_unocupied_rooms = base.ForallCondition(implication_for_unocupied_rooms, [room])
+    goal_for_unocupied_rooms = base.ForallCondition(implication_for_unocupied_rooms, [room_type])
 
-    envorce_checks = base.ForallCondition(base.ForallCondition(fulfilled_activity(room, room_position), [room_position]), [room])
+    envorce_checks = base.ForallCondition(base.ForallCondition(fulfilled_activity(room_type, room_position_type), [room_position_type]), [room_type])
 
     goal_state = base.And(goal_for_unocupied_rooms, envorce_checks) #base.Imply(is_ocupied(rooms[0]),is_ocupied(rooms[1]))
 
@@ -284,14 +323,14 @@ def create():
         
         objects=all_objekts,
         init=initial_state,
-        goal=goal_state
+        goal=None#goal_state
     )
     
     print(problem)
-    return problem
+    return domain, problem
 
 def main():
-    domaine_file_name = 'domain.pddl'
+    domaine_file_name = 'test_domain.pddl'
     problem_file_name = 'test_problem.pddl'
     
     #domain = parse_domain(domaine_file_name)
@@ -301,7 +340,10 @@ def main():
 
     #d = create_domain()
     #create_problem("test", domain)
-    p = create()
+    d, p = create()
+    
+    with open(domaine_file_name,'w') as f:
+        f.write(d.__str__())
     
     with open(problem_file_name,'w') as f:
         f.write(p.__str__())
