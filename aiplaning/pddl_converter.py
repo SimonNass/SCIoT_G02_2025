@@ -386,6 +386,23 @@ def create_energy_saveing_actions():
 
     return actions_list
 
+def create_objecs_room_topology(number_floors, number_rooms):
+    floors = create_objects(number_floors, "floor")
+    rooms = create_objects(number_rooms, "room")
+    return floors, rooms
+
+def create_initial_state_room_topology(floors, rooms, rooms_per_floor):
+    initial_state = []
+
+    comulative_rooms_bevore = [sum(rooms_per_floor[:i]) for i in range(len(rooms_per_floor))]
+    #print (comulative_rooms_bevore)
+    for i in range(len(rooms_per_floor)):
+        for j in range(rooms_per_floor[i]):
+            next_room_floor_mapping = room_is_part_of_floor(rooms[comulative_rooms_bevore[i]+j], floors[i])
+            initial_state.append(next_room_floor_mapping)
+
+    return initial_state
+
 
 def create():
 #def create_domain():
@@ -436,7 +453,6 @@ def create():
     create_type_variables()
     predicates_list = create_predicates_variables()
 
-
     # define actions
     actions_list = []
     actions_list = actions_list + create_cleaning_actions()
@@ -460,19 +476,16 @@ def create():
     # create objects / constants
     all_objekts = []
 
-    number_floors = 2
-    number_rooms = 3
+    rooms_per_floor = [2, 1]
+    number_floors = len(rooms_per_floor)
+    number_rooms = sum(rooms_per_floor)
     number_cleaning_teams = 2
     number_sensors = 2
     number_actuators = 2
     names_room_positions = ['overall_room', 'bed', 'closet', 'window']
-    rooms_per_floor = [2, 1]
     
-    floors = create_objects(number_floors, "floor")
-    all_objekts = all_objekts + floors
-
-    rooms = create_objects(number_rooms, "room")
-    all_objekts = all_objekts + rooms
+    floors, rooms = create_objecs_room_topology(number_floors, number_rooms)
+    all_objekts = all_objekts + floors + rooms
 
     cleaning_teams = create_objects(number_cleaning_teams, "cleaning_team")
     all_objekts = all_objekts + cleaning_teams
@@ -489,12 +502,8 @@ def create():
     # create initial state
     initial_state = []
     
-    comulative_rooms_bevore = [sum(rooms_per_floor[:i]) for i in range(len(rooms_per_floor))]
-    #print (comulative_rooms_bevore)
-    for i in range(len(rooms_per_floor)):
-        for j in range(rooms_per_floor[i]):
-            next_room_floor_mapping = room_is_part_of_floor(rooms[comulative_rooms_bevore[i]+j], floors[i])
-            initial_state.append(next_room_floor_mapping)
+    initial_state_topology = create_initial_state_room_topology(floors, rooms, rooms_per_floor)
+    initial_state = initial_state + initial_state_topology
 
     clean_starting_room = rooms[0]
     for cleaning_team in cleaning_teams:
@@ -582,14 +591,18 @@ def create():
     print(problem)
     return domain, problem
 
+def reading_in_pddl():
+    domaine_file_name = 'domain.pddl'
+    problem_file_name = 'problem.pddl'
+
+    domain = parse_domain(domaine_file_name)
+    print(domain)
+    problem = parse_problem(problem_file_name)
+    print(problem)
+
 def main():
     domaine_file_name = 'test_domain.pddl'
     problem_file_name = 'test_problem.pddl'
-    
-    #domain = parse_domain(domaine_file_name)
-    #print(domain)
-    #problem = parse_problem(problem_file_name)
-    #print(problem)
 
     d, p = create()
     
