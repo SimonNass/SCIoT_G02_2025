@@ -26,37 +26,40 @@ class Virtual_environment():
     def calculate_next_active_influences_amount(self):
         for key, value in self.mapping_values.items():
             actuator = key[0]
-            if not self.check_if_actuators_has_influenc(actuator):
-                continue
-            impact = int(value['impact_amount'])
-            fade_in = int(value['fade_in'])
-            impact_duration = int(value['impact_duration'])
-            fade_out = int(value['fade_out'])
-
-            cycle = self.active_influences.get(key)['cycle']
-            _ = self.active_influences.get(key)['amount']
-
-            if cycle + 1 > fade_in + impact_duration + fade_out:
-                # impact of actuator ended
-                self.active_influences.update({key:{'cycle':0, 'amount':0}})
-                continue
-
             next_impact = 0
-            if cycle + 1 <= fade_in:
-                # fade_in
-                step_impact = impact / fade_in
-                next_impact = step_impact * cycle + 1
-            elif cycle + 1 <= fade_in + impact_duration:
-                # impact_duration
-                next_impact = impact
-            elif cycle + 1 <= fade_in + impact_duration + fade_out:
-                # fade_out
-                step_impact = impact / fade_out
-                next_impact = step_impact * (cycle + 1 - fade_in - impact_duration)
-            else:
-                logger.info('Environment bug')
-                raise ArithmeticError('Environment bug calculate_next_active_influences_amount')
-            self.active_influences.update({key:{'cycle':cycle+1, 'amount':next_impact}})
+            next_cycle = 1
+            if self.check_if_actuators_has_influenc(actuator):
+                next_impact = int(value['impact_amount'])
+            
+
+            #fade_in = int(value['fade_in'])
+            #impact_duration = int(value['impact_duration'])
+            #fade_out = int(value['fade_out'])
+
+            #cycle = self.active_influences.get(key)['cycle']
+            #_ = self.active_influences.get(key)['amount']
+
+            #if cycle + 1 > fade_in + impact_duration + fade_out:
+            #    # impact of actuator ended
+            #    self.active_influences.update({key:{'cycle':0, 'amount':0}})
+            #    continue
+
+            #next_impact = 0
+            #if cycle + 1 <= fade_in:
+            #    # fade_in
+            #    step_impact = impact / fade_in
+            #    next_impact = step_impact * cycle + 1
+            #elif cycle + 1 <= fade_in + impact_duration:
+            #    # impact_duration
+            #    next_impact = impact
+            #elif cycle + 1 <= fade_in + impact_duration + fade_out:
+            #    # fade_out
+            #    step_impact = impact / fade_out
+            #    next_impact = step_impact * (cycle + 1 - fade_in - impact_duration)
+            #else:
+            #    logger.info('Environment bug')
+            #    raise ArithmeticError('Environment bug calculate_next_active_influences_amount')
+            self.active_influences.update({key:{'cycle':next_cycle, 'amount':next_impact}})
 
     def aggregate_impact_per_sensor(self):
         sensor_dict: Dict[SensorInterface, int] = {}
@@ -76,11 +79,12 @@ class Virtual_environment():
 
         for sensor in self.sensors:
             impact = 0
-            if sensor in sensor_dict:
+            if sensor.name in sensor_dict:
                 impact = sensor_dict.get(sensor.name)
             sensor.virtual_environment_impact = impact
 
     def performe_environment_step(self):
+        logger.info('Environment step is starting')
         self.calculate_next_active_influences_amount()
         self.apply_active_influences_amount()
 
@@ -90,14 +94,14 @@ class Virtual_environment():
                 actuator_name = str(dictionary_map['actuator_name'])
                 sensor_name = str(dictionary_map['sensor_name'])
                 impact_amount = int(dictionary_map['impact_amount'])
-                fade_in = int(dictionary_map['fade_in'])
-                impact_duration = int(dictionary_map['impact_duration'])
-                fade_out = int(dictionary_map['fade_out'])
+                #fade_in = int(dictionary_map['fade_in'])
+                #impact_duration = int(dictionary_map['impact_duration'])
+                #fade_out = int(dictionary_map['fade_out'])
                 dictionary = {
                     'impact_amount':impact_amount, 
-                    'fade_in':fade_in, 
-                    'impact_duration':impact_duration, 
-                    'fade_out':fade_out
+                    #'fade_in':fade_in, 
+                    #'impact_duration':impact_duration, 
+                    #'fade_out':fade_out
                 }
             except Exception as e:
                 print (e, flush=True)

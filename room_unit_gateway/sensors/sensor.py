@@ -115,6 +115,11 @@ class VirtualSensor(SensorInterface):
         _ = self.read_sensor()
 
     def read_internal_sensor(self):
+        #return rng.constant(
+        #    last_value=self.last_value, 
+        #    min_value=self.min_value, 
+        #    max_value=self.max_value)
+    
         return rng.random_value(
             last_value=self.last_value, 
             min_value=self.min_value, 
