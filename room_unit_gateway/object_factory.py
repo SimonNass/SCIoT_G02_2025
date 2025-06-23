@@ -18,7 +18,7 @@ def configure_ardoino_connection(message_end_signal: str, usb_channel_type: str,
         ardoino_serial = ArdoinoReverseProxy(message_end_signal=message_end_signal,usb_channel_type=usb_channel_type,usb_channel_data_rate=usb_channel_data_rate)
     except Exception as e:
         print (e, flush=True)
-        logger.info("{}".format(e))
+        logger.error("{}".format(e))
     return ardoino_serial
 
 def configure_environment_map(json_list: json):
@@ -73,7 +73,7 @@ def choose_sensor_class(name: str, type_name: str, connector: int, connector_typ
             raise ValueError("Connector_type is not implemented.")
     except Exception as e:
         print (e, flush=True)
-        logger.info("{}".format(e))
+        logger.error("{}".format(e))
     raise ValueError("Connector_type is not implemented.")
 
 def configure_sensor_types(json_list: json):
@@ -113,7 +113,7 @@ def configure_actuators(json_list: json, types: dict, ardoino_serial: ArdoinoRev
             actuators.append(actuator_object)
         except Exception as e:
             print (e, flush=True)
-            logger.info("{}".format(e))
+            logger.error("{}".format(e))
     return actuators
 
 def choose_actuator_class(name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: int, off_value: int, ardoino_serial: ArdoinoReverseProxy):
@@ -132,7 +132,8 @@ def choose_actuator_class(name: str, type_name: str, connector: int, connector_t
             raise ValueError("Connector_type is not implemented.")
     except Exception as e:
         print (e, flush=True)
-        logger.info("{}".format(e))
+        logger.error("{}".format(e))
+    logger.warning("Connector_type is not implemented.")
     raise ValueError("Connector_type is not implemented.")
 
 def configure_actuator_types(json_list: json):

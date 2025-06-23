@@ -14,7 +14,7 @@ class ArdoinoReverseProxy():
             # TODO iterate over discovered ones and find the right one
             self.usb_channel_type_discovered = find_serial_port()[0]
         except (Exception, IOError, TypeError, AttributeError) as e:
-            logger.info("no serial port found {}".format(e))
+            logger.error("no serial port found {}".format(e))
         print (self.usb_channel_type_discovered)
         self.usb_channel_data_rate = usb_channel_data_rate
         # in bps
@@ -25,7 +25,7 @@ class ArdoinoReverseProxy():
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("connection to ardoino_serial was unsucesful")
             #print (e)
-            logger.info("connection to ardoino_serial was unsucesful {}".format(e))
+            logger.error("connection to ardoino_serial was unsucesful {}".format(e))
 
     def __del__(self):
         try:
@@ -34,7 +34,7 @@ class ArdoinoReverseProxy():
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("closing ardoino_serial was unsucesful")
             #print (e)
-            logger.info("closing ardoino_serial was unsucesful {}".format(e))
+            logger.error("closing ardoino_serial was unsucesful {}".format(e))
     
     def remote_call(self, type_name: str, value):
         try:

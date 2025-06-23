@@ -46,7 +46,7 @@ class MQTTEndpoint:
         except Exception as e:
             print ("MQTT Connection unable to establisch.")
             #print (e)
-            logger.info("MQTT Connection unable to establisch. {}".format(e))
+            logger.error("MQTT Connection unable to establisch. {}".format(e))
 
     def send(self, topic: str, message: str):
         if not self.is_connected():
@@ -58,7 +58,7 @@ class MQTTEndpoint:
         except Exception as e:
             print ("Connection failed.")
             #print (e)
-            logger.info("Connection failed {}".format(e))
+            logger.error("Connection failed {}".format(e))
     
     def recv(self, client, userdata, msg): # TODO
         try:
@@ -69,7 +69,7 @@ class MQTTEndpoint:
         except Exception as e:
             print ("Answer failed.")
             #print (e)
-            logger.info("Answer failed {}".format(e))
+            logger.error("Answer failed {}".format(e))
     
     def is_connected(self): # TODO
         return (self.mqtt_client != None) and (self.mqtt_client.is_connected())

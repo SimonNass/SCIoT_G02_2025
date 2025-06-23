@@ -68,7 +68,7 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
         except (IOError,TypeError) as e:
             print ("Error")
             #print (e)
-            logger.info(e)
+            logger.error(e)
             want_to_exit = True
 
 def run_gateway_for_config(config_file: str, password: str):
