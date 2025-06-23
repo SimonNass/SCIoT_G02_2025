@@ -49,10 +49,10 @@ void loop() {
   //senseSound();
   //senseHumidity();
   //senseTemperature();
-  activateRFID();
+  //activateRFID();
   //activateServo(0);
   if (string_complete) {
-    //handleRequest(input_str);
+    handleRequest(input_str);
   }
 }
 
@@ -90,7 +90,7 @@ void handleRequest(String input) {
     Serial.println(end_of_serial);
   } else if (type_name.equals("rfid")) {
     bool has_result = false;
-    int no_retries = 10;
+    int no_retries = 3;
     for (int i = 0; i < no_retries; i++) {
       has_result = activateRFID();
       if (has_result) {
@@ -108,10 +108,11 @@ void handleRequest(String input) {
 }
 
 bool activateRFID() {
+  int savety_delay = 500; // in miliseconds e.g. 1000 is 1 second
   //Serial.println("start search");
   if (!mfrc522.PICC_IsNewCardPresent())
   {
-    delay(1000);
+    delay(savety_delay);
     // Wenn keine Karte in Reichweite ist ..
     // .. wird die Abfrage wiederholt.
     return false;
@@ -119,7 +120,7 @@ bool activateRFID() {
   //Serial.println("new");
   if (!mfrc522.PICC_ReadCardSerial())
   {
-    delay(1000);
+    delay(savety_delay);
     // Wenn kein RFID-Sender ausgewählt wurde ..
     // .. wird die Abfrage wiederholt.
     return false;
@@ -136,7 +137,7 @@ bool activateRFID() {
   Serial.print("RFIDuid: ");
   Serial.println(WertDEZ);
   // kurze Pause, damit nur ein Wert gelesen wird
-  delay(1000);
+  delay(savety_delay);
   return true;
 }
 
