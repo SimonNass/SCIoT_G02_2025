@@ -55,9 +55,8 @@ class ActuatorInterface(ABC):
             self.last_value_timestamp = time.time()
             self.last_value = write_value
             self.datatype = str(type(self.last_value))
-            print ("{}: {}".format(self.name,self.last_value))
-            print ("{}: {}".format(self.name,str(self.id)))
-            logger.info("{}: {} {}".format(self.name,self.last_value, self.datatype))
+            print (f"uuid: {self.id}, device name: {self.name}, value: {self.last_value}")
+            logger.info(f"uuid: {self.id}, device name: {self.name}, value: {self.last_value}, type: {self.datatype}")
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("write was unsucesful")
             #print (e)

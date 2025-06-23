@@ -7,11 +7,12 @@ logger = logging.getLogger(__name__)
 import object_factory
 
 def read_config(config_file_name):
+    print (f"reading in {config_file_name}", flush=True)
     config = configparser.ConfigParser(interpolation=None)
     config.read(config_file_name)
     #config.read('config.ini')
 
-    print ("reading in general", flush=True)
+    #print ("reading in general", flush=True)
     logger.info("reading in general")
     # General
     version = config.get('General', 'version', fallback=0)
@@ -20,7 +21,7 @@ def read_config(config_file_name):
         logger.info("Error wrong config version")
     max_cycle_time = config.get('General', 'max_cycle_time', fallback=100)
 
-    print ("reading in MQTT", flush=True)
+    #print ("reading in MQTT", flush=True)
     logger.info("reading in MQTT")
     # MQTT
     mqtt_name = config.get('MQTT', 'name', fallback='MQTT')
@@ -32,7 +33,7 @@ def read_config(config_file_name):
     room_id = config.get('Architecture', 'room_ID', fallback=0)
 
     
-    print ("reading in ardoino", flush=True)
+    #print ("reading in ardoino", flush=True)
     logger.info("reading in ardoino")
     # Ardoino connection
     message_end_signal = config.get('Ardoino', 'message_end_signal', fallback='')
@@ -40,19 +41,19 @@ def read_config(config_file_name):
     usb_channel_data_rate = config.get('Ardoino', 'usb_channel_data_rate', fallback=9600)
     ardoino_serial = object_factory.configure_ardoino_connection(message_end_signal=message_end_signal,usb_channel_type=usb_channel_type,usb_channel_data_rate=usb_channel_data_rate)
 
-    print ("reading in sensors", flush=True)
+    #print ("reading in sensors", flush=True)
     logger.info("reading in sensors")
     # Sensors
     sensor_types = object_factory.configure_sensor_types(config.get('Sensors','sensor_types', fallback="[]"))
     sensor_class_list = object_factory.configure_sensors(config.get('Sensors','sensor_list', fallback="[]"), sensor_types, ardoino_serial)
 
-    print ("reading in actuators", flush=True)
+    #print ("reading in actuators", flush=True)
     logger.info("reading in actuators")
     # Actuators
     actuator_types = object_factory.configure_actuator_types(config.get('Actuators','actuator_types', fallback="[]"))
     actuator_class_list = object_factory.configure_actuators(config.get('Actuators','actuator_list', fallback="[]"), actuator_types, ardoino_serial)
 
-    print ("reading in VirtualEnfironment mapping", flush=True)
+    #print ("reading in VirtualEnfironment mapping", flush=True)
     logger.info("reading in VirtualEnfironment mapping")
     # VirtualEnfironment
     virtual_enfironment_list = object_factory.configure_environment_map(config.get('VirtualEnfironment','virtual_enfironment_list', fallback="[]"))
