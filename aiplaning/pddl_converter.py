@@ -5,6 +5,7 @@
 
 # pip install pddl==0.4.3
 from pddl.logic import Predicate, constants, variables, base
+from pddl.logic.predicates import EqualTo
 from pddl.core import Domain, Problem
 from pddl.action import Action
 from pddl.requirements import Requirements
@@ -20,7 +21,9 @@ def create_objects(amount: int, type_name: str):
 
 def create_type_variables():
     # set up variables and constants
-    global floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, actuator_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type
+    global floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type
+    global iot_type, cleaning_team_type, sensor_type, actuator_type, actuator2_type
+    global binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type
 
     floor_type, floor2_type = variables("floor_type floor2_type", types=["floor_type"])
     room_type, room2_type, room3_type = variables("room_type room2_type room3_type", types=["room_type"])
@@ -29,7 +32,7 @@ def create_type_variables():
     cleaning_team_type = variables("cleaning_team_type", types=["cleaning_team_type"])[0]
 
     sensor_type = variables("sensor_type", types=["sensor_type"])[0]
-    actuator_type = variables("actuator_type", types=["actuator_type"])[0]
+    actuator_type, actuator2_type = variables("actuator_type actuator2_type", types=["actuator_type"])
     
     binary_s_type, numerical_s_type, textual_s_type = variables("binary_s_type numerical_s_type textual_s_type", types=["sensor_type"])
     binary_a_type, numerical_a_type, textual_a_type = variables("binary_a_type numerical_a_type textual_a_type", types=["actuator_type"])
@@ -117,8 +120,8 @@ def create_cleaning_actions():
         precondition=is_at(cleaning_team_type,room_type)
                     & (base.Or(is_next_to(room_type, room2_type), is_next_to(room2_type, room_type))) 
                     & room_is_part_of_floor(room_type, floor_type) 
-                    & room_is_part_of_floor(room2_type, floor2_type),
-                    #& base.Not(=(floor_type, floor2_type)),
+                    & room_is_part_of_floor(room2_type, floor2_type)
+                    & base.Not(EqualTo(floor_type, floor2_type)),
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
     )
     actions_list.append(move_to_floor)
@@ -365,13 +368,19 @@ def create_activity_actions():
 def create_energy_saveing_actions():
     actions_list = []
 
-    #cancle_out_actuator = Action(
-    #    "cancle_out_actuator",
-    #    parameters=[room_type, room_position_type],
-    #    precondition=,
-    #    effect=
-    #)
-    #actions_list.append(cancle_out_actuator)
+    cancle_out_actuator = Action(
+        "cancle_out_actuator",
+        parameters=[numerical_s_type, actuator_type, actuator2_type, room_type],
+        precondition= base.Not(EqualTo(actuator_type, actuator2_type))
+                        & sensor_is_part_of_room(sensor_type, room_type)
+                        & actuator_increases_sensor(actuator_type, sensor_type)
+                        & actuator_decreases_sensor(actuator2_type, sensor_type)
+                        & is_activated(actuator_type)
+                        & is_activated(actuator2_type),
+        effect= is_activated(actuator_type)
+                & is_activated(actuator2_type)
+    )
+    actions_list.append(cancle_out_actuator)
 
     save_energy = Action(
         "save_energy",
