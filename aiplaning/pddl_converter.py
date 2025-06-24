@@ -15,7 +15,7 @@ from pddl import parse_domain, parse_problem
 def create_objects(name_list: List[str], type_name: str):
     names = ''
     for i in range(len(name_list)):
-        names = names + str(f'{name_list[i]} ')
+        names = names + str(f'{type_name}_{name_list[i]} ')
 
     objects = constants(names, type_=type_name + '_type')
     print (objects)
@@ -527,7 +527,7 @@ def create():
     floors, rooms, elevators = create_objecs_room_topology(floor_uids, room_uids, elevator_uids)
     all_objekts = all_objekts + floors + rooms + elevators
 
-    cleaning_teams = create_objects(floor_uids, "cleaning_team")
+    cleaning_teams = create_objects(cleaning_team_uids, "cleaning_team")
     all_objekts = all_objekts + cleaning_teams
 
     sensors = create_objects(sensor_uids, "numerical_s")
@@ -639,7 +639,15 @@ def reading_in_pddl():
     problem = parse_problem(problem_file_name)
     print(problem)
 
+def check_lib_versions():
+    import pddl
+    version_pddl = pddl.__version__
+    print(version_pddl)
+    # make sure that it is above 0.4.2
+
 def main():
+    check_lib_versions()
+
     domaine_file_name = 'test_domain.pddl'
     problem_file_name = 'test_problem.pddl'
 
