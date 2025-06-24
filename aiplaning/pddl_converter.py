@@ -4,6 +4,7 @@
 # make an issue with minimal example (:requirements :typing :adl) does not work without the :typing
 
 # pip install pddl==0.4.3
+from typing import List
 from pddl.logic import Predicate, constants, variables, base
 from pddl.logic.predicates import EqualTo
 from pddl.core import Domain, Problem
@@ -11,12 +12,13 @@ from pddl.action import Action
 from pddl.requirements import Requirements
 from pddl import parse_domain, parse_problem
 
-def create_objects(amount: int, type_name: str):
+def create_objects(name_list: List[str], type_name: str):
     names = ''
-    for i in range(amount):
-        names = names + str(f'{type_name}_{i} ')
+    for i in range(len(name_list)):
+        names = names + str(f'{name_list[i]} ')
 
     objects = constants(names, type_=type_name + '_type')
+    print (objects)
     return objects
 
 def create_type_variables():
@@ -395,10 +397,10 @@ def create_energy_saveing_actions():
 
     return actions_list
 
-def create_objecs_room_topology(number_floors, number_rooms, number_elevators):
-    floors = create_objects(number_floors, "floor")
-    rooms = create_objects(number_rooms, "room")
-    elevators = create_objects(number_elevators, "room")
+def create_objecs_room_topology(floor_uids, room_uids, elevator_uids):
+    floors = create_objects(floor_uids, "floor")
+    rooms = create_objects(room_uids, "room")
+    elevators = create_objects(elevator_uids, "room")
 
     return floors, rooms, elevators
 
@@ -411,6 +413,14 @@ def create_initial_state_room_topology(floors, rooms, elevators, rooms_per_floor
         for j in range(rooms_per_floor[i]):
             next_room_floor_mapping = room_is_part_of_floor(rooms[comulative_rooms_bevore[i]+j], floors[i])
             initial_state.append(next_room_floor_mapping)
+
+    for i in range(len(rooms_per_floor)):
+        for j in range(rooms_per_floor[i] - 1):
+            index = comulative_rooms_bevore[i]+j            
+            next_room_room_mapping = is_next_to(rooms[index], rooms[index + 1])
+            initial_state.append(next_room_room_mapping)
+            next_room_room_mapping = is_next_to(rooms[index + 1], rooms[index])
+            initial_state.append(next_room_room_mapping)
 
     for i in range(len(elevators)):
         for j in range(len(floors)):
@@ -500,29 +510,33 @@ def create():
     all_objekts = []
 
     rooms_per_floor = [2, 1]
-    number_floors = len(rooms_per_floor)
-    number_rooms = sum(rooms_per_floor)
-    room_topology = [[('r0','r1'),('e0','r0')], [('e0','r3')]] # TODO automatically do row of rooms numbers
+    floor_uids = ['f0','f1']
+    room_uids = ['r0','r1','r2']
+    elevator_uids = ['e0']
+
+    assert len(rooms_per_floor) == len(floor_uids)
+    assert sum(rooms_per_floor) == len(room_uids)
+    assert 1 >= len(elevator_uids)
+
     # TODO map actions back to db actions
-    number_elevators = 1
-    number_cleaning_teams = 2
-    number_sensors = 2
-    number_actuators = 2
+    cleaning_team_uids = ['cleaning_team_1','cleaning_team_2']
+    sensor_uids = ['s1','s2']
+    actuator_uids = ['a1','a2']
     names_room_positions = ['overall_room', 'bed', 'closet', 'window']
     
-    floors, rooms, elevators = create_objecs_room_topology(number_floors, number_rooms, number_elevators)
-    all_objekts = all_objekts + floors + rooms
+    floors, rooms, elevators = create_objecs_room_topology(floor_uids, room_uids, elevator_uids)
+    all_objekts = all_objekts + floors + rooms + elevators
 
-    cleaning_teams = create_objects(number_cleaning_teams, "cleaning_team")
+    cleaning_teams = create_objects(floor_uids, "cleaning_team")
     all_objekts = all_objekts + cleaning_teams
 
-    sensors = create_objects(number_sensors, "numerical_s")
+    sensors = create_objects(sensor_uids, "numerical_s")
     all_objekts = all_objekts + sensors
 
-    actuators = create_objects(number_actuators, "actuator")
+    actuators = create_objects(actuator_uids, "actuator")
     all_objekts = all_objekts + actuators
 
-    room_positions = create_objects(len(names_room_positions), "room_position")
+    room_positions = create_objects(names_room_positions, "room_position")
     all_objekts = all_objekts + room_positions
 
     # create initial state
@@ -610,7 +624,6 @@ def create():
         
         objects=all_objekts,
         init=initial_state,
-        #goal=is_cleaned(rooms[2])
         goal=goal_state
     )
     
