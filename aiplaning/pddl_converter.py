@@ -141,7 +141,7 @@ def create_cleaning_actions():
         "move_to_isolated_room",
         parameters=[cleaning_team_type, room_type, room2_type, floor_type],
         precondition=is_at(cleaning_team_type,room_type)
-                    & (base.ForallCondition((base.Or(~is_next_to(room3_type, room2_type), ~is_next_to(room2_type, room3_type))) , [room3_type])) 
+                    & (base.ForallCondition((base.And(~is_next_to(room3_type, room2_type), ~is_next_to(room2_type, room3_type))) , [room3_type])) 
                     & room_is_part_of_floor(room_type, floor_type) 
                     & room_is_part_of_floor(room2_type, floor_type),
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
@@ -370,7 +370,7 @@ def create_energy_saveing_actions():
 
     cancle_out_actuator = Action(
         "cancle_out_actuator",
-        parameters=[numerical_s_type, actuator_type, actuator2_type, room_type],
+        parameters=[sensor_type, actuator_type, actuator2_type, room_type],
         precondition= base.Not(EqualTo(actuator_type, actuator2_type))
                         & sensor_is_part_of_room(sensor_type, room_type)
                         & actuator_increases_sensor(actuator_type, sensor_type)
@@ -395,12 +395,14 @@ def create_energy_saveing_actions():
 
     return actions_list
 
-def create_objecs_room_topology(number_floors, number_rooms):
+def create_objecs_room_topology(number_floors, number_rooms, number_elevators):
     floors = create_objects(number_floors, "floor")
     rooms = create_objects(number_rooms, "room")
-    return floors, rooms
+    elevators = create_objects(number_elevators, "room")
 
-def create_initial_state_room_topology(floors, rooms, rooms_per_floor):
+    return floors, rooms, elevators
+
+def create_initial_state_room_topology(floors, rooms, elevators, rooms_per_floor):
     initial_state = []
 
     comulative_rooms_bevore = [sum(rooms_per_floor[:i]) for i in range(len(rooms_per_floor))]
@@ -409,6 +411,18 @@ def create_initial_state_room_topology(floors, rooms, rooms_per_floor):
         for j in range(rooms_per_floor[i]):
             next_room_floor_mapping = room_is_part_of_floor(rooms[comulative_rooms_bevore[i]+j], floors[i])
             initial_state.append(next_room_floor_mapping)
+
+    for i in range(len(elevators)):
+        for j in range(len(floors)):
+            next_elevator_floor_mapping = room_is_part_of_floor(elevators[i],floors[j])
+            initial_state.append(next_elevator_floor_mapping)
+        for k in range(len(rooms)): # TODO
+            next_elevator_room_mapping = is_next_to(elevators[i],rooms[k])
+            initial_state.append(next_elevator_room_mapping)
+            next_elevator_room_mapping = is_next_to(rooms[k],elevators[i])
+            initial_state.append(next_elevator_room_mapping)
+        next_elevator_is_clean = is_cleaned(elevators[i])
+        initial_state.append(next_elevator_is_clean)
 
     return initial_state
 
@@ -488,12 +502,15 @@ def create():
     rooms_per_floor = [2, 1]
     number_floors = len(rooms_per_floor)
     number_rooms = sum(rooms_per_floor)
+    room_topology = [[('r0','r1'),('e0','r0')], [('e0','r3')]] # TODO automatically do row of rooms numbers
+    # TODO map actions back to db actions
+    number_elevators = 1
     number_cleaning_teams = 2
     number_sensors = 2
     number_actuators = 2
     names_room_positions = ['overall_room', 'bed', 'closet', 'window']
     
-    floors, rooms = create_objecs_room_topology(number_floors, number_rooms)
+    floors, rooms, elevators = create_objecs_room_topology(number_floors, number_rooms, number_elevators)
     all_objekts = all_objekts + floors + rooms
 
     cleaning_teams = create_objects(number_cleaning_teams, "cleaning_team")
@@ -511,7 +528,7 @@ def create():
     # create initial state
     initial_state = []
     
-    initial_state_topology = create_initial_state_room_topology(floors, rooms, rooms_per_floor)
+    initial_state_topology = create_initial_state_room_topology(floors, rooms, elevators, rooms_per_floor)
     initial_state = initial_state + initial_state_topology
 
     clean_starting_room = rooms[0]
@@ -593,8 +610,8 @@ def create():
         
         objects=all_objekts,
         init=initial_state,
-        goal=is_cleaned(rooms[0])
-        #goal=goal_state
+        #goal=is_cleaned(rooms[2])
+        goal=goal_state
     )
     
     print(problem)
