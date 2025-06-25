@@ -18,7 +18,7 @@ def create_objects(name_list: List[str], type_name: str):
         names = names + str(f'{type_name}_{name_list[i]} ')
 
     objects = constants(names, type_=type_name + '_type')
-    print (objects)
+    #print (objects)
     return objects
 
 def create_type_variables():
@@ -502,7 +502,7 @@ def create():
                     predicates=predicates_list,
                     actions=actions_list)
 
-    print(domain)
+    #print(domain)
 
     problem_name = 'test'
 
@@ -554,8 +554,8 @@ def create():
     # TODO 
     sensor_room = rooms[0]
     for sensor_object in sensors:
-        print (sensor_object.type_tags)
-        print (sensor_room.type_tags)
+        #print (sensor_object.type_tags)
+        #print (sensor_room.type_tags)
         next_part_of_room = sensor_is_part_of_room(sensor_object, sensor_room)
         initial_state.append(next_part_of_room)
 
@@ -582,7 +582,7 @@ def create():
     actuator_decreases_sensor_mapping_matrix = [[True, False],[False, False]]
 
     assert len(actuator_increases_sensor_mapping_matrix) == len(actuators)
-    for sensor_list_mapping in range(len(actuator_increases_sensor_mapping_matrix)):
+    for sensor_list_mapping in actuator_increases_sensor_mapping_matrix:
         assert len(sensor_list_mapping) == len(sensors)
     assert len(actuator_decreases_sensor_mapping_matrix) == len(actuators)
     for sensor_list_mapping in actuator_decreases_sensor_mapping_matrix:
@@ -593,13 +593,13 @@ def create():
             if actuator_increases_sensor_mapping_matrix[i][j]:
                 next_influence = actuator_increases_sensor(actuators[i], sensors[j])
                 initial_state.append(next_influence)
-            if actuator_decreases_sensor_mapping_matrix:
+            if actuator_decreases_sensor_mapping_matrix[i][j]:
                 next_influence = actuator_decreases_sensor(actuators[i], sensors[j])
                 initial_state.append(next_influence)
 
     # context
     # raw sensor data
-    sensor_initial_values = {'s1': 0, 's2':0}
+    sensor_initial_values = {'s1': -1, 's2':1} # TODOis missing ?
     # TODO
     sensor_goal_values = {'s1': -1, 's2':1}
     actuator_initial_values = {'a1': True, 'a2':False}
@@ -612,33 +612,33 @@ def create():
         # TODO if dictionary empty use default
         object_state = sensor_initial_values[sensor_uids[i]]
         state = is_ok(sensors[i])
-        match object_state:
-            case -1:
-                state = is_low(sensors[i])
-            case 0:
-                state = is_ok(sensors[i])
-            case 1:
-                state = is_high(sensors[i])
-            case _:
-                state = is_ok(sensors[i])
+        if object_state == -1:
+            state = is_low(sensors[i])
+        elif object_state == 0:
+            state = is_ok(sensors[i])
+        elif object_state == 1:
+            state = is_high(sensors[i])
+        else:
+            state = is_ok(sensors[i])
         initial_state.append(state)
 
     for i in range(len(actuators)):
         # TODO if dictionary empty use default
         object_state = actuator_initial_values[actuator_uids[i]]
-        state = base.Not(is_activated(actuator_object))
+        state = base.Not(is_activated(actuators[i]))
         if object_state:
-            state = is_activated(actuator_object)
+            state = is_activated(actuators[i])
         else:
-            state = base.Not(is_activated(actuator_object))
+            state = base.Not(is_activated(actuators[i]))
         initial_state.append(state)
 
     # context room ocupied
-    room_ocupied_actuator_initial_values = {'r1': True, 'r2':False}
+    room_ocupied_actuator_initial_values = {'r0':False, 'r1': True, 'r2':False}
 
     assert len(room_ocupied_actuator_initial_values) <= len(rooms)
 
     for i in range(len(rooms)):
+        object_state = room_ocupied_actuator_initial_values[room_uids[i]]
         state = base.Not(is_ocupied(rooms[i]))
         if object_state:
             state = is_ocupied(rooms[i])
@@ -676,7 +676,7 @@ def create():
         goal=goal_state
     )
     
-    print(problem)
+    #print(problem)
     return domain, problem
 
 def reading_in_pddl():
