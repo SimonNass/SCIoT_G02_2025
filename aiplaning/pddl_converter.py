@@ -545,12 +545,13 @@ def create():
     initial_state_topology = create_initial_state_room_topology(floors, rooms, elevators, rooms_per_floor)
     initial_state = initial_state + initial_state_topology
 
-    clean_starting_room = rooms[0]
+    clean_starting_position = elevators[0]
     for cleaning_team in cleaning_teams:
-        next_is_at = is_at(cleaning_team, clean_starting_room)
+        next_is_at = is_at(cleaning_team, clean_starting_position)
         initial_state.append(next_is_at)
 
     # iot to room papping
+    # TODO 
     sensor_room = rooms[0]
     for sensor_object in sensors:
         print (sensor_object.type_tags)
@@ -559,21 +560,13 @@ def create():
         initial_state.append(next_part_of_room)
 
     actuator_room = rooms[0]
+    # TODO
     for actuator_object in actuators:
         next_part_of_room = actuator_is_part_of_room(actuator_object, actuator_room)
         initial_state.append(next_part_of_room)
 
-    # sensor actuator mapping
-    for actuator_object in actuators:
-        for sensor_object in sensors:
-            if True:
-                next_influence = actuator_increases_sensor(actuator_object, sensor_object)
-                initial_state.append(next_influence)
-            if False:
-                next_influence = actuator_decreases_sensor(actuator_object, sensor_object)
-                initial_state.append(next_influence)
-
     # iot position mapping
+    # TODO
     room_positions_default = room_positions[0]
     for sensor_object in sensors:
         next_pos = positioned_at(sensor_object, room_positions_default)
@@ -583,21 +576,77 @@ def create():
         next_pos = positioned_at(actuator_object, room_positions_default)
         initial_state.append(next_pos)
 
+    # sensor actuator mapping
+    # TODO matrix actuators x sensors automate
+    actuator_increases_sensor_mapping_matrix = [[True, True],[False, True]]
+    actuator_decreases_sensor_mapping_matrix = [[True, False],[False, False]]
+
+    assert len(actuator_increases_sensor_mapping_matrix) == len(actuators)
+    for sensor_list_mapping in range(len(actuator_increases_sensor_mapping_matrix)):
+        assert len(sensor_list_mapping) == len(sensors)
+    assert len(actuator_decreases_sensor_mapping_matrix) == len(actuators)
+    for sensor_list_mapping in actuator_decreases_sensor_mapping_matrix:
+        assert len(sensor_list_mapping) == len(sensors)
+
+    for i in range(len(actuators)):
+        for j in range(len(sensors)):
+            if actuator_increases_sensor_mapping_matrix[i][j]:
+                next_influence = actuator_increases_sensor(actuators[i], sensors[j])
+                initial_state.append(next_influence)
+            if actuator_decreases_sensor_mapping_matrix:
+                next_influence = actuator_decreases_sensor(actuators[i], sensors[j])
+                initial_state.append(next_influence)
+
     # context
     # raw sensor data
-    
-    for sensor_object in sensors:
-        state = is_high(sensor_object)
+    sensor_initial_values = {'s1': 0, 's2':0}
+    # TODO
+    sensor_goal_values = {'s1': -1, 's2':1}
+    actuator_initial_values = {'a1': True, 'a2':False}
+
+    assert len(sensor_initial_values) <= len(sensors)
+    assert len(sensor_goal_values) <= len(sensors)
+    assert len(actuator_initial_values) <= len(actuators)
+
+    for i in range(len(sensors)):
+        # TODO if dictionary empty use default
+        object_state = sensor_initial_values[sensor_uids[i]]
+        state = is_ok(sensors[i])
+        match object_state:
+            case -1:
+                state = is_low(sensors[i])
+            case 0:
+                state = is_ok(sensors[i])
+            case 1:
+                state = is_high(sensors[i])
+            case _:
+                state = is_ok(sensors[i])
         initial_state.append(state)
 
-    for actuator_object in actuators:
-        state = is_activated(actuator_object)
+    for i in range(len(actuators)):
+        # TODO if dictionary empty use default
+        object_state = actuator_initial_values[actuator_uids[i]]
+        state = base.Not(is_activated(actuator_object))
+        if object_state:
+            state = is_activated(actuator_object)
+        else:
+            state = base.Not(is_activated(actuator_object))
         initial_state.append(state)
 
-    #for room_o in rooms:
-    #    initial_state.append(base.Not(is_ocupied(room_o)))
+    # context room ocupied
+    room_ocupied_actuator_initial_values = {'r1': True, 'r2':False}
+
+    assert len(room_ocupied_actuator_initial_values) <= len(rooms)
+
+    for i in range(len(rooms)):
+        state = base.Not(is_ocupied(rooms[i]))
+        if object_state:
+            state = is_ocupied(rooms[i])
+        else:
+            state = base.Not(is_ocupied(rooms[i]))
+        initial_state.append(state)
     #initial_state.append(base.Not(is_ocupied(rooms[0])))
-    initial_state.append(is_ocupied(rooms[1]))
+    #initial_state.append(is_ocupied(rooms[1]))
 
 
     # create goal
