@@ -99,7 +99,8 @@ def run_gateway_for_config(config_file: str, password: str):
             password=password,
             floor_id=floor_id,
             max_rooms_per_floor=max_rooms,
-            room_id=room_id
+            room_id=room_id,
+            actuators=[]
         )
     except Exception as e:
         print(f"[{config_file}] MQTT connection failed: {e}", file=sys.stderr)
