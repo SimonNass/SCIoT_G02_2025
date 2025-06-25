@@ -409,11 +409,15 @@ def create_initial_state_room_topology(floors, rooms, elevators, rooms_per_floor
 
     comulative_rooms_bevore = [sum(rooms_per_floor[:i]) for i in range(len(rooms_per_floor))]
     #print (comulative_rooms_bevore)
+
+    # assigns each rooms to one floor they are a part of based on the rooms_per_floor list
     for i in range(len(rooms_per_floor)):
         for j in range(rooms_per_floor[i]):
             next_room_floor_mapping = room_is_part_of_floor(rooms[comulative_rooms_bevore[i]+j], floors[i])
             initial_state.append(next_room_floor_mapping)
 
+    # connects rooms that are next to each other on the same floor
+    # defaults to a line topology
     for i in range(len(rooms_per_floor)):
         for j in range(rooms_per_floor[i] - 1):
             index = comulative_rooms_bevore[i]+j            
@@ -423,14 +427,18 @@ def create_initial_state_room_topology(floors, rooms, elevators, rooms_per_floor
             initial_state.append(next_room_room_mapping)
 
     for i in range(len(elevators)):
+        # connect the elevators to all floors
         for j in range(len(floors)):
             next_elevator_floor_mapping = room_is_part_of_floor(elevators[i],floors[j])
             initial_state.append(next_elevator_floor_mapping)
-        for k in range(len(rooms)): # TODO
-            next_elevator_room_mapping = is_next_to(elevators[i],rooms[k])
+        # connect the elevators to a room in each floor
+        for k in range(len(floors)):
+            room_near_elevator = rooms[comulative_rooms_bevore[k]+(i % rooms_per_floor[k])]
+            next_elevator_room_mapping = is_next_to(elevators[i],room_near_elevator)
             initial_state.append(next_elevator_room_mapping)
-            next_elevator_room_mapping = is_next_to(rooms[k],elevators[i])
+            next_elevator_room_mapping = is_next_to(room_near_elevator,elevators[i])
             initial_state.append(next_elevator_room_mapping)
+        # elevators do not have to be cleaned
         next_elevator_is_clean = is_cleaned(elevators[i])
         initial_state.append(next_elevator_is_clean)
 
@@ -512,11 +520,11 @@ def create():
     rooms_per_floor = [2, 1]
     floor_uids = ['f0','f1']
     room_uids = ['r0','r1','r2']
-    elevator_uids = ['e0']
+    elevator_uids = ['e0','e1']
 
     assert len(rooms_per_floor) == len(floor_uids)
     assert sum(rooms_per_floor) == len(room_uids)
-    assert 1 >= len(elevator_uids)
+    assert 1 <= len(elevator_uids)
 
     # TODO map actions back to db actions
     cleaning_team_uids = ['cleaning_team_1','cleaning_team_2']
@@ -545,9 +553,9 @@ def create():
     initial_state_topology = create_initial_state_room_topology(floors, rooms, elevators, rooms_per_floor)
     initial_state = initial_state + initial_state_topology
 
-    clean_starting_position = elevators[0]
-    for cleaning_team in cleaning_teams:
-        next_is_at = is_at(cleaning_team, clean_starting_position)
+    # cleaning teams starting at different elevators
+    for i in range(len(cleaning_teams)):
+        next_is_at = is_at(cleaning_teams[i], elevators[i % len(elevators)])
         initial_state.append(next_is_at)
 
     # iot to room papping
