@@ -612,6 +612,8 @@ def create():
     sensor_goal_values = {'s1': -1, 's2':1}
     actuator_initial_values = {'a1': True, 'a2':False}
 
+    individual_sensor_goals = []
+
     assert len(sensor_initial_values) <= len(sensors)
     assert len(sensor_goal_values) <= len(sensors)
     assert len(actuator_initial_values) <= len(actuators)
@@ -629,6 +631,20 @@ def create():
         else:
             state = is_ok(sensors[i])
         initial_state.append(state)
+
+    for i in range(len(sensors)):
+        # TODO if dictionary empty use default
+        object_state = sensor_goal_values[sensor_uids[i]]
+        state = is_ok(sensors[i])
+        if object_state == -1:
+            state = is_low(sensors[i])
+        elif object_state == 0:
+            state = is_ok(sensors[i])
+        elif object_state == 1:
+            state = is_high(sensors[i])
+        else:
+            state = is_ok(sensors[i])
+        individual_sensor_goals.append(state)
 
     for i in range(len(actuators)):
         # TODO if dictionary empty use default
@@ -659,6 +675,8 @@ def create():
 
     # create goal
     goal_state = None
+
+    # individual_sensor_goals TODO
 
     goal_for_ocupied_rooms = None
 
