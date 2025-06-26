@@ -24,6 +24,6 @@ docker-compose ps
 Install Docker on PI after this URL tutorial:
 https://docs.docker.com/engine/install/raspberry-pi-os/
 sudo docker build --tag 'room-pi' -f pi.Dockerfile .
-sudo docker run --privileged room-pi
+sudo docker run --privileged --network host room-pi
 sudo docker stop $(sudo docker ps -a -q)
 docker system prune

@@ -1,10 +1,5 @@
-#include <MFRC522.h>
-#include <MFRC522Extended.h>
-#include <deprecated.h>
-#include <require_cpp11.h>
-
 //lib MFRC522 by GithubCommunity installed
-#include "MFRC522.h"
+#include <MFRC522.h>
 #include <SPI.h>
 //lib DHT sensor library by Adafruit installed + dependencies
 #include "DHT.h"
@@ -15,7 +10,7 @@
 #define servo_pin 3
 #define DHTPIN 2
 #define DHTTYPE DHT11
-#define sound_pin 0
+#define sound_pin 0 //analog pin A0
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 Servo servo;  // create servo object to control a servo
@@ -29,11 +24,11 @@ void setup() {
   input_str.reserve(200);
 
   // RFID
-  //SPI.begin();
-  //mfrc522.PCD_Init();
-  //delay(15);
-  //mfrc522.PCD_DumpVersionToSerial();
-  //if (mfrc522.PCD_PerformSelfTest()) Serial.println("Passed Self-Test");
+  SPI.begin();
+  mfrc522.PCD_Init();
+  delay(15);
+  mfrc522.PCD_DumpVersionToSerial();
+  if (mfrc522.PCD_PerformSelfTest()) Serial.println("Passed Self-Test");
 
   // servo motor
   servo.attach(servo_pin); // attaches the servo on pin 9 to the servo object
@@ -94,7 +89,14 @@ void handleRequest(String input) {
     senseTemperature();
     Serial.println(end_of_serial);
   } else if (type_name.equals("rfid")) {
-    //activateRFID();
+    bool has_result = false;
+    int no_retries = 3;
+    for (int i = 0; i < no_retries; i++) {
+      has_result = activateRFID();
+      if (has_result) {
+        break;
+      }
+    }
     Serial.println(end_of_serial);
   } else if (type_name.equals("exit")) {
     Serial.println(end_of_serial);
@@ -105,23 +107,23 @@ void handleRequest(String input) {
   string_complete = false;
 }
 
-void activateRFID() {
+bool activateRFID() {
+  int savety_delay = 500; // in miliseconds e.g. 1000 is 1 second
   //Serial.println("start search");
   if (!mfrc522.PICC_IsNewCardPresent())
   {
-    delay(1000);
-    //Serial.println("stop");
+    delay(savety_delay);
     // Wenn keine Karte in Reichweite ist ..
     // .. wird die Abfrage wiederholt.
-    return;
+    return false;
   }
   //Serial.println("new");
   if (!mfrc522.PICC_ReadCardSerial())
   {
-    delay(1000);
+    delay(savety_delay);
     // Wenn kein RFID-Sender ausgewählt wurde ..
     // .. wird die Abfrage wiederholt.
-    return;
+    return false;
   }
   //Serial.println("Karte entdeckt!");
   String WertDEZ;
@@ -135,7 +137,8 @@ void activateRFID() {
   Serial.print("RFIDuid: ");
   Serial.println(WertDEZ);
   // kurze Pause, damit nur ein Wert gelesen wird
-  delay(1000);
+  delay(savety_delay);
+  return true;
 }
 
 void activateServo(int pos) {

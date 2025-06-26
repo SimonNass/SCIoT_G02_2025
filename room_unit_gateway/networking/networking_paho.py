@@ -6,8 +6,11 @@ from paho.mqtt.packettypes import PacketTypes
 import logging
 logger = logging.getLogger(__name__)
 
+from networking.networking_reciever import GatewayNetworkReciever
+
 class MQTTEndpoint:
-    def __init__(self, host: str, port: int, username: str, password: str, topic_prefix: str):
+    def __init__(self, gateway: GatewayNetworkReciever, host: str, port: int, username: str, password: str, topic_prefix: str):
+        self.gateway = gateway
         self.host = remove_quotation(host)
         self.port = port
         self.username = remove_quotation(username)
@@ -26,6 +29,7 @@ class MQTTEndpoint:
         if self.is_connected():
             self.mqtt_client.loop_stop()
             self.mqtt_client.disconnect()
+            logging.info("MQTT client stopped")
 
     def __str__(self):
         return "For RebitMQ > host:{},port:{},username:{},password length:{}".format(self.host,self.port,self.username,len(self.password))
@@ -33,14 +37,16 @@ class MQTTEndpoint:
     def connect(self):
         try:
             self.mqtt_client = mqtt.Client()
+
             self.mqtt_client.subscribe(self.topic_prefix + '#')
-            self.mqtt_client.on_message = self.recv()
+            self.mqtt_client.on_message = self.recv
             self.mqtt_client.connect(host=self.host, port=self.port, keepalive=self.timeout)
             self.mqtt_client.loop_start()
+            logging.info(f"MQTT client started and connecting to {self.host}:{self.port}")
         except Exception as e:
-            print ("Connection unable to establisch.")
+            print ("MQTT Connection unable to establisch.")
             #print (e)
-            logger.info("Connection unable to establisch. {}".format(e))
+            logger.info("MQTT Connection unable to establisch. {}".format(e))
 
     def send(self, topic: str, message: str):
         if not self.is_connected():
@@ -54,13 +60,16 @@ class MQTTEndpoint:
             #print (e)
             logger.info("Connection failed {}".format(e))
     
-    def recv(self): # TODO
+    def recv(self, client, userdata, msg): # TODO
         try:
-            pass
+            topic = msg.topic
+            payload = msg.payload.decode('utf-8')
+            logging.info(f"Message received on topic {topic} > Payload: {payload}")
+            self.gateway.recv_messages(topic=topic, payload=payload)
         except Exception as e:
-            print ("Connection failed.")
+            print ("Answer failed.")
             #print (e)
-            logger.info("Connection failed {}".format(e))
+            logger.info("Answer failed {}".format(e))
     
     def is_connected(self): # TODO
         return (self.mqtt_client != None) and (self.mqtt_client.is_connected())

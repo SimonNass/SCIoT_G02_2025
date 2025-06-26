@@ -2,7 +2,7 @@
 
 (define (domain SCIoT_G02_2025)
 
-(:requirements :adl)
+(:requirements :typing :adl)
 ; :adl >>> :strips :typing :negative-preconditions :equality :disjunctive-preconditions
 
 (:types floor room room_position iot cleaning_team - object
@@ -25,6 +25,7 @@
     (room_is_part_of_floor ?room - room ?floor - floor) ; is the room part of this floor
     (sensor_is_part_of_room ?sensor - sensor ?room - room) ; is the sensor part of this room
     (actuator_is_part_of_room ?actuator - actuator ?room - room) ; is the actuator part of this room
+    ;(iot_is_part_of_room ?iot - iot ?room - room) ; is the iot device part of this room
     (actuator_increases_sensor ?actuator - actuator ?sensor - sensor) ; is the actuator influencing this sensor
     (actuator_decreases_sensor ?actuator - actuator ?sensor - sensor) ; is the actuator influencing this sensor
     (is_next_to ?room1 - room ?room2 - room) ; are the rooms next to each other
@@ -181,12 +182,12 @@
         (not (fulfilled_activity ?room ?room_position))
         (positioned_at ?sensor ?room_position)
         (sensor_is_part_of_room ?sensor ?room)
-        (actuator_is_part_of_room ?actuator ?room)
+        ;(actuator_is_part_of_room ?actuator ?room)
         (actuator_increases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
+        ;(or 
+        ;    (is_ocupied ?room)
+        ;    (will_become_ocupied ?room)
+        ;)
         (not (is_sensing ?sensor))
         (not (is_activated ?actuator))
     )
@@ -202,12 +203,12 @@
         (not (fulfilled_activity ?room ?room_position))
         (positioned_at ?sensor ?room_position)
         (sensor_is_part_of_room ?sensor ?room)
-        (actuator_is_part_of_room ?actuator ?room)
+        ;(actuator_is_part_of_room ?actuator ?room)
         (actuator_increases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
+        ;(or 
+        ;    (is_ocupied ?room)
+        ;    (will_become_ocupied ?room)
+        ;)
         (is_sensing ?sensor)
         (is_activated ?actuator)
     )
@@ -225,10 +226,10 @@
         (sensor_is_part_of_room ?sensor ?room)
         (actuator_is_part_of_room ?actuator ?room)
         (actuator_decreases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
+        ;(or 
+        ;    (is_ocupied ?room)
+        ;    (will_become_ocupied ?room)
+        ;)
         (not (is_sensing ?sensor))
         (is_activated ?actuator)
     )
@@ -246,10 +247,10 @@
         (sensor_is_part_of_room ?sensor ?room)
         (actuator_is_part_of_room ?actuator ?room)
         (actuator_decreases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
+        ;(or 
+        ;    (is_ocupied ?room)
+        ;    (will_become_ocupied ?room)
+        ;)
         (is_sensing ?sensor)
         (not (is_activated ?actuator))
     )
@@ -265,12 +266,12 @@
         (not (fulfilled_activity ?room ?room_position))
         (positioned_at ?sensor ?room_position)
         (sensor_is_part_of_room ?sensor ?room)
-        (actuator_is_part_of_room ?actuator ?room)
+        ;(actuator_is_part_of_room ?actuator ?room)
         (actuator_increases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
+        ;(or 
+        ;    (is_ocupied ?room)
+        ;    (will_become_ocupied ?room)
+        ;)
         (is_low ?sensor)
         (not (is_activated ?actuator))
     )
@@ -287,12 +288,12 @@
         (not (fulfilled_activity ?room ?room_position))
         (positioned_at ?sensor ?room_position)
         (sensor_is_part_of_room ?sensor ?room)
-        (actuator_is_part_of_room ?actuator ?room)
+        ;(actuator_is_part_of_room ?actuator ?room)
         (actuator_decreases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
+        ;(or 
+        ;    (is_ocupied ?room)
+        ;    (will_become_ocupied ?room)
+        ;)
         (is_low ?sensor)
         (is_activated ?actuator)
     )
@@ -310,12 +311,12 @@
         (not (fulfilled_activity ?room ?room_position))
         (positioned_at ?sensor ?room_position)
         (sensor_is_part_of_room ?sensor ?room)
-        (actuator_is_part_of_room ?actuator ?room)
+        ;(actuator_is_part_of_room ?actuator ?room)
         (actuator_decreases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
+        ;(or 
+        ;    (is_ocupied ?room)
+        ;    (will_become_ocupied ?room)
+        ;)
         (is_high ?sensor)
         (not (is_activated ?actuator))
     )
@@ -334,10 +335,10 @@
         (sensor_is_part_of_room ?sensor ?room)
         (actuator_is_part_of_room ?actuator ?room)
         (actuator_increases_sensor ?actuator ?sensor)
-        (or 
-            (is_ocupied ?room)
-            (will_become_ocupied ?room)
-        )
+        ;(or 
+        ;    (is_ocupied ?room)
+        ;    (will_become_ocupied ?room)
+        ;)
         (is_high ?sensor)
         (is_activated ?actuator)
     )

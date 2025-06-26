@@ -3,11 +3,9 @@
 - Define API interfaces
 - pi
     - update python version in docker for room pi
-    - check if ardoino as part of the pi works
     - test pi with no / wrong sensors, pi check that with nothing conneted or connected wrong it stil works
     - button add buffer to not send multiple messages if 
     - send welkome message for display
-    - automatic discovery
 - build an overview UI
 - build DB
   - metadata
@@ -29,7 +27,7 @@
 - [ ] Frontend
   - [ ] Needed Backend Endpoints
 - [ ] Simulation
-  - [ ] Decide on simulator (needs to provide data via MQTT)
+  - [X] Decide on simulator (needs to provide data via MQTT)
 
 
 
