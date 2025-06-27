@@ -465,11 +465,27 @@ def create_sensor_values(sensor_uids: List[str], uid_to_pddl_variable_sensors: D
 
     return state_list
 
+def create_goal():
+    goal_state = None
 
-def create():
-#def create_domain():
-    domain_name = "test_SCIoT_G02_2025"
+    # individual_sensor_goals TODO
 
+    goal_for_ocupied_rooms = None
+
+    if_case1 = base.And(base.Not(is_ocupied(room_type)))
+    then_clean_case = is_cleaned(room_type)
+    clean_unocupied_rooms = base.ForallCondition(base.Imply(if_case1, then_clean_case), [room_type])
+
+    if_case2 = base.And(base.Not(is_ocupied(room_type)), actuator_is_part_of_room(actuator_type, room_type))
+    then_turn_off_actuator = base.Not(is_activated(actuator_type))
+    actuator_off_unocupied_rooms = base.ForallCondition(base.Imply(if_case2, then_turn_off_actuator), [room_type, actuator_type])
+
+    envorce_checks = base.ForallCondition(fulfilled_activity(room_type, room_position_type), [room_type, room_position_type])
+
+    goal_state = base.And(clean_unocupied_rooms, actuator_off_unocupied_rooms, envorce_checks)
+    return goal_state
+
+def create_domain(domain_name: str, predicates_list: List[variables]):
     # set up types
     type_dict = {
         "object_type": None,
@@ -512,9 +528,6 @@ def create():
         "display_a_type": "textual_a_type",
     }
 
-    create_type_variables()
-    predicates_list = create_predicates_variables()
-
     # define actions
     actions_list = []
     actions_list = actions_list + create_cleaning_actions()
@@ -532,6 +545,19 @@ def create():
                     actions=actions_list)
 
     #print(domain)
+
+    return domain
+
+
+def create():
+#def create_domain():
+    domain_name = "test_SCIoT_G02_2025"
+
+    create_type_variables()
+    predicates_list = create_predicates_variables()
+
+    domain = create_domain(domain_name, predicates_list)
+
 
     problem_name = 'test'
 
@@ -674,22 +700,7 @@ def create():
 
     # create goal
     goal_state = None
-
-    # individual_sensor_goals TODO
-
-    goal_for_ocupied_rooms = None
-
-    if_case1 = base.And(base.Not(is_ocupied(room_type)))
-    then_clean_case = is_cleaned(room_type)
-    clean_unocupied_rooms = base.ForallCondition(base.Imply(if_case1, then_clean_case), [room_type])
-
-    if_case2 = base.And(base.Not(is_ocupied(room_type)), actuator_is_part_of_room(actuator_type, room_type))
-    then_turn_off_actuator = base.Not(is_activated(actuator_type))
-    actuator_off_unocupied_rooms = base.ForallCondition(base.Imply(if_case2, then_turn_off_actuator), [room_type, actuator_type])
-
-    envorce_checks = base.ForallCondition(fulfilled_activity(room_type, room_position_type), [room_type, room_position_type])
-
-    goal_state = base.And(clean_unocupied_rooms, actuator_off_unocupied_rooms, envorce_checks)
+    goal_state = create_goal()
 
     problem = Problem(
         problem_name,
