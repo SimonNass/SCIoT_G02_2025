@@ -113,16 +113,20 @@ def create_predicates_variables():
 
     return predicates_list
 
+
 def create_cleaning_actions():
     actions_list = []
+    # construct compound predicates
+    is_next_to_bidirectional = lambda r1, r2 : (base.Or(is_next_to(r1, r2), is_next_to(r2, r1)))
+    is_not_next_to_bidirectional = lambda r1, r2 : (base.And(~is_next_to(r1, r2), ~is_next_to(r2, r1)))
+    rooms_are_part_of_floors = lambda r1, r2, f1, f2 : room_is_part_of_floor(r1, f1) & room_is_part_of_floor(r2, f2)
 
     move_to_floor = Action(
         "move_to_floor",
         parameters=[cleaning_team_type, room_type, room2_type, floor_type, floor2_type],
         precondition=is_at(cleaning_team_type,room_type)
-                    & (base.Or(is_next_to(room_type, room2_type), is_next_to(room2_type, room_type))) 
-                    & room_is_part_of_floor(room_type, floor_type) 
-                    & room_is_part_of_floor(room2_type, floor2_type)
+                    & is_next_to_bidirectional(room_type, room2_type) 
+                    & rooms_are_part_of_floors(room_type, room2_type, floor_type, floor2_type)
                     & base.Not(EqualTo(floor_type, floor2_type)),
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
     )
@@ -132,9 +136,8 @@ def create_cleaning_actions():
         "move_to_room",
         parameters=[cleaning_team_type, room_type, room2_type, floor_type],
         precondition=is_at(cleaning_team_type,room_type)
-                    & (base.Or(is_next_to(room_type, room2_type), is_next_to(room2_type, room_type))) 
-                    & room_is_part_of_floor(room_type, floor_type) 
-                    & room_is_part_of_floor(room2_type, floor_type),
+                    & is_next_to_bidirectional(room_type, room2_type) 
+                    & rooms_are_part_of_floors(room_type, room2_type, floor_type, floor_type),
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
     )
     actions_list.append(move_to_room)
@@ -143,9 +146,8 @@ def create_cleaning_actions():
         "move_to_isolated_room",
         parameters=[cleaning_team_type, room_type, room2_type, floor_type],
         precondition=is_at(cleaning_team_type,room_type)
-                    & (base.ForallCondition((base.And(~is_next_to(room3_type, room2_type), ~is_next_to(room2_type, room3_type))) , [room3_type])) 
-                    & room_is_part_of_floor(room_type, floor_type) 
-                    & room_is_part_of_floor(room2_type, floor_type),
+                    & (base.ForallCondition(is_not_next_to_bidirectional(room3_type, room2_type) , [room3_type])) 
+                    & rooms_are_part_of_floors(room_type, room2_type, floor_type, floor_type),
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
     )
     actions_list.append(move_to_isolated_room)
@@ -186,15 +188,15 @@ def create_assign_actions():
 
 def create_actuator_actions():
     actions_list = []
+    # construct compound predicates
+    works_together = lambda s1, p1, r1 : positioned_at(s1, p1) & sensor_is_part_of_room(s1, r1)
 
     turn_on = Action(
         "turn_on",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_increases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & ~is_sensing(sensor_type)
                     & ~is_activated(actuator_type),
         effect=is_sensing(sensor_type) & is_activated(actuator_type)
@@ -205,10 +207,8 @@ def create_actuator_actions():
         "turn_off",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_increases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & is_sensing(sensor_type)
                     & is_activated(actuator_type),
         effect=~is_sensing(sensor_type) & ~is_activated(actuator_type)
@@ -219,10 +219,8 @@ def create_actuator_actions():
         "turn_on_inverted",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_decreases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & ~is_sensing(sensor_type)
                     & is_activated(actuator_type),
         effect=is_sensing(sensor_type) & ~is_activated(actuator_type)
@@ -233,10 +231,8 @@ def create_actuator_actions():
         "turn_off_inverted",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_decreases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & is_sensing(sensor_type)
                     & ~is_activated(actuator_type),
         effect=~is_sensing(sensor_type) & is_activated(actuator_type)
@@ -247,10 +243,8 @@ def create_actuator_actions():
         "increase_s_by_a_in_r",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_increases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & is_low(sensor_type)
                     & ~is_activated(actuator_type),
         effect=~is_low(sensor_type) & is_ok(sensor_type) & is_activated(actuator_type)
@@ -261,10 +255,8 @@ def create_actuator_actions():
         "increase_s_by_na_in_r",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_decreases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & is_low(sensor_type)
                     & is_activated(actuator_type),
         effect=~is_low(sensor_type) & is_ok(sensor_type) & ~is_activated(actuator_type)
@@ -275,10 +267,8 @@ def create_actuator_actions():
         "decrease_s_by_a_in_r",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_decreases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & is_high(sensor_type)
                     & ~is_activated(actuator_type),
         effect=~is_high(sensor_type) & is_ok(sensor_type) & is_activated(actuator_type)
@@ -289,10 +279,8 @@ def create_actuator_actions():
         "decrease_s_by_na_in_r",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_increases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & is_high(sensor_type)
                     & is_activated(actuator_type),
         effect=~is_high(sensor_type) & is_ok(sensor_type) & ~is_activated(actuator_type)
