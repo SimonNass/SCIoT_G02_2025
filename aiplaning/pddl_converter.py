@@ -594,22 +594,6 @@ def create():
     am = create_iot_room_mapping(actuator_uids, uid_to_pddl_variable_actuators, uid_to_pddl_variable_rooms, actuator_room_mapping, defoult_room, actuator_is_part_of_room)
     initial_state = initial_state + am
 
-    #for s in sensor_uids:
-    #    sensor_object = uid_to_pddl_variable_sensors[s]
-    #    sensor_room = defoult_room
-    #    if s in sensor_room_mapping:
-    #        sensor_room = uid_to_pddl_variable_rooms[sensor_room_mapping[s]]
-    #    next_part_of_room = sensor_is_part_of_room(sensor_object, sensor_room)
-    #    initial_state.append(next_part_of_room)
-
-    #for a in actuator_uids:
-    #    actuator_object = uid_to_pddl_variable_actuators[a]
-    #    actuator_room = defoult_room
-    #    if a in actuator_room_mapping:
-    #        actuator_room = uid_to_pddl_variable_rooms[actuator_room_mapping[a]]
-    #    next_part_of_room = actuator_is_part_of_room(actuator_object, actuator_room)
-    #    initial_state.append(next_part_of_room)
-
     # iot position mapping
     # TODO
     room_positions_default = room_positions[0]
@@ -659,34 +643,6 @@ def create():
     initial_state = initial_state + initial_sensor_state
 
     individual_sensor_goals = create_sensor_values(sensor_uids, uid_to_pddl_variable_sensors, sensor_goal_values)
-    #for s in sensor_uids:
-    #    sensor_object = uid_to_pddl_variable_sensors[s]
-    #    object_state = 0
-    #    state = is_ok(sensor_object)
-    #    if s in sensor_initial_values:
-    #        object_state = sensor_initial_values[s]
-#
-    #    if object_state == -1:
-    #        state = is_low(sensor_object)
-    #    elif object_state == 0:
-    #        state = is_ok(sensor_object)
-    #    elif object_state == 1:
-    #        state = is_high(sensor_object)
-    #    initial_state.append(state)
-
-    #for s in sensor_uids:
-    #    sensor_object = uid_to_pddl_variable_sensors[s]
-    #    object_state = 0
-    #    if s in sensor_goal_values:
-    #        object_state = sensor_goal_values[s]
-    #    state = is_ok(sensor_object)
-    #    if object_state == -1:
-    #        state = is_low(sensor_object)
-    #    elif object_state == 0:
-    #        state = is_ok(sensor_object)
-    #    elif object_state == 1:
-    #        state = is_high(sensor_object)
-    #    individual_sensor_goals.append(state)
 
     for a in actuator_uids:
         actuator_object = uid_to_pddl_variable_actuators[a]
