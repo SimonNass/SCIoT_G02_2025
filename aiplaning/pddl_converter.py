@@ -385,47 +385,57 @@ def create_energy_saveing_actions():
 
     return actions_list
 
-def create_objecs_room_topology(floor_uids, room_uids, elevator_uids):
+def create_objecs_room_topology(floor_uids: List[str], room_uids_per_floor: Dict[str,List[str]], elevator_uids: List[str]):
     floors = create_objects(floor_uids, "floor")
-    rooms = create_objects(room_uids, "room")
+    uid_to_pddl_variable_floor = {floor_uids[i]:floors[i] for i in range(len(floors))}
+    rooms = []
+    uid_to_pddl_variable_rooms = {}
+    for _, room_uids in room_uids_per_floor.items():
+        new_rooms = create_objects(room_uids, "room")
+        rooms = rooms + new_rooms
+        uid_to_pddl_variable_rooms.update({room_uids[i]:new_rooms[i] for i in range(len(new_rooms))})
     elevators = create_objects(elevator_uids, "room")
 
-    return floors, rooms, elevators
+    return floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms
 
-def create_initial_state_room_topology(floors, rooms, elevators, rooms_per_floor):
+def create_initial_state_room_topology(floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, elevators):
     initial_state = []
 
-    comulative_rooms_bevore = [sum(rooms_per_floor[:i]) for i in range(len(rooms_per_floor))]
+    #comulative_rooms_bevore = [sum(rooms_per_floor[:i]) for i in range(len(rooms_per_floor))]
     #print (comulative_rooms_bevore)
 
-    # assigns each rooms to one floor they are a part of based on the rooms_per_floor list
-    for i in range(len(rooms_per_floor)):
-        for j in range(rooms_per_floor[i]):
-            next_room_floor_mapping = room_is_part_of_floor(rooms[comulative_rooms_bevore[i]+j], floors[i])
+    # assigns each rooms to one floor they are a part of
+    for floor in floor_uids:
+        for room in room_uids_per_floor[floor]:
+            next_room_floor_mapping = room_is_part_of_floor(uid_to_pddl_variable_rooms[room], uid_to_pddl_variable_floor[floor])
             initial_state.append(next_room_floor_mapping)
 
     # connects rooms that are next to each other on the same floor
     # defaults to a line topology
-    for i in range(len(rooms_per_floor)):
-        for j in range(rooms_per_floor[i] - 1):
-            index = comulative_rooms_bevore[i]+j            
-            next_room_room_mapping = is_next_to(rooms[index], rooms[index + 1])
+    for floor in floor_uids:
+        for i in range(len(room_uids_per_floor[floor]) - 1): 
+            current_room = uid_to_pddl_variable_rooms[room_uids_per_floor[floor][i]]
+            next_room = uid_to_pddl_variable_rooms[room_uids_per_floor[floor][i + 1]]
+
+            next_room_room_mapping = is_next_to(current_room, next_room)
             initial_state.append(next_room_room_mapping)
-            next_room_room_mapping = is_next_to(rooms[index + 1], rooms[index])
+            next_room_room_mapping = is_next_to(next_room, current_room)
             initial_state.append(next_room_room_mapping)
 
     for i in range(len(elevators)):
-        # connect the elevators to all floors
-        for j in range(len(floors)):
-            next_elevator_floor_mapping = room_is_part_of_floor(elevators[i],floors[j])
+        for floor in floor_uids:
+            # connect the elevators to all floors
+            next_elevator_floor_mapping = room_is_part_of_floor(elevators[i],uid_to_pddl_variable_floor[floor])
             initial_state.append(next_elevator_floor_mapping)
-        # connect the elevators to a room in each floor
-        for k in range(len(floors)):
-            room_near_elevator = rooms[comulative_rooms_bevore[k]+(i % rooms_per_floor[k])]
+        
+            # connect the elevators to a room in each floor
+            room_near_elevator = uid_to_pddl_variable_rooms[room_uids_per_floor[floor][i % len(room_uids_per_floor[floor])]]
+
             next_elevator_room_mapping = is_next_to(elevators[i],room_near_elevator)
             initial_state.append(next_elevator_room_mapping)
             next_elevator_room_mapping = is_next_to(room_near_elevator,elevators[i])
             initial_state.append(next_elevator_room_mapping)
+
         # elevators do not have to be cleaned
         next_elevator_is_clean = is_cleaned(elevators[i])
         initial_state.append(next_elevator_is_clean)
@@ -548,40 +558,86 @@ def create_domain(domain_name: str, predicates_list: List[variables]):
 
     return domain
 
-
-def create():
-#def create_domain():
+def query_input():
     domain_name = "test_SCIoT_G02_2025"
-
-    create_type_variables()
-    predicates_list = create_predicates_variables()
-
-    domain = create_domain(domain_name, predicates_list)
-
-
     problem_name = 'test'
 
-    # create objects / constants
-    all_objekts = []
-
-    rooms_per_floor = [2, 1]
-    floor_uids = ['f0','f1']
-    #todo = list_all_floors() TODO db import 
-    room_uids = ['r0','r1','r2']
-    elevator_uids = ['e0','e1']
-
-    assert len(rooms_per_floor) == len(floor_uids)
-    assert sum(rooms_per_floor) == len(room_uids)
-    assert 1 <= len(elevator_uids)
-
     # TODO map actions back to db actions
+    #floor_list = db.list_all_floors()
+    #floor_uids = [floor['id'] for floor in floor_list]
+    #room_uids_per_floor = {floor['id']:floor['rooms'] for floor in floor_list}
+    elevator_uids = ['e0','e1']
     cleaning_team_uids = ['cleaning_team_1','cleaning_team_2']
     sensor_uids = ['s1','s2']
     actuator_uids = ['a1','a2']
     names_room_positions = ['overall_room', 'bed', 'closet', 'window']
+    sensor_room_mapping = {'s1': 'r0', 's2':'r2'}
+    actuator_room_mapping = {'a1': 'r0', 'a2':'r2'}
     
-    floors, rooms, elevators = create_objecs_room_topology(floor_uids, room_uids, elevator_uids)
-    uid_to_pddl_variable_rooms = {room_uids[i]:rooms[i] for i in range(len(rooms))}
+    floor_uids = ['f0','f1']
+    room_uids_per_floor = {'f0':['r0','r1'],'f1':['r2']}
+
+    actuator_increases_sensor_mapping_matrix = [[True, True],[False, True]]
+    actuator_decreases_sensor_mapping_matrix = [[True, False],[False, False]]
+
+    sensor_initial_values = {'s1': -1, 's2':1}
+    # TODO
+    sensor_goal_values = {'s1': -1, 's2':1}
+    actuator_initial_values = {'a1': True, 'a2':False}
+
+    room_ocupied_actuator_initial_values = {'r0':False, 'r1': True, 'r2':False}
+
+
+    return {'domain_name':domain_name, 
+            'problem_name':problem_name,
+
+            'floor_uids':floor_uids,
+            'room_uids_per_floor':room_uids_per_floor,
+            'elevator_uids':elevator_uids,
+
+            'cleaning_team_uids':cleaning_team_uids,
+            'sensor_uids':sensor_uids,
+            'actuator_uids':actuator_uids,
+            'names_room_positions':names_room_positions,
+
+            'sensor_room_mapping':sensor_room_mapping,
+            'actuator_room_mapping':actuator_room_mapping,
+
+            'actuator_increases_sensor_mapping_matrix':actuator_increases_sensor_mapping_matrix,
+            'actuator_decreases_sensor_mapping_matrix':actuator_decreases_sensor_mapping_matrix,
+
+            'sensor_initial_values':sensor_initial_values,
+            'sensor_goal_values':sensor_goal_values,
+            'actuator_initial_values':actuator_initial_values,
+
+            'room_ocupied_actuator_initial_values':room_ocupied_actuator_initial_values,
+            }
+
+def create():
+
+    input = query_input()
+
+    create_type_variables()
+    predicates_list = create_predicates_variables()
+
+    domain = create_domain(input['domain_name'], predicates_list)
+
+
+
+    # create objects / constants
+    all_objekts = []
+
+    floor_uids = input['floor_uids']
+    room_uids_per_floor = input['room_uids_per_floor']
+    elevator_uids = input['elevator_uids']
+    assert 1 <= len(elevator_uids)
+
+    cleaning_team_uids = input['cleaning_team_uids']
+    sensor_uids = input['sensor_uids']
+    actuator_uids = input['actuator_uids']
+    names_room_positions = input['names_room_positions']
+    
+    floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms = create_objecs_room_topology(floor_uids, room_uids_per_floor, elevator_uids)
     all_objekts = all_objekts + floors + rooms + elevators
 
     cleaning_teams = create_objects(cleaning_team_uids, "cleaning_team")
@@ -601,7 +657,7 @@ def create():
     # create initial state
     initial_state = []
     
-    initial_state_topology = create_initial_state_room_topology(floors, rooms, elevators, rooms_per_floor)
+    initial_state_topology = create_initial_state_room_topology(floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, elevators,)
     initial_state = initial_state + initial_state_topology
 
     # cleaning teams starting at different elevators
@@ -610,8 +666,8 @@ def create():
         initial_state.append(next_is_at)
 
     # iot to room papping
-    sensor_room_mapping = {'s1': 'r0', 's2':'r2'}
-    actuator_room_mapping = {'a1': 'r0', 'a2':'r2'}
+    sensor_room_mapping = input['sensor_room_mapping']
+    actuator_room_mapping = input['actuator_room_mapping']
     
     defoult_room = rooms[0]
 
@@ -633,8 +689,8 @@ def create():
 
     # sensor actuator mapping
     # TODO matrix actuators x sensors automate
-    actuator_increases_sensor_mapping_matrix = [[True, True],[False, True]]
-    actuator_decreases_sensor_mapping_matrix = [[True, False],[False, False]]
+    actuator_increases_sensor_mapping_matrix = input['actuator_increases_sensor_mapping_matrix']
+    actuator_decreases_sensor_mapping_matrix = input['actuator_decreases_sensor_mapping_matrix']
 
     assert len(actuator_increases_sensor_mapping_matrix) == len(actuators)
     for sensor_list_mapping in actuator_increases_sensor_mapping_matrix:
@@ -654,10 +710,10 @@ def create():
 
     # context
     # raw sensor data
-    sensor_initial_values = {'s1': -1, 's2':1}
+    sensor_initial_values = input['sensor_initial_values']
     # TODO
-    sensor_goal_values = {'s1': -1, 's2':1}
-    actuator_initial_values = {'a1': True, 'a2':False}
+    sensor_goal_values = input['sensor_goal_values']
+    actuator_initial_values = input['actuator_initial_values']
 
     individual_sensor_goals = []
 
@@ -682,20 +738,19 @@ def create():
         initial_state.append(state)
 
     # context room ocupied
-    room_ocupied_actuator_initial_values = {'r0':False, 'r1': True, 'r2':False}
+    room_ocupied_actuator_initial_values = input['room_ocupied_actuator_initial_values']
 
     assert len(room_ocupied_actuator_initial_values) <= len(rooms)
 
-    for i in range(len(rooms)):
-        object_state = room_ocupied_actuator_initial_values[room_uids[i]]
-        state = base.Not(is_ocupied(rooms[i]))
-        if object_state:
-            state = is_ocupied(rooms[i])
-        else:
+    for floor in floor_uids:
+        for room in room_uids_per_floor[floor]:
+            object_state = room_ocupied_actuator_initial_values[room]
             state = base.Not(is_ocupied(rooms[i]))
-        initial_state.append(state)
-    #initial_state.append(base.Not(is_ocupied(rooms[0])))
-    #initial_state.append(is_ocupied(rooms[1]))
+            if object_state:
+                state = is_ocupied(rooms[i])
+            else:
+                state = base.Not(is_ocupied(rooms[i]))
+            initial_state.append(state)
 
 
     # create goal
@@ -703,7 +758,7 @@ def create():
     goal_state = create_goal()
 
     problem = Problem(
-        problem_name,
+        input['problem_name'],
         domain=domain,
         requirements=domain.requirements,
         
