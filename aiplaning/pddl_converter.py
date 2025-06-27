@@ -4,7 +4,7 @@
 # make an issue with minimal example (:requirements :typing :adl) does not work without the :typing
 
 # pip install pddl==0.4.3
-from typing import List
+from typing import Dict, List
 from pddl.logic import Predicate, constants, variables, base
 from pddl.logic.predicates import EqualTo
 from pddl.core import Domain, Problem
@@ -444,6 +444,39 @@ def create_initial_state_room_topology(floors, rooms, elevators, rooms_per_floor
 
     return initial_state
 
+def create_iot_room_mapping(uuids: List[str], uids_to_object: Dict[str,constants], uids_to_room: Dict[str,constants], room_mapping: Dict[str,str], defoult_room:constants, iot_is_part_of_room):
+    initial_state = []
+    
+    for i in uuids:
+        object_instance = uids_to_object[i]
+        sensor_room = defoult_room
+        if i in room_mapping:
+            sensor_room = uids_to_room[room_mapping[i]]
+        next_part_of_room = iot_is_part_of_room(object_instance, sensor_room)
+        initial_state.append(next_part_of_room)
+
+    return initial_state
+
+def create_sensor_values(sensor_uids: List[str], uid_to_pddl_variable_sensors: Dict[str,constants], sensor_initial_values: List[int]):
+    state_list = []
+
+    for s in sensor_uids:
+        sensor_object = uid_to_pddl_variable_sensors[s]
+        object_state = 0
+        state = is_ok(sensor_object)
+        if s in sensor_initial_values:
+            object_state = sensor_initial_values[s]
+
+        if object_state == -1:
+            state = is_low(sensor_object)
+        elif object_state == 0:
+            state = is_ok(sensor_object)
+        elif object_state == 1:
+            state = is_high(sensor_object)
+        state_list.append(state)
+
+    return state_list
+
 
 def create():
 #def create_domain():
@@ -519,6 +552,7 @@ def create():
 
     rooms_per_floor = [2, 1]
     floor_uids = ['f0','f1']
+    #todo = list_all_floors() TODO db import 
     room_uids = ['r0','r1','r2']
     elevator_uids = ['e0','e1']
 
@@ -533,15 +567,18 @@ def create():
     names_room_positions = ['overall_room', 'bed', 'closet', 'window']
     
     floors, rooms, elevators = create_objecs_room_topology(floor_uids, room_uids, elevator_uids)
+    uid_to_pddl_variable_rooms = {room_uids[i]:rooms[i] for i in range(len(rooms))}
     all_objekts = all_objekts + floors + rooms + elevators
 
     cleaning_teams = create_objects(cleaning_team_uids, "cleaning_team")
     all_objekts = all_objekts + cleaning_teams
 
     sensors = create_objects(sensor_uids, "numerical_s")
+    uid_to_pddl_variable_sensors = {sensor_uids[i]:sensors[i] for i in range(len(sensors))}
     all_objekts = all_objekts + sensors
 
     actuators = create_objects(actuator_uids, "actuator")
+    uid_to_pddl_variable_actuators = {actuator_uids[i]:actuators[i] for i in range(len(actuators))}
     all_objekts = all_objekts + actuators
 
     room_positions = create_objects(names_room_positions, "room_position")
@@ -559,19 +596,31 @@ def create():
         initial_state.append(next_is_at)
 
     # iot to room papping
-    # TODO 
-    sensor_room = rooms[0]
-    for sensor_object in sensors:
-        #print (sensor_object.type_tags)
-        #print (sensor_room.type_tags)
-        next_part_of_room = sensor_is_part_of_room(sensor_object, sensor_room)
-        initial_state.append(next_part_of_room)
+    sensor_room_mapping = {'s1': 'r0', 's2':'r2'}
+    actuator_room_mapping = {'a1': 'r0', 'a2':'r2'}
+    
+    defoult_room = rooms[0]
 
-    actuator_room = rooms[0]
-    # TODO
-    for actuator_object in actuators:
-        next_part_of_room = actuator_is_part_of_room(actuator_object, actuator_room)
-        initial_state.append(next_part_of_room)
+    sm = create_iot_room_mapping(sensor_uids, uid_to_pddl_variable_sensors, uid_to_pddl_variable_rooms, sensor_room_mapping, defoult_room, sensor_is_part_of_room)
+    initial_state = initial_state + sm
+    am = create_iot_room_mapping(actuator_uids, uid_to_pddl_variable_actuators, uid_to_pddl_variable_rooms, actuator_room_mapping, defoult_room, actuator_is_part_of_room)
+    initial_state = initial_state + am
+
+    #for s in sensor_uids:
+    #    sensor_object = uid_to_pddl_variable_sensors[s]
+    #    sensor_room = defoult_room
+    #    if s in sensor_room_mapping:
+    #        sensor_room = uid_to_pddl_variable_rooms[sensor_room_mapping[s]]
+    #    next_part_of_room = sensor_is_part_of_room(sensor_object, sensor_room)
+    #    initial_state.append(next_part_of_room)
+
+    #for a in actuator_uids:
+    #    actuator_object = uid_to_pddl_variable_actuators[a]
+    #    actuator_room = defoult_room
+    #    if a in actuator_room_mapping:
+    #        actuator_room = uid_to_pddl_variable_rooms[actuator_room_mapping[a]]
+    #    next_part_of_room = actuator_is_part_of_room(actuator_object, actuator_room)
+    #    initial_state.append(next_part_of_room)
 
     # iot position mapping
     # TODO
@@ -607,7 +656,7 @@ def create():
 
     # context
     # raw sensor data
-    sensor_initial_values = {'s1': -1, 's2':1} # TODOis missing ?
+    sensor_initial_values = {'s1': -1, 's2':1}
     # TODO
     sensor_goal_values = {'s1': -1, 's2':1}
     actuator_initial_values = {'a1': True, 'a2':False}
@@ -618,42 +667,48 @@ def create():
     assert len(sensor_goal_values) <= len(sensors)
     assert len(actuator_initial_values) <= len(actuators)
 
-    for i in range(len(sensors)):
-        # TODO if dictionary empty use default
-        object_state = sensor_initial_values[sensor_uids[i]]
-        state = is_ok(sensors[i])
-        if object_state == -1:
-            state = is_low(sensors[i])
-        elif object_state == 0:
-            state = is_ok(sensors[i])
-        elif object_state == 1:
-            state = is_high(sensors[i])
-        else:
-            state = is_ok(sensors[i])
-        initial_state.append(state)
+    initial_sensor_state = create_sensor_values(sensor_uids, uid_to_pddl_variable_sensors, sensor_initial_values)
+    initial_state = initial_state + initial_sensor_state
 
-    for i in range(len(sensors)):
-        # TODO if dictionary empty use default
-        object_state = sensor_goal_values[sensor_uids[i]]
-        state = is_ok(sensors[i])
-        if object_state == -1:
-            state = is_low(sensors[i])
-        elif object_state == 0:
-            state = is_ok(sensors[i])
-        elif object_state == 1:
-            state = is_high(sensors[i])
-        else:
-            state = is_ok(sensors[i])
-        individual_sensor_goals.append(state)
+    individual_sensor_goals = create_sensor_values(sensor_uids, uid_to_pddl_variable_sensors, sensor_goal_values)
+    #for s in sensor_uids:
+    #    sensor_object = uid_to_pddl_variable_sensors[s]
+    #    object_state = 0
+    #    state = is_ok(sensor_object)
+    #    if s in sensor_initial_values:
+    #        object_state = sensor_initial_values[s]
+#
+    #    if object_state == -1:
+    #        state = is_low(sensor_object)
+    #    elif object_state == 0:
+    #        state = is_ok(sensor_object)
+    #    elif object_state == 1:
+    #        state = is_high(sensor_object)
+    #    initial_state.append(state)
 
-    for i in range(len(actuators)):
-        # TODO if dictionary empty use default
-        object_state = actuator_initial_values[actuator_uids[i]]
-        state = base.Not(is_activated(actuators[i]))
+    #for s in sensor_uids:
+    #    sensor_object = uid_to_pddl_variable_sensors[s]
+    #    object_state = 0
+    #    if s in sensor_goal_values:
+    #        object_state = sensor_goal_values[s]
+    #    state = is_ok(sensor_object)
+    #    if object_state == -1:
+    #        state = is_low(sensor_object)
+    #    elif object_state == 0:
+    #        state = is_ok(sensor_object)
+    #    elif object_state == 1:
+    #        state = is_high(sensor_object)
+    #    individual_sensor_goals.append(state)
+
+    for a in actuator_uids:
+        actuator_object = uid_to_pddl_variable_actuators[a]
+        object_state = False
+        if a in actuator_initial_values:
+            object_state = actuator_initial_values[a]
+
+        state = base.Not(is_activated(actuator_object))
         if object_state:
-            state = is_activated(actuators[i])
-        else:
-            state = base.Not(is_activated(actuators[i]))
+            state = is_activated(actuator_object)
         initial_state.append(state)
 
     # context room ocupied
