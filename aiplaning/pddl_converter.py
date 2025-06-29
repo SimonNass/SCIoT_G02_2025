@@ -591,7 +591,6 @@ def query_input():
     floor_uids = ['f0','f1']
     room_uids_per_floor = {'f0':['r0','r1'],'f1':['r2']}
     room_ocupied_actuator_initial_values = {'r0':False, 'r1': True, 'r2':False}
-    # TODO map actions back to db actions
     #floor_list = db.list_all_floors()
     #floor_uids = [floor['id'] for floor in floor_list]
     #room_uids_per_floor = {floor['id']:floor['rooms'] for floor in floor_list}
@@ -602,7 +601,6 @@ def query_input():
     cleaning_team_uids = ['cleaning_team_1','cleaning_team_2']
     names_room_positions = ['overall_room', 'bed', 'closet', 'window']
 
-    # TODO invert sensor_room_mapping get rid of sensor_uids
     sensor_room_mapping = {'r0':['s1'], 'r2':['s2']}
     actuator_room_mapping = {'r0':['a1'], 'r2':['a2']}
     #for floor in floor_uids:
@@ -621,9 +619,9 @@ def query_input():
 
     
 
-    # TODO
-    actuator_increases_sensor_mapping_matrix = [[True, True],[False, True]]
-    actuator_decreases_sensor_mapping_matrix = [[True, False],[False, False]]
+    # TODO get info from db
+    actuator_increases_sensor_mapping_matrix = {'a1':['s1','s2'], 'a2':['s2']}
+    actuator_decreases_sensor_mapping_matrix = {'a1':['s1']}
 
     sensor_initial_values = {'s1': -1, 's2':1}
     sensor_goal_values = {'s1': -1, 's2':1}
@@ -725,25 +723,24 @@ def create():
         initial_state.append(next_pos)
 
     # sensor actuator mapping
-    # TODO matrix actuators x sensors automate
     actuator_increases_sensor_mapping_matrix = input['actuator_increases_sensor_mapping_matrix']
     actuator_decreases_sensor_mapping_matrix = input['actuator_decreases_sensor_mapping_matrix']
 
-    assert len(actuator_increases_sensor_mapping_matrix) == len(actuators)
-    for sensor_list_mapping in actuator_increases_sensor_mapping_matrix:
-        assert len(sensor_list_mapping) == len(sensors)
-    assert len(actuator_decreases_sensor_mapping_matrix) == len(actuators)
-    for sensor_list_mapping in actuator_decreases_sensor_mapping_matrix:
-        assert len(sensor_list_mapping) == len(sensors)
+    assert len(actuator_increases_sensor_mapping_matrix.keys()) <= len(actuators)
+    for _, sensor_list_mapping in actuator_increases_sensor_mapping_matrix.items():
+        assert len(sensor_list_mapping) <= len(sensors)
+    assert len(actuator_decreases_sensor_mapping_matrix.keys()) <= len(actuators)
+    for _, sensor_list_mapping in actuator_decreases_sensor_mapping_matrix.items():
+        assert len(sensor_list_mapping) <= len(sensors)
 
-    for i in range(len(actuators)):
-        for j in range(len(sensors)):
-            if actuator_increases_sensor_mapping_matrix[i][j]:
-                next_influence = actuator_increases_sensor(actuators[i], sensors[j])
-                initial_state.append(next_influence)
-            if actuator_decreases_sensor_mapping_matrix[i][j]:
-                next_influence = actuator_decreases_sensor(actuators[i], sensors[j])
-                initial_state.append(next_influence)
+    for a, s_list in actuator_increases_sensor_mapping_matrix.items():
+        for s in s_list:
+            next_influence = actuator_increases_sensor(uid_to_pddl_variable_actuators[a], uid_to_pddl_variable_sensors[s])
+            initial_state.append(next_influence)
+    for a, s_list in actuator_decreases_sensor_mapping_matrix.items():
+        for s in s_list:
+            next_influence = actuator_decreases_sensor(uid_to_pddl_variable_actuators[a], uid_to_pddl_variable_sensors[s])
+            initial_state.append(next_influence)
 
     # context
     # raw sensor data
