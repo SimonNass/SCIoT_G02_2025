@@ -12,13 +12,13 @@ def request_actuator_update(device_id: str, new_value: Any) -> bool:
         bool: True if message was published successfully, False otherwise
     """
     try:
-        topic = f"SCIoT_G02_2025/{device_id}/UPDATE"
         payload = {
             "new_value": new_value
         }
         
         # Validate device information
         device = models.Device.query.filter_by(device_id=device_id).first()
+        print(device)
         if not device:
             logging.error(f'Device {device_id} does not exist')
             return False
@@ -32,6 +32,14 @@ def request_actuator_update(device_id: str, new_value: Any) -> bool:
         if not (device.min_value <= new_value <= device.max_value):
             logging.error(f'New value {new_value} for device {device_id} is out of range ({device.min_value}, {device.max_value})')
             return False
+        
+        room = device.room
+        floor = room.floor
+        floor_number = floor.floor_number
+        room_number = room.room_number
+
+        # Build Topic
+        topic = f"SCIoT_G02_2025/{floor_number}/{room_number}/actuator/{device_id}/UPDATE"
 
         # Convert payload to JSON string
         payload_json = json.dumps(payload)
@@ -65,8 +73,6 @@ def request_current_sensor_value(device_id: str) -> bool:
         bool: True if request was sent successfully, False otherwise
     """
     try:
-        topic = f"SCIoT_G02_2025/{device_id}/GET"
-        
         payload = {}
         payload_json = json.dumps(payload)
         
@@ -80,6 +86,14 @@ def request_current_sensor_value(device_id: str) -> bool:
         if device.device_type.lower() != 'sensor':
             logging.error(f'Device {device_id} is not a sensor')
             return False
+        
+        room = device.room
+        floor = room.floor
+        floor_number = floor.floor_number
+        room_number = room.room_number
+        
+        # Build topic
+        topic = f"SCIoT_G02_2025/{floor_number}/{room_number}/sensor/{device_id}/GET"
         
         mqtt_client = current_app.mqtt_client
         logging.info(f"After import mqtt_client: {mqtt_client}")

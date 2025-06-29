@@ -246,8 +246,10 @@ def list_devices():
     return jsonify([{
         'id': d.id,
         'device_id': d.device_id,
+        'device_type': d.device_type,
         'name': d.name,
         'is_online': d.is_online,
+        'type_name': d.type_name,
     } for d in devices])
 
 @api.route('/floors/<int:floor_number>/rooms/<string:room_number>/devices/list', methods=['GET'])

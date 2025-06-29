@@ -15,10 +15,11 @@ def parse_mqtt_topic(topic, app_instance):
         
         # Get the expected topic prefix from config
         expected_prefix = app_instance.config['MQTT_TOPIC_SUBSCRIBE'].split('/')[0]
-        if len(parts) == 3 and parts[0] == expected_prefix:
+        logging.warning(parts[5])
+        if len(parts) == 6 and parts[0] == expected_prefix and parts[5] != "all":
             logging.info(f"Detected message publish for request to gateway")
             return None
-        if len(parts) != 6 or parts[0] != expected_prefix:
+        if len(parts) != 6 or parts[0] != expected_prefix and parts[5] != "all":
             logging.warning(f"Invalid topic format: {topic}")
             return None
         
