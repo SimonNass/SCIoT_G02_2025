@@ -23,13 +23,22 @@ class Virtual_environment():
         logger.warning('Environment bug check_if_actuators_has_influenc')
         return False
 
+    def calculate_actuators_impact(self, actuator_name: str):
+        for actuator in self.actuator:
+            if actuator.name != actuator_name:
+                continue
+            else:
+                return actuator.last_value
+        logger.warning('Environment bug check_if_actuators_has_influenc')
+        return 0
+
     def calculate_next_active_influences_amount(self):
         for key, value in self.mapping_values.items():
             actuator = key[0]
             next_impact = 0
             next_cycle = 1
             if self.check_if_actuators_has_influenc(actuator):
-                next_impact = int(value['impact_amount'])
+                next_impact = float(value['impact_amount']) * self.calculate_actuators_impact(actuator)
             
 
             #fade_in = int(value['fade_in'])
