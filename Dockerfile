@@ -1,23 +1,36 @@
-FROM python:3.12-slim
+# Build the Planutils image and install the selected packages
 
-WORKDIR /app
+FROM aiplanning/planutils:latest
 
-# Install required packages
-RUN apt-get update && apt-get install -y \
-    default-libmysqlclient-dev \
-    build-essential \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+# FD Planner
+RUN planutils install -f -y lama-first
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Satisficing classical planning
+RUN planutils install -f -y dual-bfws-ffparser
 
-# Copy application code
-COPY ./backend .
+#Optimal classical planning
+RUN planutils install -f -y delfi
 
-# Make sure the entry point can be executed
-RUN chmod +x app.py
+# top-k classical planning -- currently unavailable
+# RUN planutils install -f -y forbiditerative-topk
 
-EXPOSE 5000
+# numeric planning
+RUN planutils install -f -y enhsp
 
-CMD ["python", "app.py"]
+# PDDL3 support
+RUN planutils install -f -y optic
+
+# Temporal planning
+RUN planutils install -f -y tfd
+
+RUN mkdir /paas
+COPY ./server/requirements.txt /paas/requirements.txt
+
+RUN apt-get update
+RUN apt-get install -y python3-dev default-libmysqlclient-dev build-essential
+
+# install requirements
+RUN python3 -m pip install --upgrade pip setuptools wheel
+RUN python3 -m pip install -r /paas/requirements.txt
+
+CMD /bin/bash

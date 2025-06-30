@@ -524,3 +524,4 @@ def request_current_value_hierarchical(floor_number, room_number, device_id):
             
     except Exception as e:
         return jsonify({'error': 'An error occurred while processing your request'}), 500
+    
