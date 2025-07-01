@@ -35,6 +35,7 @@ class Room(db.Model):
     capacity: Mapped[int] = mapped_column(Integer, default=2)
     is_occupied: Mapped[bool] = mapped_column(Boolean, default=False)
     last_cleaned: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    is_cleaned: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
     # Foreign key to Floor
@@ -72,8 +73,8 @@ class Device(db.Model):
     datatype: Mapped[Optional[str]] = mapped_column(String(50))
     unit: Mapped[Optional[str]] = mapped_column(String(20))
     last_value: Mapped[Optional[str]] = mapped_column(Text)
-    # Todo: Add PDDL info
-    
+    # Todo: Add PDDL info need to know which actuator can influence which sensor
+
     # Sensor-specific fields
     read_interval: Mapped[Optional[int]] = mapped_column(Integer)
     notify_interval: Mapped[Optional[str]] = mapped_column(String(50))
