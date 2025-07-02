@@ -521,3 +521,76 @@ def request_current_value(device_id):
             
     except Exception as e:
         return jsonify({'error': 'An error occurred while processing your request'}), 500
+
+@api.route('/type_name_configs/list', methods=['GET'])
+@require_api_key
+def list_type_name_configs():
+    """
+    List all type name configurations
+    """
+    try:
+        configs = models.TypeNameConfig.query.all()
+        
+        result = []
+        for config in configs:
+            config_data = {
+                'id': config.id,
+                'device_type': config.device_type,
+                'type_name': config.type_name,
+                'min_value': config.min_value,
+                'max_value': config.max_value,
+                'lower_mid': config.lower_mid,
+                'upper_mid': config.upper_mid,
+                'unit': config.unit,
+            }
+            result.append(config_data)
+        
+        return jsonify({
+            'configs': result,
+            'total_configs': len(result)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@api.route('/type_name_configs/set', methods=['POST'])
+@require_api_key
+def set_type_name_configs():
+    """
+    Update existing type name config lower_mid and upper_mid values.
+    
+    Expected JSON format:
+    {
+        "device_type": "sensor",
+        "type_name": "temperature",
+        "lower_mid": 20.0,
+        "upper_mid": 80.0,
+    }
+    
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Invalid JSON data'}), 400
+
+        device_type = data.get('device_type')
+        type_name = data.get('type_name')
+        lower_mid = data.get('lower_mid')
+        upper_mid = data.get('upper_mid')
+
+        if not device_type or not type_name or lower_mid is None or upper_mid is None:
+            return jsonify({'error': 'All fields are required'}), 400
+
+        # Update the config in the database
+        config = models.TypeNameConfig.query.filter_by(device_type=device_type, type_name=type_name).first()
+        if not config:
+            return jsonify({'error': 'Config not found'}), 404
+
+        config.lower_mid = lower_mid
+        config.upper_mid = upper_mid
+        db.session.commit()
+
+        return jsonify({'message': 'Config updated successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

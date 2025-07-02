@@ -128,5 +128,6 @@ class TypeNameConfig(db.Model):
     upper_mid_limit: Mapped[float] = mapped_column(Float)
     min_value: Mapped[float] = mapped_column(Float)
     max_value: Mapped[float] = mapped_column(Float)
+    unit: Mapped[Optional[str]] = mapped_column(String(20))
 
     devices: Mapped[List["Device"]] = relationship(back_populates="device_type_config")
