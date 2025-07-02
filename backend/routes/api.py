@@ -212,6 +212,7 @@ def list_rooms_for_floor(floor_number):
                 'capacity': room.capacity,
                 'is_occupied': room.is_occupied,
                 'last_cleaned': room.last_cleaned.isoformat() if room.last_cleaned else None,
+                'is_cleaned': room.is_cleaned,
                 'created_at': room.created_at.isoformat(),
                 'devices': []
             }
@@ -238,6 +239,113 @@ def list_rooms_for_floor(floor_number):
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@api.route('/floors/<int:floor_number>/rooms/<string:room_number>/occupancy', methods=['POST'])
+@require_api_key
+def set_room_occupancy(floor_number, room_number):
+    """
+    Set occupancy status for a specific room
+    Expected JSON format:
+    {
+        "is_occupied": true
+    }
+    """
+    try: 
+        # Check if floor exists
+        floor = models.Floor.query.filter_by(floor_number=floor_number).first()
+        if not floor:
+            return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
+        
+        # Check if room exists
+        room = models.Room.query.filter_by(
+            room_number=room_number, 
+            floor_id=floor.id
+        ).first()
+        if not room:
+            return jsonify({'error': f'Room {room_number} does not exist on floor {floor_number}'}), 404
+        
+        # Get request data
+        data = request.get_json()
+        if not data or 'is_occupied' not in data:
+            return jsonify({'error': 'is_occupied is required'}), 400
+        
+        is_occupied = data['is_occupied']
+        
+        room.is_occupied = is_occupied
+        db.session.commit()
+        
+        return jsonify({
+            'message': f'Room {room_number} occupancy status updated successfully',
+            'floor_number': floor_number,
+            'room_number': room_number,
+            'is_occupied': is_occupied
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@api.route('/rooms/occupancy/list', methods=['POST'])   
+@require_api_key
+def bulk_update_room_occupancy():
+    """
+    Bulk update occupancy status for all rooms on a specific floor
+    Expected JSON format:
+    {
+        "rooms": [
+            {
+                "room_number": "101",
+                "is_occupied": true
+            },
+            {
+                "room_number": "102",
+                "is_occupied": false
+            }
+        ]
+    }
+    """
+    try:    
+        # Get request data
+        data = request.get_json()
+        if not data or 'rooms' not in data:
+            return jsonify({'error': 'rooms array is required'}), 400
+        
+        rooms_data = data['rooms']
+        if not isinstance(rooms_data, list) or len(rooms_data) == 0:
+            return jsonify({'error': 'rooms must be a non-empty array'}), 400
+        
+        rooms_to_update = []
+        # Check if rooms exist
+        for room_data in rooms_data:
+            if 'room_number' not in room_data or 'is_occupied' not in room_data:
+                return jsonify({'error': 'room_number and is_occupied are required for each room'}), 400
+            
+            room = models.Room.query.filter_by(room_number=room_data['room_number']).first()
+            if not room:
+                return jsonify({'error': f'Room {room_data["room_number"]} does not exist'}), 404
+            rooms_to_update.append(room)
+        
+        updated_rooms = []
+        if not rooms_to_update:
+            return jsonify({'error': 'No rooms to update'}), 400
+        
+        for room in rooms_to_update:
+            room.is_occupied = room_data['is_occupied']
+            db.session.add(room)
+            
+            updated_rooms.append({
+                'room_number': room.room_number,
+                'is_occupied': room.is_occupied
+            })
+        db.session.commit()
+        
+        return jsonify({
+            'message': f'{len(updated_rooms)} rooms occupancy status updated successfully',
+            'updated_rooms': updated_rooms
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500  
 
 @api.route('/devices/list', methods=['GET'])
 @require_api_key
@@ -413,115 +521,3 @@ def request_current_value(device_id):
             
     except Exception as e:
         return jsonify({'error': 'An error occurred while processing your request'}), 500
-
-
-# Alternative endpoints using the hierarchical path structure
-@api.route('/floors/<int:floor_number>/rooms/<string:room_number>/devices/<string:device_id>/set', methods=['POST'])
-@require_api_key
-def set_actuator_value_hierarchical(floor_number, room_number, device_id):
-    """
-    Set actuator value using hierarchical path
-    
-    Expected JSON format:
-    {
-        "new_value": "value_to_set"
-    }
-    """
-    try:
-        # Verify the hierarchical path exists
-        floor = models.Floor.query.filter_by(floor_number=floor_number).first()
-        if not floor:
-            return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
-        
-        room = models.Room.query.filter_by(
-            room_number=room_number, 
-            floor_id=floor.id
-        ).first()
-        if not room:
-            return jsonify({'error': f'Room {room_number} does not exist on floor {floor_number}'}), 404
-        
-        device = models.Device.query.filter_by(
-            device_id=device_id,
-            room_id=room.id
-        ).first()
-        if not device:
-            return jsonify({'error': f'Device {device_id} does not exist in room {room_number} on floor {floor_number}'}), 404
-        
-        # Get request data
-        data = request.get_json()
-        if not data or 'new_value' not in data:
-            return jsonify({'error': 'new_value is required'}), 400
-        
-        new_value = data['new_value']
-        
-        # Use device_id (UUID) for MQTT communication
-        success = request_actuator_update(device.device_id, new_value)
-
-        if success:
-            return jsonify({
-                'message': f'Actuator update request sent successfully',
-                'location': {
-                    'floor_number': floor_number,
-                    'room_number': room_number,
-                    'device_id': device_id
-                },
-                'device_uuid': device.device_id,
-                'new_value': new_value
-            }), 200
-        else:
-            return jsonify({
-                'error': 'Failed to send actuator update command. Please refer to server logs for more details.'
-            }), 500
-            
-    except Exception as e:
-        return jsonify({'error': 'An error occurred while processing your request'}), 500
-
-
-@api.route('/floors/<int:floor_number>/rooms/<string:room_number>/devices/<string:device_id>/get', methods=['POST'])
-@require_api_key
-def request_current_value_hierarchical(floor_number, room_number, device_id):
-    """
-    Request current value using hierarchical path
-    """
-    try:
-        # Verify the hierarchical path exists
-        floor = models.Floor.query.filter_by(floor_number=floor_number).first()
-        if not floor:
-            return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
-        
-        room = models.Room.query.filter_by(
-            room_number=room_number, 
-            floor_id=floor.id
-        ).first()
-        if not room:
-            return jsonify({'error': f'Room {room_number} does not exist on floor {floor_number}'}), 404
-        
-        device = models.Device.query.filter_by(
-            device_id=device_id,
-            room_id=room.id
-        ).first()
-        if not device:
-            return jsonify({'error': f'Device {device_id} does not exist in room {room_number} on floor {floor_number}'}), 404
-        
-        # Use device_id (UUID) for MQTT communication
-        success = request_current_sensor_value(device.device_id)
-        
-        if success:
-            return jsonify({
-                'message': f'Current value request sent successfully',
-                'location': {
-                    'floor_number': floor_number,
-                    'room_number': room_number,
-                    'device_id': device_id
-                },
-                'device_uuid': device.device_id,
-                'note': 'The device should respond with current value via MQTT'
-            }), 200
-        else:
-            return jsonify({
-                'error': 'Failed to send current value request. Please refer to server logs for more details.'
-            }), 500
-            
-    except Exception as e:
-        return jsonify({'error': 'An error occurred while processing your request'}), 500
-    
