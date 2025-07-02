@@ -12,28 +12,15 @@ class PDDLPlannerService:
     def __init__(self, planner_url: str = None):
         self.planner_url = planner_url
         self.logger = logging.getLogger(__name__)
+        self.logger.info(f"PDDL Planner Service initialized with URL: {self.planner_url}")
     
-    def get_available_planners(self) -> List[str]:
-        """Get list of available planners from the service"""
-        try:
-            response = requests.get(f"{self.planner_url}/planners")
-            response.raise_for_status()
-            return response.json().get('planners', [])
-        except requests.RequestException as e:
-            self.logger.error(f"Failed to get available planners: {e}")
-            return []
-    
-    def solve_planning_problem(self, 
-                             domain: str, 
-                             problem: str, 
-                             planner: str = "ff") -> Optional[Dict]:
+    def solve_planning_problem(self, domain: str, problem: str, planner: str) -> Optional[Dict]:
         """
         Solve a PDDL planning problem
         
         Args:
             domain: PDDL domain definition as string
             problem: PDDL problem definition as string
-            planner: Name of the planner to use (default: "ff")
         
         Returns:
             Dictionary containing the solution or None if failed
@@ -43,35 +30,37 @@ class PDDLPlannerService:
             payload = {
                 "domain": domain,
                 "problem": problem,
-                "planner": planner
             }
+            
+            if not planner:
+                self.logger.error("planner not set using default planner")
+                planner = "lama-first"  # Default planner if not specified
+            
             
             # Send request to planner service
             response = requests.post(
-                f"{self.planner_url}/solve",
+                f"{self.planner_url}/{planner}/solve",
                 json=payload,
                 headers={'Content-Type': 'application/json'},
-                timeout=60  # 60 seconds timeout
+                timeout=10  # 10 seconds timeout
             )
             
             response.raise_for_status()
             result = response.json()
             
             if result.get('status') == 'ok':
-                self.logger.info(f"Planning problem solved successfully with {planner}")
+                self.logger.info(f"Planning problem solved successfully")
                 return {
                     'success': True,
                     'plan': result.get('result', {}).get('plan', []),
                     'cost': result.get('result', {}).get('cost'),
-                    'time': result.get('result', {}).get('time'),
-                    'planner_used': planner
+                    'time': result.get('result', {}).get('time')
                 }
             else:
                 self.logger.error(f"Planning failed: {result.get('result', 'Unknown error')}")
                 return {
                     'success': False,
-                    'error': result.get('result', 'Unknown error'),
-                    'planner_used': planner
+                    'error': result.get('result', 'Unknown error')
                 }
                 
         except requests.Timeout:
@@ -82,50 +71,14 @@ class PDDLPlannerService:
             self.logger.error(f"Failed to solve planning problem: {e}")
             return {'success': False, 'error': str(e)}
     
-    def health_check(self) -> bool:
+    def get_solvers(self) -> bool:
         """Check if the planner service is available"""
         try:
-            response = requests.get(f"{self.planner_url}/", timeout=5)
-            return response.status_code == 200
+            response = requests.get(f"{self.planner_url}/package")
+            return response.json()
         except requests.RequestException:
+            self.logger.error("Failed to connect to the PDDL planning service")
             return False
-    
-    def validate_pddl(self, domain: str, problem: str) -> Dict:
-        """
-        Validate PDDL domain and problem files
-        
-        Args:
-            domain: PDDL domain definition as string
-            problem: PDDL problem definition as string
-        
-        Returns:
-            Dictionary containing validation results
-        """
-        try:
-            payload = {
-                "domain": domain,
-                "problem": problem
-            }
-            
-            response = requests.post(
-                f"{self.planner_url}/validate",
-                json=payload,
-                headers={'Content-Type': 'application/json'},
-                timeout=30
-            )
-            
-            response.raise_for_status()
-            result = response.json()
-            
-            return {
-                'valid': result.get('status') == 'ok',
-                'errors': result.get('result', {}).get('errors', []) if result.get('status') != 'ok' else []
-            }
-            
-        except requests.RequestException as e:
-            self.logger.error(f"Failed to validate PDDL: {e}")
-            return {'valid': False, 'errors': [str(e)]}
-
 
 # Example usage functions for your backend routes
 def create_sample_planning_routes(app, pddl_service: PDDLPlannerService):
@@ -134,43 +87,52 @@ def create_sample_planning_routes(app, pddl_service: PDDLPlannerService):
     @app.route('/api/planning/solve', methods=['POST'])
     def solve_problem():
         """Solve a planning problem"""
-        from flask import request, jsonify
+        request_data = request.get_json()
         
-        data = request.get_json()
-        domain = data.get('domain')
-        problem = data.get('problem')
-        planner = data.get('planner', 'ff')
+        # Validate that required fields are present
+        if not request_data:
+            return jsonify({"error": "No JSON data provided"}), 400
         
-        if not domain or not problem:
-            return jsonify({'error': 'Domain and problem are required'}), 400
+        if "domain" not in request_data:
+            return jsonify({"error": "Missing required field: domain"}), 400
         
-        result = pddl_service.solve_planning_problem(domain, problem, planner)
-        return jsonify(result)
+        if "problem" not in request_data:
+            return jsonify({"error": "Missing required field: problem"}), 400
+        
+        if "planner" not in request_data:
+            return jsonify({"error": "Missing required field: planner"}), 400
+        
+        solve_problem = pddl_service.solve_planning_problem(
+            domain=request_data["domain"],
+            problem=request_data["problem"],
+            planner=request_data["planner"],
+        )
+        
+        if solve_problem.get('success'):
+            return jsonify({
+                "success": True,
+                "plan": solve_problem.get('plan'),
+                "cost": solve_problem.get('cost'),
+                "time": solve_problem.get('time')
+            }), 200
+        else:
+            return jsonify({
+                "success": False,
+                "error": solve_problem.get('error', 'Unknown error')
+            }), 503
     
-    @app.route('/api/planning/validate', methods=['POST'])
-    def validate_pddl():
-        """Validate PDDL files"""
-        from flask import request, jsonify
-        
-        data = request.get_json()
-        domain = data.get('domain')
-        problem = data.get('problem')
-        
-        if not domain or not problem:
-            return jsonify({'error': 'Domain and problem are required'}), 400
-        
-        result = pddl_service.validate_pddl(domain, problem)
-        return jsonify(result)
-    
-    @app.route('/api/planning/health', methods=['GET'])
-    def planning_health():
-        """Check planner service health"""
+    @app.route('/api/planning/solvers/list', methods=['GET'])
+    def list_solvers():
+        """List available planning solvers"""
         from flask import jsonify
         
-        is_healthy = pddl_service.health_check()
-        return jsonify({'healthy': is_healthy})
+        solvers = pddl_service.get_solvers()
+        if solvers:
+            return jsonify(solvers), 200
+        else:
+            return jsonify({"error": "No solvers available"}), 503
     
-    @app.route('/api/planning/test', methods=['GET'])
+    @app.route('/api/planning/test', methods=['POST'])
     def planning_test():
         request_data = request.get_json()
     
@@ -189,7 +151,6 @@ def create_sample_planning_routes(app, pddl_service: PDDLPlannerService):
             "domain": request_data["domain"],
             "problem": request_data["problem"]
         }
-        import logging
 
         planning_service_url = current_app.config.get('PDDL_PLANNING_SERVICE_URL', 'http://web:5001')
 

@@ -29,7 +29,8 @@ def create_app(config_class=Config):
             db.create_all()
 
             # Initialize PDDL Planning Service
-            planner_service = PDDLPlannerService()
+            planner_url = app.config.get('PLANNER_SERVICE_URL')
+            planner_service = PDDLPlannerService(planner_url=planner_url)
             app.planner_service = planner_service
     except Exception as e:
         app.logger.error(f"Error initializing database: {e}")
