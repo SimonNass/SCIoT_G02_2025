@@ -78,6 +78,7 @@ class Device(db.Model):
     read_interval: Mapped[Optional[int]] = mapped_column(Integer)
     notify_interval: Mapped[Optional[str]] = mapped_column(String(50))
     notify_change_precision: Mapped[Optional[float]] = mapped_column(Float)
+    last_value_simplified: Mapped[Optional[int]] = mapped_column(Integer)
     
     # Actuator-specific fields
     initial_value: Mapped[Optional[str]] = mapped_column(String(100))
