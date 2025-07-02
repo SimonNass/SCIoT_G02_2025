@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text, Boolean, Integer, DateTime, ForeignKey, Float
+from sqlalchemy import String, Text, Boolean, Integer, DateTime, ForeignKey, Float, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from typing import List, Optional
@@ -73,7 +73,6 @@ class Device(db.Model):
     datatype: Mapped[Optional[str]] = mapped_column(String(50))
     unit: Mapped[Optional[str]] = mapped_column(String(20))
     last_value: Mapped[Optional[str]] = mapped_column(Text)
-    # Todo: Add PDDL info need to know which actuator can influence which sensor
 
     # Sensor-specific fields
     read_interval: Mapped[Optional[int]] = mapped_column(Integer)
@@ -94,6 +93,11 @@ class Device(db.Model):
         cascade="all, delete-orphan",
         order_by="SensorData.timestamp.desc()"
     )
+    device_type_config: Mapped[Optional["TypeNameConfig"]] = relationship( 
+        back_populates="devices", 
+    )
+    
+    # Todo: Add PDDL info need to know which actuator can influence which sensor
     
     def __repr__(self) -> str:
         return f"Device(id={self.id!r}, device_id={self.device_id!r}, name={self.name!r}, type={self.device_type!r})"
@@ -105,6 +109,7 @@ class SensorData(db.Model):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     device_id: Mapped[str] = mapped_column(ForeignKey("devices.id"), nullable=False)
     value: Mapped[str] = mapped_column(Text, nullable=False)
+    simplified_value: Mapped[int] = mapped_column(Integer)
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     
     # Relationship
@@ -112,3 +117,16 @@ class SensorData(db.Model):
     
     def __repr__(self) -> str:
         return f"SensorData(id={self.id!r}, device_id={self.device_id!r}, value={self.value!r}, timestamp={self.timestamp!r})"
+    
+class TypeNameConfig(db.Model):
+    """Stores lower-mid and upper-mid limits for each device type to enable dynamic determination of simiplified values"""
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    device_type: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g., 'sensor', 'actuator'
+    type_name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)  # e.g., 'temperature', 'humidity'
+    lower_mid_limit: Mapped[float] = mapped_column(Float)
+    upper_mid_limit: Mapped[float] = mapped_column(Float)
+    min_value: Mapped[float] = mapped_column(Float)
+    max_value: Mapped[float] = mapped_column(Float)
+
+    devices: Mapped[List["Device"]] = relationship(back_populates="device_type_config")

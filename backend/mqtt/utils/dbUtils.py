@@ -5,6 +5,7 @@ from backend.mqtt.utils.cacheUtils import device_cache
 from backend.mqtt.utils.parsersUtils import parse_device_payload, validate_device_data
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
+from backend.mqtt.utils.typeNameConfigUtils import get_simple_default_middle_values
 
 def get_or_create_device(app_instance, floor_number, room_number, sensor_type, device_id, payload=None):
     """
@@ -200,10 +201,14 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
                     
                     # Create sensor data record if it's a sensor with a value
                     if sensor_type == 'sensor' and parsed_payload.get('last_value') is not None:
+                        latest_value = parsed_payload['last_value']
                         try:
+                            simplified_value = get_simplified_value(latest_value, device_obj.device_type, device_obj.type_name)
+                            
                             sensor_data = models.SensorData(
                                 device_id=device_obj.id,
-                                value=parsed_payload['last_value'],
+                                value=latest_value,
+                                simplified_value=simplified_value,
                                 timestamp=datetime.utcnow()
                             )
                             db.session.add(sensor_data)
@@ -311,3 +316,85 @@ def update_device_status(app_instance, device_id, is_online=True):
         except:
             pass
         return False
+    
+
+def create_device_type_config(app_instance, device_type, type_name, max_value, min_value):
+    """
+    Save the device type configuration to database.
+    """
+    try:
+        with app_instance.app_context():
+            # Check input validity
+            if max_value is None or min_value is None:
+                logging.error("Max value and min value must be provided")
+                return None
+            
+            if device_type is None or type_name is None:
+                logging.error("Device type and type name must be provided")
+                return None
+            
+            device_type_config = models.TypeNameConfig.query.filter_by(device_type=device_type, type_name=type_name).first()
+            if device_type_config:
+               logging.info(f"Device type config for {device_type} already exists")
+               return None  # Device type config already exists
+            if device_type == "sensor":
+                lower_mid_limit, upper_mid_limit = get_simple_default_middle_values(max_value, min_value)
+            else: 
+                lower_mid_limit, upper_mid_limit = None, None
+                
+            if lower_mid_limit is None or upper_mid_limit is None:
+                return None  # Invalid values, cannot create config
+            
+            # Create new device type config
+            new_device_type_config = models.TypeNameConfig(
+               # Set device type as enum value
+               device_type=device_type,
+               type_name=type_name,
+               max_value=max_value,
+               min_value=min_value,
+               lower_mid_limit=lower_mid_limit,
+               upper_mid_limit=upper_mid_limit,
+            )
+            
+            # Save to database
+            db.session.add(new_device_type_config)
+            db.session.commit()
+            logging.info(f"Device type config for {device_type} created successfully")
+            
+            return new_device_type_config
+        
+    except IntegrityError as e:
+        logging.error(f"Integrity error while creating device type config for {device_type}: {str(e)}")
+        db.session.rollback()
+        return None
+
+def get_simplified_value(value: float, device_type: str, type_name) -> str:
+    """
+    Get simplified value from device type configuration.
+    Args:
+        value (float): The value to simplify.
+        device_type (str): The type of the device.
+    Returns:
+        str: The simplified value as a string.
+    """      
+    try: 
+        device_type_config = models.TypeNameConfig.query.filter_by(device_type=device_type, type_name=type_name).first()
+        if not device_type_config:
+            logging.error(f"Device type config for {device_type} and {type_name} not found")
+            return None
+        
+        # Check if value is within the configured range
+        if value < device_type_config.min_value or value > device_type_config.max_value:
+            logging.warning(f"Value {value} out of range for device type {device_type}")
+            return None
+        
+        # Simplify value based on mid limits
+        if value < device_type_config.lower_mid_limit:
+            return -1 # Maps to LOW
+        elif value > device_type_config.upper_mid_limit:
+            return 1 # Maps to HIGH
+        else:
+            return 0 # Maps to MID 
+    except Exception as e:
+        logging.error(f"Error simplifying value {value} for device type {device_type}: {str(e)}")
+        return None
