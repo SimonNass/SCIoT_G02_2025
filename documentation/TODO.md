@@ -16,7 +16,8 @@
 - [x] Making motor work
 - [ ] Gateway
   - [X] (Simon) sensor dictionary send in utf 8
-  - [ ] (Simon) send bool acxtuator is off or on in gateway info
+  - [X] (Simon) send bool acxtuator is off or on in gateway info
+  - [ ] (Simon) send after actuator change
   - [ ] (Simon) disable sensors ?
   - [ ] (Simon) update random number generator manual list
 

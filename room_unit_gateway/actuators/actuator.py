@@ -43,7 +43,7 @@ class ActuatorInterface(ABC):
         return str(self.__dict__())
 
     def __dict__(self):
-        return {"id":str(self.id),"name":self.name,"type_name":self.type,"connector":self.i2c_connector,"connector_type":str(self.connector_type),"min":self.min_value, "max":self.max_value, "datatype":self.datatype, "unit":self.unit, "initial_value":self.initial_value, "off_value":self.off_value, "last_value":self.last_value}
+        return {"id":str(self.id),"name":self.name,"type_name":self.type,"connector":self.i2c_connector,"connector_type":str(self.connector_type),"min":self.min_value, "max":self.max_value, "datatype":self.datatype, "unit":self.unit, "initial_value":self.initial_value, "off_value":self.off_value, "is_off":self.is_off(), "last_value":self.last_value}
 
     def write_actuator(self, value: int):
         write_value = max(self.min_value,min(self.max_value,value))
@@ -72,6 +72,9 @@ class ActuatorInterface(ABC):
             print (text)
             return False
         return True
+
+    def is_off(self):
+        return self.last_value == self.off_value
 
 class AnalogActuator(ActuatorInterface):
     def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: int, off_value: int):
