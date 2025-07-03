@@ -1,26 +1,28 @@
 #!/usr/bin/env python
 
-# TODO 
-# make an issue with minimal example (:requirements :typing :adl) does not work without the :typing
-
 # pip install pddl==0.4.3
+from typing import Dict, List
 from pddl.logic import Predicate, constants, variables, base
+from pddl.logic.predicates import EqualTo
 from pddl.core import Domain, Problem
 from pddl.action import Action
 from pddl.requirements import Requirements
 from pddl import parse_domain, parse_problem
 
-def create_objects(amount: int, type_name: str):
+def create_objects(name_list: List[str], type_name: str):
     names = ''
-    for i in range(amount):
-        names = names + str(f'{type_name}_{i} ')
+    for i in range(len(name_list)):
+        names = names + str(f'{type_name}_{name_list[i]} ')
 
     objects = constants(names, type_=type_name + '_type')
+    #print (objects)
     return objects
 
 def create_type_variables():
     # set up variables and constants
-    global floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, actuator_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type
+    global floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type
+    global iot_type, cleaning_team_type, sensor_type, actuator_type, actuator2_type
+    global binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type
 
     floor_type, floor2_type = variables("floor_type floor2_type", types=["floor_type"])
     room_type, room2_type, room3_type = variables("room_type room2_type room3_type", types=["room_type"])
@@ -29,7 +31,7 @@ def create_type_variables():
     cleaning_team_type = variables("cleaning_team_type", types=["cleaning_team_type"])[0]
 
     sensor_type = variables("sensor_type", types=["sensor_type"])[0]
-    actuator_type = variables("actuator_type", types=["actuator_type"])[0]
+    actuator_type, actuator2_type = variables("actuator_type actuator2_type", types=["actuator_type"])
     
     binary_s_type, numerical_s_type, textual_s_type = variables("binary_s_type numerical_s_type textual_s_type", types=["sensor_type"])
     binary_a_type, numerical_a_type, textual_a_type = variables("binary_a_type numerical_a_type textual_a_type", types=["actuator_type"])
@@ -108,17 +110,21 @@ def create_predicates_variables():
 
     return predicates_list
 
+
 def create_cleaning_actions():
     actions_list = []
+    # construct compound predicates
+    is_next_to_bidirectional = lambda r1, r2 : (base.Or(is_next_to(r1, r2), is_next_to(r2, r1)))
+    is_not_next_to_bidirectional = lambda r1, r2 : (base.And(~is_next_to(r1, r2), ~is_next_to(r2, r1)))
+    rooms_are_part_of_floors = lambda r1, r2, f1, f2 : room_is_part_of_floor(r1, f1) & room_is_part_of_floor(r2, f2)
 
     move_to_floor = Action(
         "move_to_floor",
         parameters=[cleaning_team_type, room_type, room2_type, floor_type, floor2_type],
         precondition=is_at(cleaning_team_type,room_type)
-                    & (base.Or(is_next_to(room_type, room2_type), is_next_to(room2_type, room_type))) 
-                    & room_is_part_of_floor(room_type, floor_type) 
-                    & room_is_part_of_floor(room2_type, floor2_type),
-                    #& base.Not(=(floor_type, floor2_type)),
+                    & is_next_to_bidirectional(room_type, room2_type) 
+                    & rooms_are_part_of_floors(room_type, room2_type, floor_type, floor2_type)
+                    & base.Not(EqualTo(floor_type, floor2_type)),
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
     )
     actions_list.append(move_to_floor)
@@ -127,9 +133,8 @@ def create_cleaning_actions():
         "move_to_room",
         parameters=[cleaning_team_type, room_type, room2_type, floor_type],
         precondition=is_at(cleaning_team_type,room_type)
-                    & (base.Or(is_next_to(room_type, room2_type), is_next_to(room2_type, room_type))) 
-                    & room_is_part_of_floor(room_type, floor_type) 
-                    & room_is_part_of_floor(room2_type, floor_type),
+                    & is_next_to_bidirectional(room_type, room2_type) 
+                    & rooms_are_part_of_floors(room_type, room2_type, floor_type, floor_type),
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
     )
     actions_list.append(move_to_room)
@@ -138,9 +143,8 @@ def create_cleaning_actions():
         "move_to_isolated_room",
         parameters=[cleaning_team_type, room_type, room2_type, floor_type],
         precondition=is_at(cleaning_team_type,room_type)
-                    & (base.ForallCondition((base.Or(~is_next_to(room3_type, room2_type), ~is_next_to(room2_type, room3_type))) , [room3_type])) 
-                    & room_is_part_of_floor(room_type, floor_type) 
-                    & room_is_part_of_floor(room2_type, floor_type),
+                    & (base.ForallCondition(is_not_next_to_bidirectional(room3_type, room2_type) , [room3_type])) 
+                    & rooms_are_part_of_floors(room_type, room2_type, floor_type, floor_type),
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
     )
     actions_list.append(move_to_isolated_room)
@@ -181,15 +185,15 @@ def create_assign_actions():
 
 def create_actuator_actions():
     actions_list = []
+    # construct compound predicates
+    works_together = lambda s1, p1, r1 : positioned_at(s1, p1) & sensor_is_part_of_room(s1, r1)
 
     turn_on = Action(
         "turn_on",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_increases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & ~is_sensing(sensor_type)
                     & ~is_activated(actuator_type),
         effect=is_sensing(sensor_type) & is_activated(actuator_type)
@@ -200,10 +204,8 @@ def create_actuator_actions():
         "turn_off",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_increases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & is_sensing(sensor_type)
                     & is_activated(actuator_type),
         effect=~is_sensing(sensor_type) & ~is_activated(actuator_type)
@@ -214,10 +216,8 @@ def create_actuator_actions():
         "turn_on_inverted",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_decreases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & ~is_sensing(sensor_type)
                     & is_activated(actuator_type),
         effect=is_sensing(sensor_type) & ~is_activated(actuator_type)
@@ -228,10 +228,8 @@ def create_actuator_actions():
         "turn_off_inverted",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_decreases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & is_sensing(sensor_type)
                     & ~is_activated(actuator_type),
         effect=~is_sensing(sensor_type) & is_activated(actuator_type)
@@ -242,10 +240,8 @@ def create_actuator_actions():
         "increase_s_by_a_in_r",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_increases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & is_low(sensor_type)
                     & ~is_activated(actuator_type),
         effect=~is_low(sensor_type) & is_ok(sensor_type) & is_activated(actuator_type)
@@ -256,10 +252,8 @@ def create_actuator_actions():
         "increase_s_by_na_in_r",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_decreases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & is_low(sensor_type)
                     & is_activated(actuator_type),
         effect=~is_low(sensor_type) & is_ok(sensor_type) & ~is_activated(actuator_type)
@@ -270,10 +264,8 @@ def create_actuator_actions():
         "decrease_s_by_a_in_r",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_decreases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & is_high(sensor_type)
                     & ~is_activated(actuator_type),
         effect=~is_high(sensor_type) & is_ok(sensor_type) & is_activated(actuator_type)
@@ -284,10 +276,8 @@ def create_actuator_actions():
         "decrease_s_by_na_in_r",
         parameters=[sensor_type, actuator_type, room_type, room_position_type],
         precondition=~fulfilled_activity(room_type, room_position_type)
-                    & positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+                    & works_together(sensor_type, room_position_type, room_type)
                     & actuator_increases_sensor(actuator_type, sensor_type)
-                    #& base.Or(is_ocupied(room_type), will_become_ocupied(room_type))
                     & is_high(sensor_type)
                     & is_activated(actuator_type),
         effect=~is_high(sensor_type) & is_ok(sensor_type) & ~is_activated(actuator_type)
@@ -365,13 +355,19 @@ def create_activity_actions():
 def create_energy_saveing_actions():
     actions_list = []
 
-    #cancle_out_actuator = Action(
-    #    "cancle_out_actuator",
-    #    parameters=[room_type, room_position_type],
-    #    precondition=,
-    #    effect=
-    #)
-    #actions_list.append(cancle_out_actuator)
+    cancle_out_actuator = Action(
+        "cancle_out_actuator",
+        parameters=[sensor_type, actuator_type, actuator2_type, room_type],
+        precondition= base.Not(EqualTo(actuator_type, actuator2_type))
+                        & sensor_is_part_of_room(sensor_type, room_type)
+                        & actuator_increases_sensor(actuator_type, sensor_type)
+                        & actuator_decreases_sensor(actuator2_type, sensor_type)
+                        & is_activated(actuator_type)
+                        & is_activated(actuator2_type),
+        effect= is_activated(actuator_type)
+                & is_activated(actuator2_type)
+    )
+    actions_list.append(cancle_out_actuator)
 
     save_energy = Action(
         "save_energy",
@@ -386,28 +382,146 @@ def create_energy_saveing_actions():
 
     return actions_list
 
-def create_objecs_room_topology(number_floors, number_rooms):
-    floors = create_objects(number_floors, "floor")
-    rooms = create_objects(number_rooms, "room")
-    return floors, rooms
 
-def create_initial_state_room_topology(floors, rooms, rooms_per_floor):
+def create_objecs_room_topology(floor_uids: List[str], room_uids_per_floor: Dict[str,List[str]], elevator_uids: List[str]):
+    floors = create_objects(floor_uids, "floor")
+    uid_to_pddl_variable_floor = {floor_uids[i]:floors[i] for i in range(len(floors))}
+    rooms = []
+    uid_to_pddl_variable_rooms = {}
+    for _, room_uids in room_uids_per_floor.items():
+        new_rooms = create_objects(room_uids, "room")
+        rooms = rooms + new_rooms
+        uid_to_pddl_variable_rooms.update({room_uids[i]:new_rooms[i] for i in range(len(new_rooms))})
+    elevators = create_objects(elevator_uids, "room")
+
+    return floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms
+
+def create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_mapping, actuator_room_mapping):
+    sensors = []
+    uid_to_pddl_variable_sensors = {}
+    for floor in floor_uids:
+        for room in room_uids_per_floor[floor]:
+            if room not in sensor_room_mapping:
+                continue
+            new_sensors = create_objects(sensor_room_mapping[room], "numerical_s")
+            sensors = sensors + new_sensors
+            uid_to_pddl_variable_sensors.update({sensor_room_mapping[room][i]:new_sensors[i] for i in range(len(new_sensors))})
+
+    actuators = []
+    uid_to_pddl_variable_actuators = {}
+    for floor in floor_uids:
+        for room in room_uids_per_floor[floor]:
+            if room not in actuator_room_mapping:
+                continue
+            new_actuators = create_objects(actuator_room_mapping[room], "actuator")
+            actuators = actuators + new_actuators
+            uid_to_pddl_variable_actuators.update({actuator_room_mapping[room][i]:new_actuators[i] for i in range(len(new_actuators))})
+    return sensors, actuators, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators
+
+def create_initial_state_room_topology(floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, elevators):
     initial_state = []
 
-    comulative_rooms_bevore = [sum(rooms_per_floor[:i]) for i in range(len(rooms_per_floor))]
+    #comulative_rooms_bevore = [sum(rooms_per_floor[:i]) for i in range(len(rooms_per_floor))]
     #print (comulative_rooms_bevore)
-    for i in range(len(rooms_per_floor)):
-        for j in range(rooms_per_floor[i]):
-            next_room_floor_mapping = room_is_part_of_floor(rooms[comulative_rooms_bevore[i]+j], floors[i])
+
+    # assigns each rooms to one floor they are a part of
+    for floor in floor_uids:
+        for room in room_uids_per_floor[floor]:
+            next_room_floor_mapping = room_is_part_of_floor(uid_to_pddl_variable_rooms[room], uid_to_pddl_variable_floor[floor])
             initial_state.append(next_room_floor_mapping)
+
+    # connects rooms that are next to each other on the same floor
+    # defaults to a line topology
+    for floor in floor_uids:
+        for i in range(len(room_uids_per_floor[floor]) - 1): 
+            current_room = uid_to_pddl_variable_rooms[room_uids_per_floor[floor][i]]
+            next_room = uid_to_pddl_variable_rooms[room_uids_per_floor[floor][i + 1]]
+
+            next_room_room_mapping = is_next_to(current_room, next_room)
+            initial_state.append(next_room_room_mapping)
+            next_room_room_mapping = is_next_to(next_room, current_room)
+            initial_state.append(next_room_room_mapping)
+
+    for i in range(len(elevators)):
+        for floor in floor_uids:
+            # connect the elevators to all floors
+            next_elevator_floor_mapping = room_is_part_of_floor(elevators[i],uid_to_pddl_variable_floor[floor])
+            initial_state.append(next_elevator_floor_mapping)
+        
+            # connect the elevators to a room in each floor
+            room_near_elevator = uid_to_pddl_variable_rooms[room_uids_per_floor[floor][i % len(room_uids_per_floor[floor])]]
+
+            next_elevator_room_mapping = is_next_to(elevators[i],room_near_elevator)
+            initial_state.append(next_elevator_room_mapping)
+            next_elevator_room_mapping = is_next_to(room_near_elevator,elevators[i])
+            initial_state.append(next_elevator_room_mapping)
+
+        # elevators do not have to be cleaned
+        next_elevator_is_clean = is_cleaned(elevators[i])
+        initial_state.append(next_elevator_is_clean)
 
     return initial_state
 
+def create_iot_room_mapping(floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], uids_to_object: Dict[str,constants], uids_to_room: Dict[str,constants], room_mapping: Dict[str,List[str]], iot_is_part_of_room):
+    initial_state = []
+    
+    for floor in floor_uids:
+        for room in room_uids_per_floor[floor]:
+            sensor_room = uids_to_room[room]
+            if room not in room_mapping:
+                continue
+            for device in room_mapping[room]:
+                object_instance = uids_to_object[device]
+                next_part_of_room = iot_is_part_of_room(object_instance, sensor_room)
+                initial_state.append(next_part_of_room)
 
-def create():
-#def create_domain():
-    domain_name = "test_SCIoT_G02_2025"
+    return initial_state
 
+def create_sensor_values(floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], sensor_room_mapping:Dict[str,List[str]], uid_to_pddl_variable_sensors: Dict[str,constants], sensor_initial_values: List[int]):
+    state_list = []
+
+    for floor in floor_uids:
+        for room in room_uids_per_floor[floor]:
+            if room not in sensor_room_mapping:
+                continue
+            for s in sensor_room_mapping[room]:
+                sensor_object = uid_to_pddl_variable_sensors[s]
+                object_state = 0
+                state = is_ok(sensor_object)
+                if s in sensor_initial_values:
+                    object_state = sensor_initial_values[s]
+
+                if object_state == -1:
+                    state = is_low(sensor_object)
+                elif object_state == 0:
+                    state = is_ok(sensor_object)
+                elif object_state == 1:
+                    state = is_high(sensor_object)
+                state_list.append(state)
+
+    return state_list
+
+def create_goal():
+    goal_state = None
+
+    # individual_sensor_goals TODO
+
+    goal_for_ocupied_rooms = None
+
+    if_case1 = base.And(base.Not(is_ocupied(room_type)))
+    then_clean_case = is_cleaned(room_type)
+    clean_unocupied_rooms = base.ForallCondition(base.Imply(if_case1, then_clean_case), [room_type])
+
+    if_case2 = base.And(base.Not(is_ocupied(room_type)), actuator_is_part_of_room(actuator_type, room_type))
+    then_turn_off_actuator = base.Not(is_activated(actuator_type))
+    actuator_off_unocupied_rooms = base.ForallCondition(base.Imply(if_case2, then_turn_off_actuator), [room_type, actuator_type])
+
+    envorce_checks = base.ForallCondition(fulfilled_activity(room_type, room_position_type), [room_type, room_position_type])
+
+    goal_state = base.And(clean_unocupied_rooms, actuator_off_unocupied_rooms, envorce_checks)
+    return goal_state
+
+def create_domain(domain_name: str, predicates_list: List[variables]):
     # set up types
     type_dict = {
         "object_type": None,
@@ -450,9 +564,6 @@ def create():
         "display_a_type": "textual_a_type",
     }
 
-    create_type_variables()
-    predicates_list = create_predicates_variables()
-
     # define actions
     actions_list = []
     actions_list = actions_list + create_cleaning_actions()
@@ -469,71 +580,139 @@ def create():
                     predicates=predicates_list,
                     actions=actions_list)
 
-    print(domain)
+    #print(domain)
 
+    return domain
+
+def query_input():
+    domain_name = "test_SCIoT_G02_2025"
     problem_name = 'test'
+
+    floor_uids = ['f0','f1']
+    room_uids_per_floor = {'f0':['r0','r1'],'f1':['r2']}
+    room_ocupied_actuator_initial_values = {'r0':False, 'r1': True, 'r2':False}
+    #floor_list = db.list_all_floors()
+    #floor_uids = [floor['id'] for floor in floor_list]
+    #room_uids_per_floor = {floor['id']:floor['rooms'] for floor in floor_list}
+    #for floor in floor_list:
+    #    room_ocupied_actuator_initial_values = {room['id']:room['is_occupied'] for room in room_uids_per_floor[floor]}
+
+    elevator_uids = ['e0','e1']
+    cleaning_team_uids = ['cleaning_team_1','cleaning_team_2']
+    names_room_positions = ['overall_room', 'bed', 'closet', 'window']
+
+    sensor_room_mapping = {'r0':['s1'], 'r2':['s2']}
+    actuator_room_mapping = {'r0':['a1'], 'r2':['a2']}
+    #for floor in floor_uids:
+    #    for room in room_uids_per_floor[floor]:
+    #        device_list = db.list_devices_in_room(floor,room)['devices']
+    #        sensor_uids = []
+    #        actuator_uids = []
+    #        for device in device_list:
+    #            if device is_sensor():
+    #                sensor_uids.append(device)
+    #            elif device is_actuator():
+    #                actuator_uids.append(device)
+    #        sensor_room_mapping.update({room:sensor_uids})
+    #        actuator_room_mapping.update({room:actuator_uids})
+            
+
+    
+
+    # TODO get info from db
+    actuator_increases_sensor_mapping_matrix = {'a1':['s1','s2'], 'a2':['s2']}
+    actuator_decreases_sensor_mapping_matrix = {'a1':['s1']}
+
+    sensor_initial_values = {'s1': -1, 's2':1}
+    sensor_goal_values = {'s1': -1, 's2':1}
+    actuator_initial_values = {'a1': True, 'a2':False}
+    #for floor in floor_uids:
+    #    for room in room_uids_per_floor[floor]:
+    #        for device in sensor_room_mapping[room]:
+    #            curent_value = db.request_current_value_hierarchical(floor,room,device)
+    #            sensor_initial_values.update({device:curent_value})
+    #        for device in actuator_room_mapping[room]:
+    #            curent_value = db.request_current_value_hierarchical(floor,room,device)
+    #            sensor_initial_values.update({device:curent_value})
+
+
+
+    return {'domain_name':domain_name, 
+            'problem_name':problem_name,
+
+            'floor_uids':floor_uids,
+            'room_uids_per_floor':room_uids_per_floor,
+            'elevator_uids':elevator_uids,
+
+            'cleaning_team_uids':cleaning_team_uids,
+            'names_room_positions':names_room_positions,
+
+            'sensor_room_mapping':sensor_room_mapping,
+            'actuator_room_mapping':actuator_room_mapping,
+
+            'actuator_increases_sensor_mapping_matrix':actuator_increases_sensor_mapping_matrix,
+            'actuator_decreases_sensor_mapping_matrix':actuator_decreases_sensor_mapping_matrix,
+
+            'sensor_initial_values':sensor_initial_values,
+            'sensor_goal_values':sensor_goal_values,
+            'actuator_initial_values':actuator_initial_values,
+
+            'room_ocupied_actuator_initial_values':room_ocupied_actuator_initial_values,
+            }
+
+def create():
+
+    input = query_input()
+
+    create_type_variables()
+    predicates_list = create_predicates_variables()
+
+    domain = create_domain(input['domain_name'], predicates_list)
 
     # create objects / constants
     all_objekts = []
 
-    rooms_per_floor = [2, 1]
-    number_floors = len(rooms_per_floor)
-    number_rooms = sum(rooms_per_floor)
-    number_cleaning_teams = 2
-    number_sensors = 2
-    number_actuators = 2
-    names_room_positions = ['overall_room', 'bed', 'closet', 'window']
-    
-    floors, rooms = create_objecs_room_topology(number_floors, number_rooms)
-    all_objekts = all_objekts + floors + rooms
+    floor_uids = input['floor_uids']
+    room_uids_per_floor = input['room_uids_per_floor']
+    elevator_uids = input['elevator_uids']
+    assert 1 <= len(elevator_uids)
 
-    cleaning_teams = create_objects(number_cleaning_teams, "cleaning_team")
+    sensor_room_mapping = input['sensor_room_mapping']
+    actuator_room_mapping = input['actuator_room_mapping']
+    cleaning_team_uids = input['cleaning_team_uids']
+    names_room_positions = input['names_room_positions']
+    
+    floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms = create_objecs_room_topology(floor_uids, room_uids_per_floor, elevator_uids)
+    all_objekts = all_objekts + floors + rooms + elevators
+
+    cleaning_teams = create_objects(cleaning_team_uids, "cleaning_team")
     all_objekts = all_objekts + cleaning_teams
 
-    sensors = create_objects(number_sensors, "numerical_s")
-    all_objekts = all_objekts + sensors
+    sensors, actuators, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators = create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_mapping, actuator_room_mapping)
+    all_objekts = all_objekts + sensors + actuators
 
-    actuators = create_objects(number_actuators, "actuator")
-    all_objekts = all_objekts + actuators
-
-    room_positions = create_objects(len(names_room_positions), "room_position")
+    room_positions = create_objects(names_room_positions, "room_position")
     all_objekts = all_objekts + room_positions
 
     # create initial state
     initial_state = []
     
-    initial_state_topology = create_initial_state_room_topology(floors, rooms, rooms_per_floor)
+    initial_state_topology = create_initial_state_room_topology(floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, elevators,)
     initial_state = initial_state + initial_state_topology
 
-    clean_starting_room = rooms[0]
-    for cleaning_team in cleaning_teams:
-        next_is_at = is_at(cleaning_team, clean_starting_room)
+    # cleaning teams starting at different elevators
+    for i in range(len(cleaning_teams)):
+        next_is_at = is_at(cleaning_teams[i], elevators[i % len(elevators)])
         initial_state.append(next_is_at)
 
     # iot to room papping
-    sensor_room = rooms[0]
-    for sensor_object in sensors:
-        print (sensor_object.type_tags)
-        print (sensor_room.type_tags)
-        next_part_of_room = sensor_is_part_of_room(sensor_object, sensor_room)
-        initial_state.append(next_part_of_room)
-
-    actuator_room = rooms[0]
-    for actuator_object in actuators:
-        next_part_of_room = actuator_is_part_of_room(actuator_object, actuator_room)
-        initial_state.append(next_part_of_room)
-
-    # sensor actuator mapping
-    for actuator_object in actuators:
-        for sensor_object in sensors:
-            if True:
-                next_influence = actuator_increases_sensor(actuator_object, sensor_object)
-                initial_state.append(next_influence)
-            if False:
-                next_influence = actuator_decreases_sensor(actuator_object, sensor_object)
-                initial_state.append(next_influence)
+    sm = create_iot_room_mapping(floor_uids, room_uids_per_floor, uid_to_pddl_variable_sensors, uid_to_pddl_variable_rooms, sensor_room_mapping, sensor_is_part_of_room)
+    initial_state = initial_state + sm
+    am = create_iot_room_mapping(floor_uids, room_uids_per_floor, uid_to_pddl_variable_actuators, uid_to_pddl_variable_rooms, actuator_room_mapping, actuator_is_part_of_room)
+    initial_state = initial_state + am
 
     # iot position mapping
+    # TODO
     room_positions_default = room_positions[0]
     for sensor_object in sensors:
         next_pos = positioned_at(sensor_object, room_positions_default)
@@ -543,52 +722,90 @@ def create():
         next_pos = positioned_at(actuator_object, room_positions_default)
         initial_state.append(next_pos)
 
+    # sensor actuator mapping
+    actuator_increases_sensor_mapping_matrix = input['actuator_increases_sensor_mapping_matrix']
+    actuator_decreases_sensor_mapping_matrix = input['actuator_decreases_sensor_mapping_matrix']
+
+    assert len(actuator_increases_sensor_mapping_matrix.keys()) <= len(actuators)
+    for _, sensor_list_mapping in actuator_increases_sensor_mapping_matrix.items():
+        assert len(sensor_list_mapping) <= len(sensors)
+    assert len(actuator_decreases_sensor_mapping_matrix.keys()) <= len(actuators)
+    for _, sensor_list_mapping in actuator_decreases_sensor_mapping_matrix.items():
+        assert len(sensor_list_mapping) <= len(sensors)
+
+    for a, s_list in actuator_increases_sensor_mapping_matrix.items():
+        for s in s_list:
+            next_influence = actuator_increases_sensor(uid_to_pddl_variable_actuators[a], uid_to_pddl_variable_sensors[s])
+            initial_state.append(next_influence)
+    for a, s_list in actuator_decreases_sensor_mapping_matrix.items():
+        for s in s_list:
+            next_influence = actuator_decreases_sensor(uid_to_pddl_variable_actuators[a], uid_to_pddl_variable_sensors[s])
+            initial_state.append(next_influence)
+
     # context
     # raw sensor data
-    
-    for sensor_object in sensors:
-        state = is_high(sensor_object)
-        initial_state.append(state)
+    sensor_initial_values = input['sensor_initial_values']
+    # TODO
+    sensor_goal_values = input['sensor_goal_values']
+    actuator_initial_values = input['actuator_initial_values']
 
-    for actuator_object in actuators:
-        state = is_activated(actuator_object)
-        initial_state.append(state)
+    individual_sensor_goals = []
 
-    #for room_o in rooms:
-    #    initial_state.append(base.Not(is_ocupied(room_o)))
-    #initial_state.append(base.Not(is_ocupied(rooms[0])))
-    initial_state.append(is_ocupied(rooms[1]))
+    assert len(sensor_initial_values) <= len(sensors)
+    assert len(sensor_goal_values) <= len(sensors)
+    assert len(actuator_initial_values) <= len(actuators)
+
+    initial_sensor_state = create_sensor_values(floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_initial_values)
+    initial_state = initial_state + initial_sensor_state
+
+    individual_sensor_goals = create_sensor_values(floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_goal_values)
+
+    for floor in floor_uids:
+        for room in room_uids_per_floor[floor]:
+            if room not in actuator_room_mapping:
+                continue
+            for a in actuator_room_mapping[room]:
+                actuator_object = uid_to_pddl_variable_actuators[a]
+                object_state = False
+                if a in actuator_initial_values:
+                    object_state = actuator_initial_values[a]
+
+                state = base.Not(is_activated(actuator_object))
+                if object_state:
+                    state = is_activated(actuator_object)
+                initial_state.append(state)
+
+    # context room ocupied
+    room_ocupied_actuator_initial_values = input['room_ocupied_actuator_initial_values']
+
+    assert len(room_ocupied_actuator_initial_values) <= len(rooms)
+
+    for floor in floor_uids:
+        for room in room_uids_per_floor[floor]:
+            object_state = room_ocupied_actuator_initial_values[room]
+            state = base.Not(is_ocupied(rooms[i]))
+            if object_state:
+                state = is_ocupied(rooms[i])
+            else:
+                state = base.Not(is_ocupied(rooms[i]))
+            initial_state.append(state)
 
 
     # create goal
     goal_state = None
-
-    goal_for_ocupied_rooms = None
-
-    if_case1 = base.And(base.Not(is_ocupied(room_type)))
-    then_clean_case = is_cleaned(room_type)
-    clean_unocupied_rooms = base.ForallCondition(base.Imply(if_case1, then_clean_case), [room_type])
-
-    if_case2 = base.And(base.Not(is_ocupied(room_type)), actuator_is_part_of_room(actuator_type, room_type))
-    then_turn_off_actuator = base.Not(is_activated(actuator_type))
-    actuator_off_unocupied_rooms = base.ForallCondition(base.Imply(if_case2, then_turn_off_actuator), [room_type, actuator_type])
-
-    envorce_checks = base.ForallCondition(fulfilled_activity(room_type, room_position_type), [room_type, room_position_type])
-
-    goal_state = base.And(clean_unocupied_rooms, actuator_off_unocupied_rooms, envorce_checks)
+    goal_state = create_goal()
 
     problem = Problem(
-        problem_name,
+        input['problem_name'],
         domain=domain,
         requirements=domain.requirements,
         
         objects=all_objekts,
         init=initial_state,
-        goal=is_cleaned(rooms[0])
-        #goal=goal_state
+        goal=goal_state
     )
     
-    print(problem)
+    #print(problem)
     return domain, problem
 
 def reading_in_pddl():
@@ -600,7 +817,15 @@ def reading_in_pddl():
     problem = parse_problem(problem_file_name)
     print(problem)
 
+def check_lib_versions():
+    import pddl
+    version_pddl = pddl.__version__
+    print(version_pddl)
+    # make sure that it is above 0.4.2
+
 def main():
+    check_lib_versions()
+
     domaine_file_name = 'test_domain.pddl'
     problem_file_name = 'test_problem.pddl'
 
