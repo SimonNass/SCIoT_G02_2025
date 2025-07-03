@@ -131,9 +131,9 @@ def _create_new_device(app_instance, device_id, sensor_type, room, floor_number,
             sensor_data_created = False
             if parsed_payload and sensor_type == 'sensor' and parsed_payload['last_value'] is not None:
                 try:
+                    latest_value = float(parsed_payload['last_value'])
                     create_device_type_config(app_instance, new_device.device_type, new_device.type_name, 
                                                       new_device.max_value, new_device.min_value, new_device.unit)
-                    latest_value = parsed_payload['last_value']
                     simplified_value = get_simplified_value(latest_value, new_device.device_type, new_device.type_name)
                     new_device.last_value = latest_value  # Update latest value in device object
                     new_device.last_value_simplified = simplified_value  # Update simplified value in device object
@@ -209,9 +209,9 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
                     # Create sensor data record if it's a sensor with a value
                     if sensor_type == 'sensor' and parsed_payload['last_value'] is not None:
                         try:
+                            latest_value = float(parsed_payload['last_value'])
                             create_device_type_config(app_instance, device_obj.device_type, device_obj.type_name, 
                                                       device_obj.max_value, device_obj.min_value, device_obj.unit)
-                            latest_value = parsed_payload['last_value']
                             simplified_value = get_simplified_value(latest_value, device_obj.device_type, device_obj.type_name)
                             device_obj.last_value = latest_value  # Update latest value in device object
                             device_obj.last_value_simplified = simplified_value  # Update simplified value in device object

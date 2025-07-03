@@ -72,7 +72,7 @@ class Device(db.Model):
     max_value: Mapped[Optional[float]] = mapped_column(Float)
     datatype: Mapped[Optional[str]] = mapped_column(String(50))
     unit: Mapped[Optional[str]] = mapped_column(String(20))
-    last_value: Mapped[Optional[float]] = mapped_column(Text)
+    last_value: Mapped[Optional[str]] = mapped_column(Text)
 
     # Sensor-specific fields
     read_interval: Mapped[Optional[int]] = mapped_column(Integer)
