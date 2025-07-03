@@ -15,7 +15,7 @@
 - [X] Communication backend->gateway (MQTT)
 - [x] Making motor work
 - [ ] Gateway
-  - [ ] (Simon) sensor dictionary send in utf 8
+  - [X] (Simon) sensor dictionary send in utf 8
   - [ ] (Simon) send bool acxtuator is off or on in gateway info
   - [ ] (Simon) disable sensors ?
   - [ ] (Simon) update random number generator manual list
@@ -49,7 +49,8 @@
 - [x] Simulation
   - [x] Decide on simulator (needs to provide data via MQTT)
 
-- [] Bugs - [ ] (Simon, Maximilian) Bug: "°C", degree Symbol not being parsed correctly in mqtt incoming message -> May need to be parsed on the frontend
+- [] Bugs 
+  - [ ] (Simon, Maximilian) Bug: "°C", degree Symbol not being parsed correctly in mqtt incoming message -> May need to be parsed on the frontend -> solvet on gateway?
 
 # AI planing tools
 

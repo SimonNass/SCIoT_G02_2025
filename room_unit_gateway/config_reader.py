@@ -9,7 +9,7 @@ import object_factory
 def read_config(config_file_name):
     print (f"reading in {config_file_name}", flush=True)
     config = configparser.ConfigParser(interpolation=None)
-    config.read(config_file_name)
+    config.read(config_file_name, encoding='utf-8')
     #config.read('config.ini')
 
     #print ("reading in general", flush=True)
