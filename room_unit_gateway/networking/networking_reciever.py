@@ -11,6 +11,18 @@ class GatewayNetworkReciever:
     def __init__(self, actuators: List[ActuatorInterface]):
         self.actuators = actuators
 
+    def find_actuator(self, device_uuid):
+        try:
+            #select the actuator based on uuid
+            specified_actuator = self.actuators[0]
+            for a in self.actuators:
+                if str(a.id) != device_uuid:
+                    continue
+                specified_actuator = a
+            return specified_actuator
+        except Exception as e:
+            logger.error(f"Can not find actuator with uuid {device_uuid} {e}")
+
     def recv_messages(self, topic, payload):
         try:
             hotel_prefix, floor_id, room_id, iot_type, device_uuid, comand = topic.split('/')
@@ -24,11 +36,7 @@ class GatewayNetworkReciever:
                 return
             
             #select the actuator based on uuid
-            specified_actuator = self.actuators[0]
-            for a in self.actuators:
-                if str(a.id) != device_uuid:
-                    continue
-                specified_actuator = a
+            specified_actuator = self.find_actuator(device_uuid)
 
             # write new value
             specified_actuator.write_actuator(new_value)
