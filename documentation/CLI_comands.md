@@ -1,1 +1,1 @@
-pyreverse -o pdf --all-associated --all-ancestors .
+.\room_unit_gateway_code_docu.bat
