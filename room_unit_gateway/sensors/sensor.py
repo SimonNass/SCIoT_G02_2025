@@ -111,17 +111,26 @@ class VirtualSensor(SensorInterface):
         if connector_types != Connectortype.Virtual:
             raise ValueError("connector_type is not Digital.")
         super().__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
+        self.rng_selector = 5
         _ = self.read_sensor()
 
     def read_internal_sensor(self):
-        #return rng.constant(
-        #    last_value=self.last_value, 
-        #    min_value=self.min_value, 
-        #    max_value=self.max_value)
+        if self.rng_selector == 0:
+            return rng.constant(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value)
+        elif self.rng_selector == 1:
+            return rng.simple_random(min_value=self.min_value, max_value=self.max_value)
+        elif self.rng_selector == 2:
+            return rng.binary_random()
+        elif self.rng_selector == 3:
+            return rng.complex_random(min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision)
+        elif self.rng_selector == 4:
+            # TODO rebounce
+            return rng.bounce_random(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision, alpha=0.5)
+        elif self.rng_selector == 5:
+            return rng.random_value(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision, alpha=0.5)
+        elif self.rng_selector == 6:
+            # TODO seed and index hop
+            return rng.predefined_sequence(min_value=self.min_value, max_value=self.max_value, seed=0, index=0)
+        # defoult
+        return rng.random_value(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision, alpha=0.5)
     
-        return rng.random_value(
-            last_value=self.last_value, 
-            min_value=self.min_value, 
-            max_value=self.max_value,
-            precision= self.notify_change_precision,
-            alpha=0.5)

@@ -3,6 +3,11 @@ import numpy as np
 def constant(last_value: float = 0.5, min_value: float = 0, max_value: float = 1):
     return min(max(last_value,min_value),max_value)
 
+def binary_random():
+    random_change = np.random.random()
+    result = 1 if random_change > 0.5 else 0
+    return result
+
 def simple_random(min_value: float = 0, max_value: float = 1):
     random_change = np.random.random()
     result = min_value + (max_value - min_value) * random_change
@@ -40,8 +45,4 @@ def predefined_sequence(min_value: float = 0, max_value: float = 1, seed: int = 
     chosen_sequence = sequence[seed % len(sequence)]
     random_change = chosen_sequence[index % len(chosen_sequence)]
     result = min_value + (max_value - min_value) * random_change
-    return min(max(result,min_value),max_value)
-
-def random_value_actuator_influence(last_value: float = 0.5, min_value: float = 0, max_value: float = 1, precision: float = 0.2, alpha: float = 0.5, actuator_influence: float = 0):
-    result = random_value(last_value,min_value,max_value,precision,alpha) + actuator_influence
     return min(max(result,min_value),max_value)
