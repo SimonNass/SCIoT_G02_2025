@@ -27,8 +27,8 @@ void setup() {
   SPI.begin();
   mfrc522.PCD_Init();
   delay(15);
-  mfrc522.PCD_DumpVersionToSerial();
-  if (mfrc522.PCD_PerformSelfTest()) Serial.println("Passed Self-Test");
+  //mfrc522.PCD_DumpVersionToSerial();
+  //if (mfrc522.PCD_PerformSelfTest()) Serial.println("Passed Self-Test");
 
   // servo motor
   servo.attach(servo_pin); // attaches the servo on pin 9 to the servo object

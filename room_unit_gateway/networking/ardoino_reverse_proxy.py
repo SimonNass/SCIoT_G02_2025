@@ -42,11 +42,20 @@ class ArdoinoReverseProxy():
             #print("Request > {} \n".format(request_str))
             self.ardoino_serial.write(request_str.encode('UTF-8'))
             time.sleep(1)
-            data = b'Start'
-            while (str(remove_line_ending(data.decode('utf-8'))) !=(str(self.message_end_signal))):
-                data = self.ardoino_serial.readline()
-                print (str(remove_line_ending(data.decode('utf-8'))))
-            return 0
+            data_line = b'Start'
+            data = ''
+            while (str(remove_line_ending(data_line.decode('utf-8'))) !=(str(self.message_end_signal))):
+                data_line = self.ardoino_serial.readline()
+                data = data + remove_line_ending(data_line.decode('utf-8'))
+            data = data.replace(str(self.message_end_signal),'')
+            if ':' in data:
+                data = data.split(':')[1]
+                data = data.replace(' ','')
+            else:
+                data = '-1'
+            data = float(remove_line_ending(data))
+            #print (data)
+            return data
         except (Exception, KeyboardInterrupt) as e:
             print("Stopping")
             print(e)

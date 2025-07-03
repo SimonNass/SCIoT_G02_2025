@@ -46,7 +46,7 @@ class MQTTEndpoint:
         except Exception as e:
             print ("MQTT Connection unable to establisch.")
             #print (e)
-            logger.error("MQTT Connection unable to establisch. {}".format(e))
+            logger.error(f"MQTT Connection unable to establisch. {e}")
 
     def send(self, topic: str, message: str):
         if not self.is_connected():
@@ -79,7 +79,7 @@ def recv(gateway: GatewayNetworkReciever, topic_prefix: str):
                 logger.error(f"Recieved message from wrong topic prefix {topic}")
                 return
             if 'GET' not in topic and 'UPDATE' not in topic:
-                logger.error(f"Recieved message from wrong topic prefix {topic}")
+                logger.info(f"Recieved message from wrong topic prefix {topic}")
                 return
             
             payload = msg.payload.decode('utf-8')
