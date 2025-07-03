@@ -12,7 +12,7 @@
 ## Meeting 01.07
 
 - [x] Communication gateway -> backend (MQTT)
-- [X] Communication backend->gateway (MQTT)
+- [x] Communication backend->gateway (MQTT)
 - [x] Making motor work
 - [ ] Gateway
   - [X] (Simon) sensor dictionary send in utf 8
@@ -20,6 +20,7 @@
   - [ ] (Simon) send after actuator change
   - [ ] (Simon) disable sensors ?
   - [ ] (Simon) update random number generator manual list
+  - [ ] bug when broker not connected
 
 - [ ] AI Planning
   - [x] Overarching Goals
@@ -37,9 +38,9 @@
 - [ ] backend
   - [ ] Needed Backend Endpoints
   - [ ] (Maximilian) provide actuator active/inactive value (need value from frontend)
-  - [ ] (Maximilian) Set room occupancy endpoint
-  - [ ] (Maximilian) Get Config values
-  - [ ] (Maximilian) Set Config values
+  - [x] (Maximilian) Set room occupancy endpoint
+  - [x] (Maximilian) Get Config values
+  - [x] (Maximilian) Set Config values
   - [ ] (Maximilian) Start AI Planning for list of rooms (check with database values and thresholds to create problem)
   - [x] Endpoint to change any actuator value
   - [ ] (Maximilian) Add lastest values as normal and simplified value to list_devices_in_room

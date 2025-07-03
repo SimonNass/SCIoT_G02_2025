@@ -39,7 +39,7 @@ class Room(db.Model):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
     # Foreign key to Floor
-    floor_id: Mapped[int] = mapped_column(ForeignKey("floors.id"), nullable=False)
+    floor_id: Mapped[str] = mapped_column(ForeignKey("floors.id"), nullable=False)
     
     # Relationships
     floor: Mapped["Floor"] = relationship(back_populates="rooms")
@@ -85,7 +85,10 @@ class Device(db.Model):
     off_value: Mapped[Optional[str]] = mapped_column(String(100))
     
     # Foreign key to Room
-    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id"), nullable=False)
+    room_id: Mapped[str] = mapped_column(ForeignKey("rooms.id"), nullable=False)
+    
+    # Foreign key to TypeNameConfig
+    type_name_config_id: Mapped[Optional[str]] = mapped_column(ForeignKey("type_name_configs.id"))
     
     # Relationship
     room: Mapped["Room"] = relationship(back_populates="devices")
@@ -95,7 +98,7 @@ class Device(db.Model):
         order_by="SensorData.timestamp.desc()"
     )
     device_type_config: Mapped[Optional["TypeNameConfig"]] = relationship( 
-        back_populates="devices", 
+        back_populates="devices"
     )
     
     # Todo: Add PDDL info need to know which actuator can influence which sensor
@@ -121,6 +124,7 @@ class SensorData(db.Model):
     
 class TypeNameConfig(db.Model):
     """Stores lower-mid and upper-mid limits for each device type to enable dynamic determination of simiplified values"""
+    __tablename__ = 'type_name_configs'
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     device_type: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g., 'sensor', 'actuator'

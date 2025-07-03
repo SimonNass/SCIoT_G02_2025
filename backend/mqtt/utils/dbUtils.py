@@ -129,12 +129,12 @@ def _create_new_device(app_instance, device_id, sensor_type, room, floor_number,
             
             # Create sensor data record if we have valid payload and it's a sensor
             sensor_data_created = False
-            if parsed_payload and sensor_type == 'sensor' and parsed_payload.get('last_value') is not None:
+            if parsed_payload and sensor_type == 'sensor' and parsed_payload['last_value'] is not None:
                 try:
+                    latest_value = float(parsed_payload['last_value'])
                     create_device_type_config(app_instance, new_device.device_type, new_device.type_name, 
                                                       new_device.max_value, new_device.min_value, new_device.unit)
-                    latest_value = parsed_payload['last_value']
-                    simplified_value = get_simplified_value(latest_value, new_device.device_type, new_device.type_name, new_device.unit)
+                    simplified_value = get_simplified_value(latest_value, new_device.device_type, new_device.type_name)
                     new_device.last_value = latest_value  # Update latest value in device object
                     new_device.last_value_simplified = simplified_value  # Update simplified value in device object
                     sensor_data = models.SensorData(
@@ -207,12 +207,12 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
                     _update_device_from_payload(device_obj, parsed_payload)
                     
                     # Create sensor data record if it's a sensor with a value
-                    if sensor_type == 'sensor' and parsed_payload.get('last_value') is not None:
+                    if sensor_type == 'sensor' and parsed_payload['last_value'] is not None:
                         try:
+                            latest_value = float(parsed_payload['last_value'])
                             create_device_type_config(app_instance, device_obj.device_type, device_obj.type_name, 
                                                       device_obj.max_value, device_obj.min_value, device_obj.unit)
-                            latest_value = parsed_payload['last_value']
-                            simplified_value = get_simplified_value(latest_value, device_obj.device_type, device_obj.type_name, device_obj.unit)
+                            simplified_value = get_simplified_value(latest_value, device_obj.device_type, device_obj.type_name)
                             device_obj.last_value = latest_value  # Update latest value in device object
                             device_obj.last_value_simplified = simplified_value  # Update simplified value in device object
                             sensor_data = models.SensorData(
@@ -380,7 +380,7 @@ def create_device_type_config(app_instance, device_type, type_name, max_value, m
         db.session.rollback()
         raise
 
-def get_simplified_value(value: float, device_type: str, type_name) -> str:
+def get_simplified_value(value: float, device_type: str, type_name: str) -> str:
     """
     Get simplified value from device type configuration.
     Args:
@@ -389,7 +389,8 @@ def get_simplified_value(value: float, device_type: str, type_name) -> str:
     Returns:
         str: The simplified value as a string.
     """      
-    try: 
+    try:
+        value = float(value) 
         device_type_config = models.TypeNameConfig.query.filter_by(device_type=device_type, type_name=type_name).first()
         if not device_type_config:
             logging.error(f"Device type config for {device_type} and {type_name} not found")
