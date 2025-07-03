@@ -21,6 +21,8 @@
   - [ ] (Simon) disable sensors ?
   - [ ] (Simon) update random number generator manual list
   - [ ] bug when broker not connected
+  - [ ] ardoino sensor return prefix needs to be removed
+  - [ ] send ardoino values not 0 to mqtt broker
 
 - [ ] AI Planning
   - [x] Overarching Goals

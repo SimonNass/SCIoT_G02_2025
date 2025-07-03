@@ -41,3 +41,4 @@ sudo docker build --tag 'room-pi' -f pi.Dockerfile .
 sudo docker run --privileged --network host room-pi
 sudo docker stop $(sudo docker ps -a -q)
 docker system prune
+http://127.0.0.1:81/health
