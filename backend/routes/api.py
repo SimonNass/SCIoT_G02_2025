@@ -240,7 +240,7 @@ def list_rooms_for_floor(floor_number):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@api.route('/floors/<int:floor_number>/rooms/<string:room_number>/occupancy', methods=['POST'])
+@api.route('/floors/<int:floor_number>/rooms/<string:room_number>/occupancy/set', methods=['POST'])
 @require_api_key
 def set_room_occupancy(floor_number, room_number):
     """
@@ -284,7 +284,7 @@ def set_room_occupancy(floor_number, room_number):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@api.route('/rooms/occupancy/list', methods=['POST'])   
+@api.route('/rooms/occupancy/list/set', methods=['POST'])   
 @require_api_key
 def bulk_update_room_occupancy():
     """
@@ -388,6 +388,8 @@ def list_devices_in_room(floor_number, room_number):
                'name': device.name,
                'device_type': device.device_type,
                'description': device.description,
+               'min_value': device.min_value,
+               'max_value': device.max_value,
                'is_online': device.is_online,
                'last_seen': device.last_seen.isoformat() if device.last_seen else None,
                'created_at': device.created_at.isoformat(),
@@ -541,8 +543,8 @@ def list_type_name_configs():
                 'type_name': config.type_name,
                 'min_value': config.min_value,
                 'max_value': config.max_value,
-                'lower_mid': config.lower_mid,
-                'upper_mid': config.upper_mid,
+                'lower_mid_limit': config.lower_mid_limit,
+                'upper_mid_limit': config.upper_mid_limit,
                 'unit': config.unit,
             }
             result.append(config_data)
@@ -565,8 +567,8 @@ def set_type_name_configs():
     {
         "device_type": "sensor",
         "type_name": "temperature",
-        "lower_mid": 20.0,
-        "upper_mid": 80.0,
+        "lower_mid_limit": 20.0,
+        "upper_mid_limit": 80.0,
     }
     
     """
@@ -577,10 +579,10 @@ def set_type_name_configs():
 
         device_type = data.get('device_type')
         type_name = data.get('type_name')
-        lower_mid = data.get('lower_mid')
-        upper_mid = data.get('upper_mid')
+        lower_mid_limit = data.get('lower_mid_limit')
+        upper_mid_limit = data.get('upper_mid_limit')
 
-        if not device_type or not type_name or lower_mid is None or upper_mid is None:
+        if not device_type or not type_name or lower_mid_limit is None or upper_mid_limit is None:
             return jsonify({'error': 'All fields are required'}), 400
 
         # Update the config in the database
@@ -588,8 +590,8 @@ def set_type_name_configs():
         if not config:
             return jsonify({'error': 'Config not found'}), 404
 
-        config.lower_mid = lower_mid
-        config.upper_mid = upper_mid
+        config.lower_mid_limit = lower_mid_limit
+        config.upper_mid_limit = upper_mid_limit
         db.session.commit()
 
         return jsonify({'message': 'Config updated successfully'}), 200

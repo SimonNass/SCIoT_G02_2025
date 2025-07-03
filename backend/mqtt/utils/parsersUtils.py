@@ -110,7 +110,7 @@ def parse_device_payload(payload, device_type):
             'max_value': float(data.get('max')) if data.get('max') is not None else None,
             'datatype': data.get('datatype'),
             'unit': data.get('unit'),
-            'last_value': str(data.get('last_value')) if data.get('last_value') is not None else None,
+            'last_value': float(data.get('last_value')) if data.get('last_value') is not None else None,
         }
         
         # Extract device-specific fields

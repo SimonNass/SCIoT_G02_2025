@@ -18,7 +18,7 @@
 ## Meeting 27.05
 
 - [x] Communication gateway -> backend (MQTT)
-- [ ] Communication backend->gateway (MQTT)
+- [x] Communication backend->gateway (MQTT)
 - [x] Making motor work
 - [ ] AI Planning
   - [x] Overarching Goals
@@ -26,11 +26,11 @@
   - [x] First attempts at lecture implementation
 - [ ] Frontend
 
-  - [ ] Needed Backend Endpoints
+- [ ] Needed Backend Endpoints
   - [ ] (Maximilian) provide actuator active/inactive value (need value from frontend)
-  - [ ] (Maximilian) Set room occupancy endpoint
-  - [ ] (Maximilian) Get Config values
-  - [ ] (Maximilian) Set Config values
+  - [x] (Maximilian) Set room occupancy endpoint
+  - [x] (Maximilian) Get Config values
+  - [x] (Maximilian) Set Config values
   - [ ] (Maximilian) Start AI Planning for list of rooms (check with database values and thresholds to create problem)
   - [x] Endpoint to change any actuator value
   - [ ] (Maximilian) Add lastest values as normal and simplified value to list_devices_in_room
@@ -41,7 +41,8 @@
 
   - [x] Decide on simulator (needs to provide data via MQTT)
 
-- [] Bugs - [ ] (Simon, Maximilian) Bug: "°C", degree Symbol not being parsed correctly in mqtt incoming message -> May need to be parsed on the frontend
+- [ ] Bugs 
+  - [ ] (Simon, Maximilian) Bug: "°C", degree Symbol not being parsed correctly in mqtt incoming message -> May need to be parsed on the frontend
 
 ai planing tools
 
