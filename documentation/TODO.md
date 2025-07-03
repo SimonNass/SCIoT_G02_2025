@@ -18,6 +18,7 @@
   - (Simon) [] sensor dictionary send in utf 8
   - [ ] send bool acxtuator is off or on in gateway info
   - [ ] disable sensors ?
+  - [ ] update random number generator manual list
 
 - [ ] AI Planning
   - [x] Overarching Goals
