@@ -129,7 +129,6 @@ def _create_new_device(app_instance, device_id, sensor_type, room, floor_number,
             
             # Create sensor data record if we have valid payload and it's a sensor
             sensor_data_created = False
-            logging.warning(f"Last_Value: {parsed_payload['last_value']}")
             if parsed_payload and sensor_type == 'sensor' and parsed_payload['last_value'] is not None:
                 try:
                     create_device_type_config(app_instance, new_device.device_type, new_device.type_name, 
@@ -208,7 +207,6 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
                     _update_device_from_payload(device_obj, parsed_payload)
                     
                     # Create sensor data record if it's a sensor with a value
-                    logging.warning(f"Last_Value: {parsed_payload['last_value']}")
                     if sensor_type == 'sensor' and parsed_payload['last_value'] is not None:
                         try:
                             create_device_type_config(app_instance, device_obj.device_type, device_obj.type_name, 
