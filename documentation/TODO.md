@@ -16,7 +16,7 @@
 - [x] Making motor work
 - [ ] Gateway
   - [X] (Simon) sensor dictionary send in utf 8
-  - [X] (Simon) send bool acxtuator is off or on in gateway info
+  - [X] (Simon) send bool actuator is off or on in gateway info
   - [ ] (Simon) send after actuator change
   - [ ] (Simon) disable sensors ?
   - [ ] (Simon) update random number generator manual list
@@ -28,6 +28,7 @@
   - [x] First attempts at lecture implementation
   - [ ] (Simon) plan cleaning and do not plan cleaning toggle
   - [ ] (Simon) mapping in pddl a -> s
+  - [ ] (Maximilian, Simon) Sensor aggregation
 
 - [ ] Frontend
  - [ ] actuators off or on

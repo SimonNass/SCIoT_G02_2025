@@ -1,0 +1,1 @@
+pyreverse -o pdf --all-associated --all-ancestors .
