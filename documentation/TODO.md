@@ -15,18 +15,18 @@
 - [X] Communication backend->gateway (MQTT)
 - [x] Making motor work
 - [ ] Gateway
-  - (Simon) [] sensor dictionary send in utf 8
-  - [ ] send bool acxtuator is off or on in gateway info
-  - [ ] disable sensors ?
-  - [ ] update random number generator manual list
+  - [ ] (Simon) sensor dictionary send in utf 8
+  - [ ] (Simon) send bool acxtuator is off or on in gateway info
+  - [ ] (Simon) disable sensors ?
+  - [ ] (Simon) update random number generator manual list
 
 - [ ] AI Planning
   - [x] Overarching Goals
-  - [ ] Conversion of DB values to context to inital state
-  - [ ] Activity recognition
+  - [ ] (Simon) Conversion of DB values to context to inital state
+  - [ ] (Simon) Activity recognition
   - [x] First attempts at lecture implementation
-  - [plan cleaning and do not plan cleaning toggle]
-  - [ ] mapping in pddl a -> s
+  - [ ] (Simon) plan cleaning and do not plan cleaning toggle
+  - [ ] (Simon) mapping in pddl a -> s
 
 - [ ] Frontend
  - [ ] actuators off or on
