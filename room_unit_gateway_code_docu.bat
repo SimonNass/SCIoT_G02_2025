@@ -7,4 +7,15 @@ pylint --disable=missing-module-docstring ^
  --disable=invalid-name ^
  --disable=line-too-long ^
  --disable=trailing-whitespace ^
+ --disable=trailing-newlines ^
+ --disable=missing-final-newline ^
+ --disable=consider-using-f-string ^
+ --disable=logging-fstring-interpolation ^
+ --disable=logging-format-interpolation ^
+ --disable=logging-not-lazy ^
+ --disable=wrong-import-position ^
+ --disable=broad-exception-caught ^
+ --disable=fixme ^
+ --disable=wrong-import-order ^
+ --disable=import-error ^
  %mypath%\room_unit_gateway\

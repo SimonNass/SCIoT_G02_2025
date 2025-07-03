@@ -1,6 +1,13 @@
+import sys
+import time
+import numpy as np
 from typing import List
 import logging
 logger = logging.getLogger(__name__)
+try:
+    import grovepi
+except ImportError:
+    grovepi = None
 
 from networking.networking_domain import GatewayNetwork
 from sensors.sensor import SensorInterface
@@ -42,3 +49,54 @@ def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface
                 network_connection.send_all_data_sensor(sensor,True)
             text = f"{sensor.name}: {str(read_dict['last_value'])}"
             write_all_displays(displays, text)
+
+def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork, virtual_environment: Virtual_environment, max_cycle_time: int = 100):
+    logger.info("max_cycle_time: " + str(max_cycle_time))
+    print ("", flush=True)
+    send_sensors(sensors,network_connection)
+    send_actuators(actuators,network_connection)
+    cycle = 0
+    want_to_exit = False
+    while not want_to_exit:
+        print ("", flush=True)
+        try:
+
+            #read_all_sensors(sensors)
+            #write_all_actuators(actuators, cycle % 2)
+            #write_all_displays(actuators,"12345678910131517192123252729313335")
+            #read_all_actuators(actuators)
+            cyclic_read(sensors,actuators,cycle,network_connection)
+
+            # Reset
+            if cycle > max_cycle_time:
+                cycle = 0
+                send_sensors(sensors,network_connection)
+                send_actuators(actuators,network_connection)
+
+            # Increment
+            virtual_environment.performe_environment_step()
+            cycle = cycle + 1
+            #want_to_exit = True
+            time.sleep(1)
+
+        except KeyboardInterrupt:
+            want_to_exit = True
+            break
+        except (IOError,TypeError) as e:
+            print ("Error")
+            #print (e)
+            logger.error(e)
+            want_to_exit = True
+
+def system_info():
+    print (sys.version)
+    #print (sys.version_info)
+    logger.info(sys.version)
+    logger.info(sys.version_info)
+    try:
+        #print ("grovepi version: " + str(grovepi.version()))
+        logger.info(f"grovepi version: {str(grovepi.version())}")
+    except AttributeError:
+        pass
+    #print ("numpy version:" + str(np.version.version))
+    logger.info(f"numpy version: {str(np.version.version)}")

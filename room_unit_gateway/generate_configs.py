@@ -81,7 +81,7 @@ def make_config(floor_id: int, room_id: int):
     content = COMMON_HEADER_GENERAL + COMMON_HEADER_MQTT + COMMON_HEADER_ARDOINO + header + sensors_section + actuators_section
     filename = f"config_room_f{floor_id}_r{room_id}.ini"
     path = os.path.join(BASE_DIR, filename)
-    with open(path, "w") as f:
+    with open(path, "w", encoding='UTF-8') as f:
         f.write(content)
         print(f"Generated {filename}")
     #print(f"Generated {filename}")

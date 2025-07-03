@@ -118,4 +118,3 @@ class Virtual_environment():
 
             self.mapping_values.update({(actuator_name,sensor_name):dictionary})
             self.active_influences.update({(actuator_name,sensor_name):{'cycle':0, 'amount':0}})
-
