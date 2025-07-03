@@ -69,7 +69,7 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
         except (IOError,TypeError) as e:
             print ("Error")
             #print (e)
-            logger.info(e)
+            logger.error(e)
             want_to_exit = True
 
 def main():
@@ -86,7 +86,7 @@ def main():
         print ("Error CLI arguments incorrect")
         print("Usage: python main.py <config_folder>/<config_file.ini> <mqtt_password>")
         print (sys.argv)
-        logger.info("Error CLI arguments incorrect {}".format(sys.argv))
+        logger.warning("Error CLI arguments incorrect {}".format(sys.argv))
         sys.exit(1)
 
     config_file_name = str(sys.argv[1])
@@ -100,7 +100,7 @@ def main():
     except Exception as e:
         print ("Reading config file {} was not succesfull {}".format(config_file_name,config_values))
         print (e, flush=True)
-        logger.info("Reading config file {} was not succesfull {}, {}".format(config_file_name,config_values, e))
+        logger.error("Reading config file {} was not succesfull {}, {}".format(config_file_name,config_values, e))
 
     max_cycle_time = 100
     sensors = []
@@ -128,7 +128,7 @@ def main():
     except Exception as e:
         print ("Reading config_values {} was not succesfull {}".format(config_file_name,config_values))
         print (e, flush=True)
-        logger.info("Reading config_values {} was not succesfull {}, {}".format(config_file_name,config_values, e))
+        logger.error("Reading config_values {} was not succesfull {}, {}".format(config_file_name,config_values, e))
 
     gateway_network = None
     try:
@@ -145,7 +145,7 @@ def main():
     except Exception as e:
         print ("MQTT broker not connected.")
         print (e, flush=True)
-        logger.info("MQTT broker not connected. {}".format(e))
+        logger.error("MQTT broker not connected. {}".format(e))
     
     virtual_environment = None
     try:
@@ -157,7 +157,7 @@ def main():
     except Exception as e:
         print ("virtual_environment not initialised.")
         print (e, flush=True)
-        logger.info("virtual_environment not initialised. {}".format(e))
+        logger.error("virtual_environment not initialised. {}".format(e))
 
     logger.info(f"Starting execution cycle for floor {floor_id}, room {room_id}")
     execution_cycle(sensors,actuators,gateway_network, virtual_environment, max_cycle_time)
