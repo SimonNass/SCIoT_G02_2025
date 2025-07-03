@@ -43,5 +43,5 @@ class GatewayNetworkReciever:
         except Exception as e:
             print ("Answer failed.")
             #print (e)
-            logger.error("Answer failed {}".format(e))
+            logger.error(f"Answer failed {e}")
 

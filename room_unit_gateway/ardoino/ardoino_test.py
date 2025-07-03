@@ -16,7 +16,7 @@ def find_serial_port():
 def remote_call(ardoino_serial: serial, message_end_signal: str, type_name: str, value):
     try:
         request_str = str(type_name).encode() + b':' + str(value).encode() + b'\n'
-        #print("Request > {} \n".format(request_str))
+        #print(f"Request > {request_str} \n")
         ardoino_serial.write(request_str)
         time.sleep(1)
         data = b'Start'

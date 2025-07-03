@@ -114,7 +114,7 @@ class Virtual_environment():
                 }
             except Exception as e:
                 print (e, flush=True)
-                logger.error("{}".format(e))
+                logger.error(f"{e}")
 
             self.mapping_values.update({(actuator_name,sensor_name):dictionary})
             self.active_influences.update({(actuator_name,sensor_name):{'cycle':0, 'amount':0}})

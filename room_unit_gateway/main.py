@@ -86,7 +86,7 @@ def main():
         print ("Error CLI arguments incorrect")
         print("Usage: python main.py <config_folder>/<config_file.ini> <mqtt_password>")
         print (sys.argv)
-        logger.warning("Error CLI arguments incorrect {}".format(sys.argv))
+        logger.warning(f"Error CLI arguments incorrect {sys.argv}")
         sys.exit(1)
 
     config_file_name = str(sys.argv[1])
@@ -98,9 +98,9 @@ def main():
     try:
         config_values = config_reader.read_config(config_file_name)
     except Exception as e:
-        print ("Reading config file {} was not succesfull {}".format(config_file_name,config_values))
+        print (f"Reading config file {config_file_name} was not succesfull {config_values}")
         print (e, flush=True)
-        logger.error("Reading config file {} was not succesfull {}, {}".format(config_file_name,config_values, e))
+        logger.error(f"Reading config file {config_file_name} was not succesfull {config_values}, {e}")
 
     max_cycle_time = 100
     sensors = []
@@ -126,9 +126,9 @@ def main():
         ardoino_serial = str(config_values['ardoino_serial'])
         virtual_enfironment_list = config_values['virtual_enfironment_list']
     except Exception as e:
-        print ("Reading config_values {} was not succesfull {}".format(config_file_name,config_values))
+        print (f"Reading config_values {config_file_name} was not succesfull {config_values}")
         print (e, flush=True)
-        logger.error("Reading config_values {} was not succesfull {}, {}".format(config_file_name,config_values, e))
+        logger.error(f"Reading config_values {config_file_name} was not succesfull {config_values}, {e}")
 
     gateway_network = None
     try:
@@ -145,7 +145,7 @@ def main():
     except Exception as e:
         print ("MQTT broker not connected.")
         print (e, flush=True)
-        logger.error("MQTT broker not connected. {}".format(e))
+        logger.error(f"MQTT broker not connected. {e}")
     
     virtual_environment = None
     try:
@@ -157,11 +157,11 @@ def main():
     except Exception as e:
         print ("virtual_environment not initialised.")
         print (e, flush=True)
-        logger.error("virtual_environment not initialised. {}".format(e))
+        logger.error(f"virtual_environment not initialised. {e}")
 
     logger.info(f"Starting execution cycle for floor {floor_id}, room {room_id}")
     execution_cycle(sensors,actuators,gateway_network, virtual_environment, max_cycle_time)
-    logger.info(f"Execution cycle ended.")
+    logger.info("Execution cycle ended.")
 
     del ardoino_serial
     for sensor in sensors:

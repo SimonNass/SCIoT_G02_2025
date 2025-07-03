@@ -40,5 +40,5 @@ def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface
             read_dict = sensor.read_sensor()
             if abs(old_value - sensor.last_value) >= sensor.notify_change_precision:
                 network_connection.send_all_data_sensor(sensor,True)
-            text = "{}: {}".format(sensor.name,str(read_dict["last_value"]))
+            text = f"{sensor.name}: {str(read_dict["last_value"])}"
             write_all_displays(displays, text)

@@ -23,13 +23,13 @@ class GatewayNetwork:
             read_dict = sensor.read_sensor()
         else:
             read_dict = sensor.__dict__()
-        topic = 'sensor/{}/all'.format(str(sensor.id))
+        topic = f'sensor/{str(sensor.id)}/all'
         text = json.dumps(read_dict, ensure_ascii=False).encode('utf8')
         #print(text)
         self.publisher.send(topic,text)
 
     def send_all_data_actuator(self, actuator: ActuatorInterface):
-        topic = 'actuator/{}/all'.format(str(actuator.id))
+        topic = f'actuator/{str(actuator.id)}/all'
         text = json.dumps(actuator.__dict__(), ensure_ascii=False).encode('utf8')
         #print(text)
         self.publisher.send(topic,text)
