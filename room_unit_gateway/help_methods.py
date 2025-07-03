@@ -13,6 +13,7 @@ from networking.networking_domain import GatewayNetwork
 from sensors.sensor import SensorInterface
 from actuators.actuator import ActuatorInterface
 from enumdef import Connectortype
+from virtual_environment import Virtual_environment
 
 def read_all_sensors(sensors: List[SensorInterface]):
     for sensor in sensors:
