@@ -15,6 +15,7 @@ python-dotenv==1.0.0
 
 # Utilities
 Werkzeug==2.3.7
+requests>=2.25.0
 
 # Cron
 apscheduler==3.11.0

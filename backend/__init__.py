@@ -5,6 +5,7 @@ from backend.config import Config
 from backend.extensions import db
 from backend.mqtt.mqtt_client import start_mqtt_client
 from backend.routes import register_routes
+from backend.services.pddl_service import PDDLPlannerService, create_sample_planning_routes
 # Necessary s.t. create_all() knows what models to create
 from backend.models import models
 from backend.cron.deviceCron import start_scheduler
@@ -26,10 +27,20 @@ def create_app(config_class=Config):
         with app.app_context():
             # Only creates new tables if they don't already exist
             db.create_all()
+
+            # Initialize PDDL Planning Service
+            planner_url = app.config.get('PLANNER_SERVICE_URL')
+            planner_service = PDDLPlannerService(planner_url=planner_url)
+            app.planner_service = planner_service
     except Exception as e:
         app.logger.error(f"Error initializing database: {e}")
     
+    # Register routes
     register_routes(app)
+    
+    # Register planning routes
+    if hasattr(app, 'planner_service'):
+        create_sample_planning_routes(app, app.planner_service)
     
     # Should prevent double initialization when debug=True (hopefully)
     app.mqtt_client = start_mqtt_client(app)

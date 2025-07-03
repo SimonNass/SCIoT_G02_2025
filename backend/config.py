@@ -23,3 +23,6 @@ class Config:
 
     # API Security
     API_KEY = os.environ.get('API_KEY')
+
+    # Planner
+    PLANNER_SERVICE_URL = os.environ.get('PLANNER_SERVICE_URL')
