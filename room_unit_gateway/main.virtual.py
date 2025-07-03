@@ -8,49 +8,7 @@ import threading
 
 logger = logging.getLogger(__name__)
 
-import config_reader
-from networking.networking_domain import GatewayNetwork
 import help_methods
-
-def run_gateway_for_config(config_file: str, password: str):
-    """
-    Thread target: read one INI, build sensor/actuator lists,
-    create a GatewayNetwork, and run execution_cycle().
-    """
-    try:
-        config_values = config_reader.read_config(config_file)
-    except Exception as e:
-        print(f"[{config_file}] Failed to read config: {e}", file=sys.stderr)
-        return
-
-    sensors   = config_values['sensor_class_list']
-    actuators = config_values['actuator_class_list']
-    mqtt_host     = config_values['mqtt_host']
-    mqtt_port     = config_values['mqtt_port']
-    mqtt_username = config_values['mqtt_username']
-    floor_id      = config_values['floor_id']
-    max_rooms     = config_values['max_rooms_per_floor']
-    room_id       = config_values['room_id']
-
-    try:
-        gw = GatewayNetwork(
-            host=mqtt_host,
-            port=mqtt_port,
-            username=mqtt_username,
-            password=password,
-            floor_id=floor_id,
-            max_rooms_per_floor=max_rooms,
-            room_id=room_id,
-            actuators=[]
-        )
-    except Exception as e:
-        print(f"[{config_file}] MQTT connection failed: {e}", file=sys.stderr)
-        return
-
-    logger.info(f"[{config_file}] Starting execution cycle for floor {floor_id}, room {room_id}")
-    help_methods.execution_cycle(sensors, actuators, gw, None, 240)
-    logger.info(f"[{config_file}] Execution cycle ended.")
-
 
 def main():
     """
@@ -84,7 +42,7 @@ def main():
     threads = []
     for cfg in ini_files:
         t = threading.Thread(
-            target=run_gateway_for_config,
+            target=help_methods.run_gateway_for_config,
             args=(cfg, password),
             daemon=True
         )
