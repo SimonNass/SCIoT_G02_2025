@@ -1,31 +1,37 @@
 # TODO
 
-- Define API interfaces
 - pi
   - update python version in docker for room pi
   - test pi with no / wrong sensors, pi check that with nothing conneted or connected wrong it stil works
   - button add buffer to not send multiple messages if
   - send welkome message for display
-- build an overview UI
-- build DB
-  - metadata
-  - history state
-  - current state?
 - build aggregations and context information
 - build planing AI
 - send notes of lecture
 
-## Meeting 27.05
+## Meeting 01.07
 
 - [x] Communication gateway -> backend (MQTT)
-- [ ] Communication backend->gateway (MQTT)
+- [X] Communication backend->gateway (MQTT)
 - [x] Making motor work
+- [ ] Gateway
+  - (Simon) [] sensor dictionary send in utf 8
+  - [ ] send bool acxtuator is off or on in gateway info
+  - [ ] disable sensors ?
+
 - [ ] AI Planning
   - [x] Overarching Goals
   - [ ] Conversion of DB values to context to inital state
+  - [ ] Activity recognition
   - [x] First attempts at lecture implementation
-- [ ] Frontend
+  - [plan cleaning and do not plan cleaning toggle]
+  - [ ] mapping in pddl a -> s
 
+- [ ] Frontend
+ - [ ] actuators off or on
+ - [ ] set actuator value from frontend
+
+- [ ] backend
   - [ ] Needed Backend Endpoints
   - [ ] (Maximilian) provide actuator active/inactive value (need value from frontend)
   - [ ] (Maximilian) Set room occupancy endpoint
@@ -36,14 +42,15 @@
   - [ ] (Maximilian) Add lastest values as normal and simplified value to list_devices_in_room
   - [ ] (Maximilian) (optional) Endpoint to provide values and simplified values across a certain timespan
   - [ ] (Maximilian) Endpoint that provides the plan
+  - [ ] convert sensor values to high ok low
+
 
 - [x] Simulation
-
   - [x] Decide on simulator (needs to provide data via MQTT)
 
 - [] Bugs - [ ] (Simon, Maximilian) Bug: "°C", degree Symbol not being parsed correctly in mqtt incoming message -> May need to be parsed on the frontend
 
-ai planing tools
+# AI planing tools
 
 - editor.planing.domains https://editor.planning.domains/#
 - vsual studio code extension PDDL etension for Visual Studio Code
