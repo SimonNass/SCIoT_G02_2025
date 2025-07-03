@@ -29,7 +29,7 @@ def create_floor_with_rooms():
                 "capacity": 2
             },
             {
-                "room_number": "102", 
+                "room_number": "102",
                 "room_type": "Suite",
                 "capacity": 4
             }
@@ -38,23 +38,23 @@ def create_floor_with_rooms():
     """
     try:
         data = request.get_json()
-        
+
         if not data or 'floor_number' not in data:
             return jsonify({'error': 'floor_number is required'}), 400
-        
+
         # Create floor
         floor = models.Floor(
             floor_number=data['floor_number'],
             floor_name=data.get('floor_name'),
             description=data.get('description'),
         )
-        
+
         # Add rooms if provided
         rooms_data = data.get('rooms', [])
         for room_data in rooms_data:
             if 'room_number' not in room_data or 'room_type' not in room_data:
                 return jsonify({'error': 'room_number and room_type are required for each room'}), 400
-            
+
             room = models.Room(
                 room_number=room_data['room_number'],
                 room_type=room_data['room_type'],
@@ -62,10 +62,10 @@ def create_floor_with_rooms():
                 is_occupied=room_data.get('is_occupied', False),
             )
             floor.rooms.append(room)
-        
+
         db.session.add(floor)
         db.session.commit()
-        
+
         return jsonify({
             'message': 'Floor created successfully',
             'floor': {
@@ -76,7 +76,7 @@ def create_floor_with_rooms():
                 'rooms_created': len(rooms_data)
             }
         }), 201
-        
+
     except IntegrityError:
         db.session.rollback()
         return jsonify({'error': 'Floor number already exists'}), 409
@@ -107,20 +107,20 @@ def create_rooms_for_floor(floor_number):
         floor = models.Floor.query.filter_by(floor_number=floor_number).first()
         if not floor:
             return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
-        
+
         data = request.get_json()
         if not data or 'rooms' not in data:
             return jsonify({'error': 'rooms array is required'}), 400
-        
+
         rooms_data = data['rooms']
         if not isinstance(rooms_data, list) or len(rooms_data) == 0:
             return jsonify({'error': 'rooms must be a non-empty array'}), 400
-        
+
         created_rooms = []
         for room_data in rooms_data:
             if 'room_number' not in room_data or 'room_type' not in room_data:
                 return jsonify({'error': 'room_number and room_type are required for each room'}), 400
-            
+
             room = models.Room(
                 room_number=room_data['room_number'],
                 room_type=room_data['room_type'],
@@ -128,22 +128,22 @@ def create_rooms_for_floor(floor_number):
                 is_occupied=room_data.get('is_occupied', False),
                 floor_id=floor.id
             )
-            
+
             db.session.add(room)
             created_rooms.append({
                 'room_number': room.room_number,
                 'room_type': room.room_type,
                 'capacity': room.capacity
             })
-        
+
         db.session.commit()
-        
+
         return jsonify({
             'message': f'{len(created_rooms)} rooms created successfully for floor {floor_number}',
             'floor_number': floor_number,
             'created_rooms': created_rooms
         }), 201
-        
+
     except IntegrityError:
         db.session.rollback()
         return jsonify({'error': 'Room number already exists on this floor'}), 409
@@ -159,7 +159,7 @@ def list_all_floors():
     """Get all floors with their associated rooms"""
     try:
         floors = models.Floor.query.all()
-        
+
         result = []
         for floor in floors:
             floor_data = {
@@ -170,7 +170,7 @@ def list_all_floors():
                 'created_at': floor.created_at.isoformat(),
                 'rooms': []
             }
-            
+
             for room in floor.rooms:
                 room_data = {
                     'id': room.id,
@@ -181,14 +181,14 @@ def list_all_floors():
                     'device_count': len(room.devices)
                 }
                 floor_data['rooms'].append(room_data)
-            
+
             result.append(floor_data)
-        
+
         return jsonify({
             'floors': result,
             'total_floors': len(result)
         })
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -202,7 +202,7 @@ def list_rooms_for_floor(floor_number):
         floor = models.Floor.query.filter_by(floor_number=floor_number).first()
         if not floor:
             return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
-        
+
         rooms = []
         for room in floor.rooms:
             room_data = {
@@ -216,7 +216,7 @@ def list_rooms_for_floor(floor_number):
                 'created_at': room.created_at.isoformat(),
                 'devices': []
             }
-            
+
             # Include device information
             for device in room.devices:
                 device_data = {
@@ -227,16 +227,16 @@ def list_rooms_for_floor(floor_number):
                     'is_online': device.is_online,
                 }
                 room_data['devices'].append(device_data)
-            
+
             rooms.append(room_data)
-        
+
         return jsonify({
             'floor_number': floor_number,
             'floor_name': floor.floor_name,
             'rooms': rooms,
             'total_rooms': len(rooms)
         })
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -371,14 +371,14 @@ def list_devices_in_room(floor_number, room_number):
        floor = models.Floor.query.filter_by(floor_number=floor_number).first()
        if not floor:
            return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
-       
+
        room = models.Room.query.filter_by(
-           room_number=room_number, 
+           room_number=room_number,
            floor_id=floor.id
        ).first()
        if not room:
            return jsonify({'error': f'Room {room_number} does not exist on floor {floor_number}'}), 404
-       
+
        # Get all devices in the room
        devices = []
        for device in room.devices:
@@ -397,17 +397,17 @@ def list_devices_in_room(floor_number, room_number):
                'last_value_simplified': device.last_value_simplified,
            }
            devices.append(device_data)
-       
+
        return jsonify({
            'floor_number': floor_number,
            'room_number': room_number,
            'devices': devices,
            'total_devices': len(devices)
        }), 200
-       
+
    except Exception as e:
        return jsonify({'error': str(e)}), 500
-   
+
 @api.route('/floors/<int:floor_number>/rooms/<string:room_number>/devices/<string:device_id>', methods=['GET'])
 @require_api_key
 def get_device_details(floor_number, room_number, device_id):
@@ -419,21 +419,21 @@ def get_device_details(floor_number, room_number, device_id):
         floor = models.Floor.query.filter_by(floor_number=floor_number).first()
         if not floor:
             return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
-        
+
         room = models.Room.query.filter_by(
-            room_number=room_number, 
+            room_number=room_number,
             floor_id=floor.id
         ).first()
         if not room:
             return jsonify({'error': f'Room {room_number} does not exist on floor {floor_number}'}), 404
-        
+
         device = models.Device.query.filter_by(
             device_id=device_id,
             room_id=room.id
         ).first()
         if not device:
             return jsonify({'error': f'Device {device_id} does not exist in room {room_number} on floor {floor_number}'}), 404
-        
+
         # Return detailed device information
         device_details = {
             'id': device.id,
@@ -452,25 +452,25 @@ def get_device_details(floor_number, room_number, device_id):
                 'room_id': room.id
             }
         }
-        
+
         return jsonify({
             'device': device_details
         }), 200
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
+
 @api.route('/devices/<string:device_id>/set', methods=['POST'])
 # Todo: Add authentication decorator
 def set_actuator_value(device_id):
     """
     Set actuator value for a specific device
-    
+
     Expected JSON format:
     {
         "new_value": "value_to_set"
     }
-    
+
     Path: /devices/{device_id}/set
     """
     try:
@@ -478,12 +478,12 @@ def set_actuator_value(device_id):
         data = request.get_json()
         if not data or 'new_value' not in data:
             return jsonify({'error': 'new_value is required'}), 400
-        
+
         new_value = data['new_value']
-        
+
         # Use device.id (UUID) for MQTT communication
         success = request_actuator_update(device_id, new_value)
-        
+
         if success:
             return jsonify({
                 'message': f'Actuator update request sent successfully',
@@ -495,7 +495,7 @@ def set_actuator_value(device_id):
             return jsonify({
                 'error': 'Failed to send actuator update request. Please refer to server logs for more details.'
             }), 500
-            
+
     except Exception as e:
         return jsonify({'error': 'An error occurred while processing your request'}), 500
 
@@ -505,13 +505,13 @@ def set_actuator_value(device_id):
 def request_current_value(device_id):
     """
     Request current value from a sensor or actuator. It does not return the value directly.
-    
+
     Path: /devices/{device_id}/get
     """
     try:
         # Use device.id (UUID) for MQTT communication
         success = request_current_sensor_value(device_id)
-        
+
         if success:
             return jsonify({
                 'message': f'Current value request sent successfully',
@@ -522,7 +522,7 @@ def request_current_value(device_id):
             return jsonify({
                 'error': 'Failed to send current value request.  Please refer to server logs for more details.'
             }), 500
-            
+
     except Exception as e:
         return jsonify({'error': 'An error occurred while processing your request'}), 500
 

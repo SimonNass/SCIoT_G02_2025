@@ -68,7 +68,7 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
         except (IOError,TypeError) as e:
             print ("Error")
             #print (e)
-            logger.info(e)
+            logger.error(e)
             want_to_exit = True
 
 def run_gateway_for_config(config_file: str, password: str):
@@ -99,7 +99,8 @@ def run_gateway_for_config(config_file: str, password: str):
             password=password,
             floor_id=floor_id,
             max_rooms_per_floor=max_rooms,
-            room_id=room_id
+            room_id=room_id,
+            actuators=[]
         )
     except Exception as e:
         print(f"[{config_file}] MQTT connection failed: {e}", file=sys.stderr)

@@ -18,7 +18,7 @@ def read_config(config_file_name):
     version = config.get('General', 'version', fallback=0)
     if version == 2:
         print ("Error wrong config version")
-        logger.info("Error wrong config version")
+        logger.warning("Error wrong config version")
     max_cycle_time = config.get('General', 'max_cycle_time', fallback=100)
 
     #print ("reading in MQTT", flush=True)

@@ -20,8 +20,17 @@ class Virtual_environment():
                 continue
             else:
                 return actuator.last_value != actuator.off_value
-        logger.info('Environment bug check_if_actuators_has_influenc')
+        logger.warning('Environment bug check_if_actuators_has_influenc')
         return False
+
+    def calculate_actuators_impact(self, actuator_name: str):
+        for actuator in self.actuator:
+            if actuator.name != actuator_name:
+                continue
+            else:
+                return actuator.last_value
+        logger.warning('Environment bug check_if_actuators_has_influenc')
+        return 0
 
     def calculate_next_active_influences_amount(self):
         for key, value in self.mapping_values.items():
@@ -29,7 +38,7 @@ class Virtual_environment():
             next_impact = 0
             next_cycle = 1
             if self.check_if_actuators_has_influenc(actuator):
-                next_impact = int(value['impact_amount'])
+                next_impact = float(value['impact_amount']) * self.calculate_actuators_impact(actuator)
             
 
             #fade_in = int(value['fade_in'])
@@ -57,7 +66,7 @@ class Virtual_environment():
             #    step_impact = impact / fade_out
             #    next_impact = step_impact * (cycle + 1 - fade_in - impact_duration)
             #else:
-            #    logger.info('Environment bug')
+            #    logger.warning('Environment bug')
             #    raise ArithmeticError('Environment bug calculate_next_active_influences_amount')
             self.active_influences.update({key:{'cycle':next_cycle, 'amount':next_impact}})
 
@@ -105,7 +114,7 @@ class Virtual_environment():
                 }
             except Exception as e:
                 print (e, flush=True)
-                logger.info("{}".format(e))
+                logger.error("{}".format(e))
 
             self.mapping_values.update({(actuator_name,sensor_name):dictionary})
             self.active_influences.update({(actuator_name,sensor_name):{'cycle':0, 'amount':0}})
