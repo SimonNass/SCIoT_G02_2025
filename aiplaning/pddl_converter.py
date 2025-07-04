@@ -38,7 +38,7 @@ def create_type_variables():
 
 def create_predicates_variables():
     # define predicates
-    global room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_ocupied, will_become_ocupied, is_cleaned, has_specified_activity_at, activity_names, is_doing_activitys_at
+    global room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, has_specified_activity_at, activity_names, is_doing_activitys_at
     global is_sensing, is_low, is_ok, is_high, is_activated
     global fulfilled_activity
 
@@ -69,11 +69,11 @@ def create_predicates_variables():
 
     # meta context
 
-    is_ocupied = Predicate("is_ocupied", room_type)
-    predicates_list.append(is_ocupied)
+    is_occupied = Predicate("is_occupied", room_type)
+    predicates_list.append(is_occupied)
 
-    will_become_ocupied = Predicate("will_become_ocupied", room_type)
-    predicates_list.append(will_become_ocupied)
+    will_become_occupied = Predicate("will_become_occupied", room_type)
+    predicates_list.append(will_become_occupied)
 
     is_cleaned = Predicate("is_cleaned", room_type)
     predicates_list.append(is_cleaned)
@@ -154,8 +154,8 @@ def create_cleaning_actions():
         parameters=[cleaning_team_type, room_type],
         precondition=is_at(cleaning_team_type,room_type)
                     & ~is_cleaned(room_type) 
-                    & ~is_ocupied(room_type) 
-                    & ~will_become_ocupied(room_type),
+                    & ~is_occupied(room_type) 
+                    & ~will_become_occupied(room_type),
         effect=is_cleaned(room_type) 
     )
     actions_list.append(team_clean)
@@ -355,8 +355,8 @@ def create_activity_actions():
 def create_energy_saving_actions():
     actions_list = []
 
-    cancle_out_actuator = Action(
-        "cancle_out_actuator",
+    cancel_out_actuator = Action(
+        "cancel_out_actuator",
         parameters=[sensor_type, actuator_type, actuator2_type, room_type],
         precondition= base.Not(EqualTo(actuator_type, actuator2_type))
                         & sensor_is_part_of_room(sensor_type, room_type)
@@ -367,14 +367,14 @@ def create_energy_saving_actions():
         effect= is_activated(actuator_type)
                 & is_activated(actuator2_type)
     )
-    actions_list.append(cancle_out_actuator)
+    actions_list.append(cancel_out_actuator)
 
     save_energy = Action(
         "save_energy",
         parameters=[actuator_type, room_type],
         precondition=actuator_is_part_of_room(actuator_type, room_type)
-                    & ~is_ocupied(room_type)
-                    & ~will_become_ocupied(room_type)
+                    & ~is_occupied(room_type)
+                    & ~will_become_occupied(room_type)
                     & is_activated(actuator_type),
         effect=~is_activated(actuator_type)
     )
@@ -503,7 +503,7 @@ def create_sensor_values(floor_uids: List[str], room_uids_per_floor:Dict[str,Lis
 
 def create_objects_and_initial_state(input: Dict[str,Any]):
         # create objects / constants
-    all_objekts = []
+    all_objects = []
 
     floor_uids = input['floor_uids']
     room_uids_per_floor = input['room_uids_per_floor']
@@ -516,16 +516,16 @@ def create_objects_and_initial_state(input: Dict[str,Any]):
     names_room_positions = input['names_room_positions']
     
     floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms = create_objects_room_topology(floor_uids, room_uids_per_floor, elevator_uids)
-    all_objekts = all_objekts + floors + rooms + elevators
+    all_objects = all_objects + floors + rooms + elevators
 
     cleaning_teams = create_objects(cleaning_team_uids, "cleaning_team")
-    all_objekts = all_objekts + cleaning_teams
+    all_objects = all_objects + cleaning_teams
 
     sensors, actuators, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators = create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_mapping, actuator_room_mapping)
-    all_objekts = all_objekts + sensors + actuators
+    all_objects = all_objects + sensors + actuators
 
     room_positions = create_objects(names_room_positions, "room_position")
-    all_objekts = all_objekts + room_positions
+    all_objects = all_objects + room_positions
 
     # create initial state
     initial_state = []
@@ -608,43 +608,43 @@ def create_objects_and_initial_state(input: Dict[str,Any]):
                     state = is_activated(actuator_object)
                 initial_state.append(state)
 
-    # context room ocupied
-    room_ocupied_actuator_initial_values = input['room_ocupied_actuator_initial_values']
+    # context room occupied
+    room_occupied_actuator_initial_values = input['room_occupied_actuator_initial_values']
 
-    assert len(room_ocupied_actuator_initial_values) <= len(rooms)
+    assert len(room_occupied_actuator_initial_values) <= len(rooms)
 
     for floor in floor_uids:
         for room in room_uids_per_floor[floor]:
-            object_state = room_ocupied_actuator_initial_values[room]
-            state = base.Not(is_ocupied(rooms[i]))
+            object_state = room_occupied_actuator_initial_values[room]
+            state = base.Not(is_occupied(rooms[i]))
             if object_state:
-                state = is_ocupied(rooms[i])
+                state = is_occupied(rooms[i])
             else:
-                state = base.Not(is_ocupied(rooms[i]))
+                state = base.Not(is_occupied(rooms[i]))
             initial_state.append(state)
-    return all_objekts, initial_state, individual_sensor_goals
+    return all_objects, initial_state, individual_sensor_goals
 
 def create_goal(plan_cleaning: bool = True):
     goal_state = None
 
     # individual_sensor_goals TODO
 
-    goal_for_ocupied_rooms = None
+    goal_for_occupied_rooms = None
 
-    if_case1 = base.And(base.Not(is_ocupied(room_type)))
+    if_case1 = base.And(base.Not(is_occupied(room_type)))
     then_clean_case = is_cleaned(room_type)
-    clean_unocupied_rooms = base.ForallCondition(base.Imply(if_case1, then_clean_case), [room_type])
+    clean_unoccupied_rooms = base.ForallCondition(base.Imply(if_case1, then_clean_case), [room_type])
 
-    if_case2 = base.And(base.Not(is_ocupied(room_type)), actuator_is_part_of_room(actuator_type, room_type))
+    if_case2 = base.And(base.Not(is_occupied(room_type)), actuator_is_part_of_room(actuator_type, room_type))
     then_turn_off_actuator = base.Not(is_activated(actuator_type))
-    actuator_off_unocupied_rooms = base.ForallCondition(base.Imply(if_case2, then_turn_off_actuator), [room_type, actuator_type])
+    actuator_off_unoccupied_rooms = base.ForallCondition(base.Imply(if_case2, then_turn_off_actuator), [room_type, actuator_type])
 
-    envorce_checks = base.ForallCondition(fulfilled_activity(room_type, room_position_type), [room_type, room_position_type])
+    enforce_checks = base.ForallCondition(fulfilled_activity(room_type, room_position_type), [room_type, room_position_type])
 
     if plan_cleaning:
-        goal_state = base.And(clean_unocupied_rooms, actuator_off_unocupied_rooms, envorce_checks)
+        goal_state = base.And(clean_unoccupied_rooms, actuator_off_unoccupied_rooms, enforce_checks)
     else:
-        goal_state = base.And(actuator_off_unocupied_rooms, envorce_checks)
+        goal_state = base.And(actuator_off_unoccupied_rooms, enforce_checks)
     return goal_state
 
 def create_domain(domain_name: str, predicates_list: List[variables]):
@@ -716,12 +716,12 @@ def query_input():
 
     floor_uids = ['f0','f1']
     room_uids_per_floor = {'f0':['r0','r1'],'f1':['r2']}
-    room_ocupied_actuator_initial_values = {'r0':False, 'r1': True, 'r2':False}
+    room_occupied_actuator_initial_values = {'r0':False, 'r1': True, 'r2':False}
     #floor_list = db.list_all_floors()
     #floor_uids = [floor['id'] for floor in floor_list]
     #room_uids_per_floor = {floor['id']:floor['rooms'] for floor in floor_list}
     #for floor in floor_list:
-    #    room_ocupied_actuator_initial_values = {room['id']:room['is_occupied'] for room in room_uids_per_floor[floor]}
+    #    room_occupied_actuator_initial_values = {room['id']:room['is_occupied'] for room in room_uids_per_floor[floor]}
 
     elevator_uids = ['e0','e1']
     cleaning_team_uids = ['cleaning_team_1','cleaning_team_2']
@@ -785,7 +785,7 @@ def query_input():
             'sensor_goal_values':sensor_goal_values,
             'actuator_initial_values':actuator_initial_values,
 
-            'room_ocupied_actuator_initial_values':room_ocupied_actuator_initial_values,
+            'room_occupied_actuator_initial_values':room_occupied_actuator_initial_values,
             }
 
 def create():
@@ -797,7 +797,7 @@ def create():
 
     domain = create_domain(input['domain_name'], predicates_list)
 
-    all_objekts, initial_state, individual_sensor_goals = create_objects_and_initial_state(input)
+    all_objects, initial_state, individual_sensor_goals = create_objects_and_initial_state(input)
 
     # create goal
     goal_state = None
@@ -808,7 +808,7 @@ def create():
         domain=domain,
         requirements=domain.requirements,
         
-        objects=all_objekts,
+        objects=all_objects,
         init=initial_state,
         goal=goal_state
     )
