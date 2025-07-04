@@ -8,6 +8,7 @@ from pddl.core import Domain, Problem
 from pddl.action import Action
 from pddl.requirements import Requirements
 from pddl import parse_domain, parse_problem
+import os
 
 def iterator_rooms_per_floor(floor_uids: List[str], room_uids_per_floor: Dict[str,str]): # TODO
     for floor in floor_uids:
@@ -831,15 +832,18 @@ def check_lib_versions():
 def main():
     check_lib_versions()
 
+    # output_path is relative to working directory
+    output_path = "auto_generated/"
+    os.makedirs(output_path, exist_ok=True)
     domaine_file_name = 'test_domain.pddl'
     problem_file_name = 'test_problem.pddl'
 
     d, p = create()
     
-    with open(domaine_file_name,'w') as f:
+    with open(os.path.join(output_path, domaine_file_name),'w') as f:
         f.write(d.__str__())
     
-    with open(problem_file_name,'w') as f:
+    with open(os.path.join(output_path, problem_file_name),'w') as f:
         f.write(p.__str__())
 
 
