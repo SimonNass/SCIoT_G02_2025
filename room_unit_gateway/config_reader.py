@@ -6,12 +6,7 @@ logger = logging.getLogger(__name__)
 
 import object_factory
 
-def read_config(config_file_name, password: str):
-    print (f"reading in {config_file_name}", flush=True)
-    config = configparser.ConfigParser(interpolation=None)
-    config.read(config_file_name, encoding='utf-8')
-    #config.read('config.ini')
-
+def read_general_config(config):
     #print ("reading in general", flush=True)
     logger.info("reading in general")
     # General
@@ -20,19 +15,29 @@ def read_config(config_file_name, password: str):
         print ("Error wrong config version")
         logger.warning("Error wrong config version")
     max_cycle_time = config.get('General', 'max_cycle_time', fallback=100)
+    return max_cycle_time
 
+def read_mqtt_config(config):
     #print ("reading in MQTT", flush=True)
     logger.info("reading in MQTT")
-    # MQTT
     mqtt_name = config.get('MQTT', 'name', fallback='MQTT')
     mqtt_host = config.get('MQTT', 'host', fallback='0.0.0.0')
     mqtt_port = config.getint('MQTT', 'port', fallback=1884)
     mqtt_username = config.get('MQTT', 'username', fallback='root')
+    return mqtt_name, mqtt_host, mqtt_port, mqtt_username
+
+def read_architecture_config(config):
+    #print ("reading in Architecture", flush=True)
+    logger.info("reading in Architecture")
     floor_id = config.get('Architecture', 'floor_ID', fallback=0)
     max_rooms_per_floor = config.get('MQArchitectureTT', 'max_rooms_per_floor', fallback=100)
     room_id = config.get('Architecture', 'room_ID', fallback=0)
+    room_info = object_factory.configure_room_inof(floor_id=floor_id,
+                                                   max_rooms_per_floor=max_rooms_per_floor,
+                                                   room_id=room_id)
+    return room_info
 
-
+def read_ardoino_config(config):
     #print ("reading in ardoino", flush=True)
     logger.info("reading in ardoino")
     # Ardoino connection
@@ -42,7 +47,9 @@ def read_config(config_file_name, password: str):
     ardoino_serial = object_factory.configure_ardoino_connection(message_end_signal=message_end_signal,
                                                                  usb_channel_type=usb_channel_type,
                                                                  usb_channel_data_rate=usb_channel_data_rate)
+    return ardoino_serial
 
+def read_sensors_config(config, ardoino_serial):
     #print ("reading in sensors", flush=True)
     logger.info("reading in sensors")
     # Sensors
@@ -50,7 +57,9 @@ def read_config(config_file_name, password: str):
     sensor_class_list = object_factory.configure_sensors(config.get('Sensors','sensor_list', fallback="[]"), 
                                                          sensor_types, 
                                                          ardoino_serial)
+    return sensor_class_list
 
+def read_actuators_config(config, ardoino_serial):
     #print ("reading in actuators", flush=True)
     logger.info("reading in actuators")
     # Actuators
@@ -58,7 +67,9 @@ def read_config(config_file_name, password: str):
     actuator_class_list = object_factory.configure_actuators(config.get('Actuators','actuator_list', fallback="[]"), 
                                                              actuator_types, 
                                                              ardoino_serial)
+    return actuator_class_list
 
+def read_virtual_environment_config(config, sensor_class_list, actuator_class_list):
     #print ("reading in VirtualEnfironment mapping", flush=True)
     logger.info("reading in VirtualEnfironment mapping")
     # VirtualEnfironment
@@ -66,13 +77,28 @@ def read_config(config_file_name, password: str):
     virtual_environment = object_factory.configure_environment(sensors=sensor_class_list,
                                                                actuators=actuator_class_list,
                                                                virtual_enfironment_list=virtual_enfironment_list)
+    return virtual_environment
+
+def read_config(config_file_name, password: str):
+    print (f"reading in {config_file_name}", flush=True)
+    config = configparser.ConfigParser(interpolation=None)
+    config.read(config_file_name, encoding='utf-8')
+    #config.read('config.ini')
+
+    max_cycle_time = read_general_config(config)
+
+    mqtt_name, mqtt_host, mqtt_port, mqtt_username = read_mqtt_config(config)
+    room_info = read_architecture_config(config)
+
+    ardoino_serial = read_ardoino_config(config)
+
+    sensor_class_list = read_sensors_config(config, ardoino_serial)
+    actuator_class_list = read_actuators_config(config, ardoino_serial)
+    virtual_environment = read_virtual_environment_config(config, sensor_class_list, actuator_class_list)
 
     #print ("creating gateway_network", flush=True)
     logger.info("creating gateway_network")
     # GatewayNetwork
-    room_info = object_factory.configure_room_inof(floor_id=floor_id,
-                                                   max_rooms_per_floor=max_rooms_per_floor,
-                                                   room_id=room_id)
     gateway_network = object_factory.configure_network_gateway(host=mqtt_host,
                                                                port=mqtt_port,
                                                                username=mqtt_username,
