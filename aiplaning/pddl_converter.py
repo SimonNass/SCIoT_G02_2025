@@ -393,7 +393,7 @@ def create_objects_room_topology(floor_uids: List[str], room_uids_per_floor: Dic
     uid_to_pddl_variable_floor = {floor_uids[i]:floors[i] for i in range(len(floors))}
     rooms = []
     uid_to_pddl_variable_rooms = {}
-    for room_uids in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+    for _, room_uids in room_uids_per_floor.items():
         new_rooms = create_objects(room_uids, "room")
         rooms = rooms + new_rooms
         uid_to_pddl_variable_rooms.update({room_uids[i]:new_rooms[i] for i in range(len(new_rooms))})
