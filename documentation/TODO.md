@@ -29,7 +29,7 @@
   - [ ] (Simon) Conversion of DB values to context to inital state
   - [ ] (Simon) Activity recognition
   - [x] First attempts at lecture implementation
-  - [ ] (Simon) plan cleaning and do not plan cleaning toggle
+  - [X] (Simon) plan cleaning and do not plan cleaning toggle
   - [ ] (Simon) mapping in pddl a -> s
   - [ ] (Maximilian, Simon) Sensor aggregation
 

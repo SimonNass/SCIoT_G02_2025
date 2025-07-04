@@ -501,7 +501,7 @@ def create_sensor_values(floor_uids: List[str], room_uids_per_floor:Dict[str,Lis
 
     return state_list
 
-def create_goal():
+def create_goal(plan_cleaning: bool = True):
     goal_state = None
 
     # individual_sensor_goals TODO
@@ -518,7 +518,10 @@ def create_goal():
 
     envorce_checks = base.ForallCondition(fulfilled_activity(room_type, room_position_type), [room_type, room_position_type])
 
-    goal_state = base.And(clean_unocupied_rooms, actuator_off_unocupied_rooms, envorce_checks)
+    if plan_cleaning:
+        goal_state = base.And(clean_unocupied_rooms, actuator_off_unocupied_rooms, envorce_checks)
+    else:
+        goal_state = base.And(actuator_off_unocupied_rooms, envorce_checks)
     return goal_state
 
 def create_domain(domain_name: str, predicates_list: List[variables]):
@@ -639,6 +642,8 @@ def query_input():
 
     return {'domain_name':domain_name, 
             'problem_name':problem_name,
+
+            'plan_cleaning':False,
 
             'floor_uids':floor_uids,
             'room_uids_per_floor':room_uids_per_floor,
@@ -793,7 +798,7 @@ def create():
 
     # create goal
     goal_state = None
-    goal_state = create_goal()
+    goal_state = create_goal(input['plan_cleaning'])
 
     problem = Problem(
         input['problem_name'],
