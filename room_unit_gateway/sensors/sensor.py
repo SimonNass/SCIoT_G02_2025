@@ -112,6 +112,9 @@ class VirtualSensor(SensorInterface):
             raise ValueError("connector_type is not Digital.")
         super().__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
         self.rng_selector = 5
+        self.seed = 0
+        self.index = 0
+        self.next_decrease = False
         _ = self.read_sensor()
 
     def read_internal_sensor(self):
@@ -125,13 +128,12 @@ class VirtualSensor(SensorInterface):
         elif self.rng_selector == 3:
             value = rng.complex_random(min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision)
         elif self.rng_selector == 4:
-            # TODO rebounce
-            value = rng.bounce_random(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision, alpha=0.5)
+            value, self.next_decrease = rng.bounce_random(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision=self.notify_change_precision, alpha=0.5, decrease=self.next_decrease)
         elif self.rng_selector == 5:
             value = rng.random_value(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision, alpha=0.5)
         elif self.rng_selector == 6:
-            # TODO seed and index hop
-            value = rng.predefined_sequence(min_value=self.min_value, max_value=self.max_value, seed=0, index=0)
+            value = rng.predefined_sequence(min_value=self.min_value, max_value=self.max_value, seed=self.seed, index=self.index)
+            self.index = self.index + 1
         else:
             # defoult
             value = rng.random_value(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision, alpha=0.5)
