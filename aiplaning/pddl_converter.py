@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # pip install pddl==0.4.3
-from typing import Dict, List
+from typing import Any, Dict, List
 from pddl.logic import Predicate, constants, variables, base
 from pddl.logic.predicates import EqualTo
 from pddl.core import Domain, Problem
@@ -352,7 +352,7 @@ def create_activity_actions():
 
     return actions_list
 
-def create_energy_saveing_actions():
+def create_energy_saving_actions():
     actions_list = []
 
     cancle_out_actuator = Action(
@@ -383,7 +383,7 @@ def create_energy_saveing_actions():
     return actions_list
 
 
-def create_objecs_room_topology(floor_uids: List[str], room_uids_per_floor: Dict[str,List[str]], elevator_uids: List[str]):
+def create_objects_room_topology(floor_uids: List[str], room_uids_per_floor: Dict[str,List[str]], elevator_uids: List[str]):
     floors = create_objects(floor_uids, "floor")
     uid_to_pddl_variable_floor = {floor_uids[i]:floors[i] for i in range(len(floors))}
     rooms = []
@@ -501,180 +501,8 @@ def create_sensor_values(floor_uids: List[str], room_uids_per_floor:Dict[str,Lis
 
     return state_list
 
-def create_goal(plan_cleaning: bool = True):
-    goal_state = None
-
-    # individual_sensor_goals TODO
-
-    goal_for_ocupied_rooms = None
-
-    if_case1 = base.And(base.Not(is_ocupied(room_type)))
-    then_clean_case = is_cleaned(room_type)
-    clean_unocupied_rooms = base.ForallCondition(base.Imply(if_case1, then_clean_case), [room_type])
-
-    if_case2 = base.And(base.Not(is_ocupied(room_type)), actuator_is_part_of_room(actuator_type, room_type))
-    then_turn_off_actuator = base.Not(is_activated(actuator_type))
-    actuator_off_unocupied_rooms = base.ForallCondition(base.Imply(if_case2, then_turn_off_actuator), [room_type, actuator_type])
-
-    envorce_checks = base.ForallCondition(fulfilled_activity(room_type, room_position_type), [room_type, room_position_type])
-
-    if plan_cleaning:
-        goal_state = base.And(clean_unocupied_rooms, actuator_off_unocupied_rooms, envorce_checks)
-    else:
-        goal_state = base.And(actuator_off_unocupied_rooms, envorce_checks)
-    return goal_state
-
-def create_domain(domain_name: str, predicates_list: List[variables]):
-    # set up types
-    type_dict = {
-        "object_type": None,
-
-        "floor_type": "object_type",
-        "room_type": "object_type",
-        "room_position_type": "object_type",
-        "iot_type": "object_type",
-        "cleaning_team_type": "object_type",
-        
-        "sensor_type": "iot_type",
-        "actuator_type": "iot_type",
-
-        "binary_s_type": "sensor_type",
-        "numerical_s_type": "sensor_type",
-        "textual_s_type": "sensor_type",
-
-        "binary_a_type": "actuator_type",
-        "numerical_a_type": "actuator_type",
-        "textual_a_type": "actuator_type",
-
-        "button_s_type": "binary_s_type",
-        "motion_s_type": "binary_s_type",
-        "virtual_switch_s_type": "binary_s_type",
-
-        "temperature_s_type": "numerical_s_type",
-        "humidity_s_type": "numerical_s_type",
-        "light_s_type": "numerical_s_type",
-        "sound_s_type": "numerical_s_type",
-        "rotation_s_type": "numerical_s_type",
-        "virtual_dimmer_s_type": "numerical_s_type",
-
-        "switch_a_type": "binary_a_type",
-        "light_switch_a_type": "binary_a_type",
-        "virtual_switch_a_type": "binary_a_type",
-
-        "light_dimmer_a_type": "numerical_a_type",
-        "virtual_dimmer_a_type": "numerical_a_type",
-
-        "display_a_type": "textual_a_type",
-    }
-
-    # define actions
-    actions_list = []
-    actions_list = actions_list + create_cleaning_actions()
-    actions_list = actions_list + create_assign_actions()
-    actions_list = actions_list + create_actuator_actions()
-    actions_list = actions_list + create_activity_actions()
-    actions_list = actions_list + create_energy_saveing_actions()
-
-    # define the domain object.
-    requirements = [Requirements.STRIPS, Requirements.TYPING, Requirements.ADL]
-    domain = Domain(domain_name,
-                    requirements=requirements,
-                    types=type_dict,
-                    predicates=predicates_list,
-                    actions=actions_list)
-
-    #print(domain)
-
-    return domain
-
-def query_input():
-    domain_name = "test_SCIoT_G02_2025"
-    problem_name = 'test'
-
-    floor_uids = ['f0','f1']
-    room_uids_per_floor = {'f0':['r0','r1'],'f1':['r2']}
-    room_ocupied_actuator_initial_values = {'r0':False, 'r1': True, 'r2':False}
-    #floor_list = db.list_all_floors()
-    #floor_uids = [floor['id'] for floor in floor_list]
-    #room_uids_per_floor = {floor['id']:floor['rooms'] for floor in floor_list}
-    #for floor in floor_list:
-    #    room_ocupied_actuator_initial_values = {room['id']:room['is_occupied'] for room in room_uids_per_floor[floor]}
-
-    elevator_uids = ['e0','e1']
-    cleaning_team_uids = ['cleaning_team_1','cleaning_team_2']
-    names_room_positions = ['overall_room', 'bed', 'closet', 'window']
-
-    sensor_room_mapping = {'r0':['s1'], 'r2':['s2']}
-    actuator_room_mapping = {'r0':['a1'], 'r2':['a2']}
-    #for floor in floor_uids:
-    #    for room in room_uids_per_floor[floor]:
-    #        device_list = db.list_devices_in_room(floor,room)['devices']
-    #        sensor_uids = []
-    #        actuator_uids = []
-    #        for device in device_list:
-    #            if device is_sensor():
-    #                sensor_uids.append(device)
-    #            elif device is_actuator():
-    #                actuator_uids.append(device)
-    #        sensor_room_mapping.update({room:sensor_uids})
-    #        actuator_room_mapping.update({room:actuator_uids})
-            
-
-    
-
-    # TODO get info from db
-    actuator_increases_sensor_mapping_matrix = {'a1':['s1','s2'], 'a2':['s2']}
-    actuator_decreases_sensor_mapping_matrix = {'a1':['s1']}
-
-    sensor_initial_values = {'s1': -1, 's2':1}
-    sensor_goal_values = {'s1': -1, 's2':1}
-    actuator_initial_values = {'a1': True, 'a2':False}
-    #for floor in floor_uids:
-    #    for room in room_uids_per_floor[floor]:
-    #        for device in sensor_room_mapping[room]:
-    #            curent_value = db.request_current_value_hierarchical(floor,room,device)
-    #            sensor_initial_values.update({device:curent_value})
-    #        for device in actuator_room_mapping[room]:
-    #            curent_value = db.request_current_value_hierarchical(floor,room,device)
-    #            sensor_initial_values.update({device:curent_value})
-
-
-
-    return {'domain_name':domain_name, 
-            'problem_name':problem_name,
-
-            'plan_cleaning':False,
-
-            'floor_uids':floor_uids,
-            'room_uids_per_floor':room_uids_per_floor,
-            'elevator_uids':elevator_uids,
-
-            'cleaning_team_uids':cleaning_team_uids,
-            'names_room_positions':names_room_positions,
-
-            'sensor_room_mapping':sensor_room_mapping,
-            'actuator_room_mapping':actuator_room_mapping,
-
-            'actuator_increases_sensor_mapping_matrix':actuator_increases_sensor_mapping_matrix,
-            'actuator_decreases_sensor_mapping_matrix':actuator_decreases_sensor_mapping_matrix,
-
-            'sensor_initial_values':sensor_initial_values,
-            'sensor_goal_values':sensor_goal_values,
-            'actuator_initial_values':actuator_initial_values,
-
-            'room_ocupied_actuator_initial_values':room_ocupied_actuator_initial_values,
-            }
-
-def create():
-
-    input = query_input()
-
-    create_type_variables()
-    predicates_list = create_predicates_variables()
-
-    domain = create_domain(input['domain_name'], predicates_list)
-
-    # create objects / constants
+def create_objects_and_initial_state(input: Dict[str,Any]):
+        # create objects / constants
     all_objekts = []
 
     floor_uids = input['floor_uids']
@@ -687,7 +515,7 @@ def create():
     cleaning_team_uids = input['cleaning_team_uids']
     names_room_positions = input['names_room_positions']
     
-    floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms = create_objecs_room_topology(floor_uids, room_uids_per_floor, elevator_uids)
+    floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms = create_objects_room_topology(floor_uids, room_uids_per_floor, elevator_uids)
     all_objekts = all_objekts + floors + rooms + elevators
 
     cleaning_teams = create_objects(cleaning_team_uids, "cleaning_team")
@@ -794,7 +622,182 @@ def create():
             else:
                 state = base.Not(is_ocupied(rooms[i]))
             initial_state.append(state)
+    return all_objekts, initial_state, individual_sensor_goals
 
+def create_goal(plan_cleaning: bool = True):
+    goal_state = None
+
+    # individual_sensor_goals TODO
+
+    goal_for_ocupied_rooms = None
+
+    if_case1 = base.And(base.Not(is_ocupied(room_type)))
+    then_clean_case = is_cleaned(room_type)
+    clean_unocupied_rooms = base.ForallCondition(base.Imply(if_case1, then_clean_case), [room_type])
+
+    if_case2 = base.And(base.Not(is_ocupied(room_type)), actuator_is_part_of_room(actuator_type, room_type))
+    then_turn_off_actuator = base.Not(is_activated(actuator_type))
+    actuator_off_unocupied_rooms = base.ForallCondition(base.Imply(if_case2, then_turn_off_actuator), [room_type, actuator_type])
+
+    envorce_checks = base.ForallCondition(fulfilled_activity(room_type, room_position_type), [room_type, room_position_type])
+
+    if plan_cleaning:
+        goal_state = base.And(clean_unocupied_rooms, actuator_off_unocupied_rooms, envorce_checks)
+    else:
+        goal_state = base.And(actuator_off_unocupied_rooms, envorce_checks)
+    return goal_state
+
+def create_domain(domain_name: str, predicates_list: List[variables]):
+    # set up types
+    type_dict = {
+        "object_type": None,
+
+        "floor_type": "object_type",
+        "room_type": "object_type",
+        "room_position_type": "object_type",
+        "iot_type": "object_type",
+        "cleaning_team_type": "object_type",
+        
+        "sensor_type": "iot_type",
+        "actuator_type": "iot_type",
+
+        "binary_s_type": "sensor_type",
+        "numerical_s_type": "sensor_type",
+        "textual_s_type": "sensor_type",
+
+        "binary_a_type": "actuator_type",
+        "numerical_a_type": "actuator_type",
+        "textual_a_type": "actuator_type",
+
+        "button_s_type": "binary_s_type",
+        "motion_s_type": "binary_s_type",
+        "virtual_switch_s_type": "binary_s_type",
+
+        "temperature_s_type": "numerical_s_type",
+        "humidity_s_type": "numerical_s_type",
+        "light_s_type": "numerical_s_type",
+        "sound_s_type": "numerical_s_type",
+        "rotation_s_type": "numerical_s_type",
+        "virtual_dimmer_s_type": "numerical_s_type",
+
+        "switch_a_type": "binary_a_type",
+        "light_switch_a_type": "binary_a_type",
+        "virtual_switch_a_type": "binary_a_type",
+
+        "light_dimmer_a_type": "numerical_a_type",
+        "virtual_dimmer_a_type": "numerical_a_type",
+
+        "display_a_type": "textual_a_type",
+    }
+
+    # define actions
+    actions_list = []
+    actions_list = actions_list + create_cleaning_actions()
+    actions_list = actions_list + create_assign_actions()
+    actions_list = actions_list + create_actuator_actions()
+    actions_list = actions_list + create_activity_actions()
+    actions_list = actions_list + create_energy_saving_actions()
+
+    # define the domain object.
+    requirements = [Requirements.STRIPS, Requirements.TYPING, Requirements.ADL]
+    domain = Domain(domain_name,
+                    requirements=requirements,
+                    types=type_dict,
+                    predicates=predicates_list,
+                    actions=actions_list)
+
+    #print(domain)
+
+    return domain
+
+def query_input():
+    domain_name = "test_SCIoT_G02_2025"
+    problem_name = 'test'
+
+    floor_uids = ['f0','f1']
+    room_uids_per_floor = {'f0':['r0','r1'],'f1':['r2']}
+    room_ocupied_actuator_initial_values = {'r0':False, 'r1': True, 'r2':False}
+    #floor_list = db.list_all_floors()
+    #floor_uids = [floor['id'] for floor in floor_list]
+    #room_uids_per_floor = {floor['id']:floor['rooms'] for floor in floor_list}
+    #for floor in floor_list:
+    #    room_ocupied_actuator_initial_values = {room['id']:room['is_occupied'] for room in room_uids_per_floor[floor]}
+
+    elevator_uids = ['e0','e1']
+    cleaning_team_uids = ['cleaning_team_1','cleaning_team_2']
+    names_room_positions = ['overall_room', 'bed', 'closet', 'window']
+
+    sensor_room_mapping = {'r0':['s1'], 'r2':['s2']}
+    actuator_room_mapping = {'r0':['a1'], 'r2':['a2']}
+    #for floor in floor_uids:
+    #    for room in room_uids_per_floor[floor]:
+    #        device_list = db.list_devices_in_room(floor,room)['devices']
+    #        sensor_uids = []
+    #        actuator_uids = []
+    #        for device in device_list:
+    #            if device is_sensor():
+    #                sensor_uids.append(device)
+    #            elif device is_actuator():
+    #                actuator_uids.append(device)
+    #        sensor_room_mapping.update({room:sensor_uids})
+    #        actuator_room_mapping.update({room:actuator_uids})
+            
+
+    
+
+    # TODO get info from db
+    actuator_increases_sensor_mapping_matrix = {'a1':['s1','s2'], 'a2':['s2']}
+    actuator_decreases_sensor_mapping_matrix = {'a1':['s1']}
+
+    sensor_initial_values = {'s1': -1, 's2':1}
+    sensor_goal_values = {'s1': -1, 's2':1}
+    actuator_initial_values = {'a1': True, 'a2':False}
+    #for floor in floor_uids:
+    #    for room in room_uids_per_floor[floor]:
+    #        for device in sensor_room_mapping[room]:
+    #            curent_value = db.request_current_value_hierarchical(floor,room,device)
+    #            sensor_initial_values.update({device:curent_value})
+    #        for device in actuator_room_mapping[room]:
+    #            curent_value = db.request_current_value_hierarchical(floor,room,device)
+    #            sensor_initial_values.update({device:curent_value})
+
+
+
+    return {'domain_name':domain_name, 
+            'problem_name':problem_name,
+
+            'plan_cleaning':True,
+
+            'floor_uids':floor_uids,
+            'room_uids_per_floor':room_uids_per_floor,
+            'elevator_uids':elevator_uids,
+
+            'cleaning_team_uids':cleaning_team_uids,
+            'names_room_positions':names_room_positions,
+
+            'sensor_room_mapping':sensor_room_mapping,
+            'actuator_room_mapping':actuator_room_mapping,
+
+            'actuator_increases_sensor_mapping_matrix':actuator_increases_sensor_mapping_matrix,
+            'actuator_decreases_sensor_mapping_matrix':actuator_decreases_sensor_mapping_matrix,
+
+            'sensor_initial_values':sensor_initial_values,
+            'sensor_goal_values':sensor_goal_values,
+            'actuator_initial_values':actuator_initial_values,
+
+            'room_ocupied_actuator_initial_values':room_ocupied_actuator_initial_values,
+            }
+
+def create():
+
+    input = query_input()
+
+    create_type_variables()
+    predicates_list = create_predicates_variables()
+
+    domain = create_domain(input['domain_name'], predicates_list)
+
+    all_objekts, initial_state, individual_sensor_goals = create_objects_and_initial_state(input)
 
     # create goal
     goal_state = None
