@@ -3,6 +3,7 @@ SET mypath=%~dp0
 pyreverse -o pdf -d %mypath%\auto_generated --all-associated --all-ancestors %mypath%\room_unit_gateway\ 
 
 pylint --disable=missing-module-docstring ^
+ --disable=missing-class-docstring ^
  --disable=missing-function-docstring ^
  --disable=invalid-name ^
  --disable=line-too-long ^
@@ -15,6 +16,7 @@ pylint --disable=missing-module-docstring ^
  --disable=logging-not-lazy ^
  --disable=wrong-import-position ^
  --disable=broad-exception-caught ^
+ --disable=too-few-public-methods ^
  --disable=fixme ^
  --disable=wrong-import-order ^
  --disable=import-error ^

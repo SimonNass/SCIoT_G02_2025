@@ -15,6 +15,7 @@ from sensors.sensor import SensorInterface
 from actuators.actuator import ActuatorInterface
 from enumdef import Connectortype
 from virtual_environment import Virtual_environment
+from room_info import Room_Info
 
 def read_all_sensors(sensors: List[SensorInterface]):
     for sensor in sensors:
@@ -106,7 +107,7 @@ def system_info():
 def run_gateway_for_config(config_file_name: str, password: str):
     config_values = {}
     try:
-        config_values = config_reader.read_config(config_file_name)
+        config_values = config_reader.read_config(config_file_name, password)
     except Exception as e:
         print (f"Reading config file {config_file_name} was not succesfull {config_values}")
         print (e, flush=True)
@@ -115,61 +116,24 @@ def run_gateway_for_config(config_file_name: str, password: str):
     max_cycle_time = 100
     sensors = []
     actuators = []
-    mqtt_host = None
-    mqtt_port = None
-    mqtt_username = None
-    floor_id = None
-    max_rooms = None
-    room_id = None
+    gateway_network = None
+    room_info = None
     ardoino_serial = None
-    virtual_enfironment_list = []
+    virtual_environment = None
     try:
-        max_cycle_time   = int(config_values['max_cycle_time'])
-        sensors   = config_values['sensor_class_list']
-        actuators = config_values['actuator_class_list']
-        mqtt_host     = str(config_values['mqtt_host'])
-        mqtt_port     = int(config_values['mqtt_port'])
-        mqtt_username = str(config_values['mqtt_username'])
-        floor_id      = int(config_values['floor_id'])
-        max_rooms     = int(config_values['max_rooms_per_floor'])
-        room_id       = int(config_values['room_id'])
-        ardoino_serial = str(config_values['ardoino_serial'])
-        virtual_enfironment_list = config_values['virtual_enfironment_list']
+        max_cycle_time: int = int(config_values['max_cycle_time'])
+        sensors: List[SensorInterface] = config_values['sensor_class_list']
+        actuators: List[ActuatorInterface] = config_values['actuator_class_list']
+        room_info: Room_Info = config_values['room_info']
+        ardoino_serial = config_values['ardoino_serial']
+        virtual_environment: Virtual_environment = config_values['virtual_environment']
+        gateway_network: GatewayNetwork = config_values['gateway_network']
     except Exception as e:
         print (f"Reading config_values {config_file_name} was not succesfull {config_values}")
         print (e, flush=True)
         logger.error(f"Reading config_values {config_file_name} was not succesfull {config_values}, {e}")
 
-    gateway_network = None
-    try:
-        gateway_network = GatewayNetwork(
-            host=mqtt_host,
-            port=mqtt_port,
-            username=mqtt_username,
-            password=password,
-            floor_id=floor_id,
-            max_rooms_per_floor=max_rooms,
-            room_id=room_id,
-            actuators=actuators
-        )
-    except Exception as e:
-        print ("MQTT broker not connected.")
-        print (e, flush=True)
-        logger.error(f"MQTT broker not connected. {e}")
-    
-    virtual_environment = None
-    try:
-        virtual_environment = Virtual_environment(
-            sensors=sensors,
-            actuators=actuators,
-            mapping=virtual_enfironment_list
-        )
-    except Exception as e:
-        print ("virtual_environment not initialised.")
-        print (e, flush=True)
-        logger.error(f"virtual_environment not initialised. {e}")
-
-    logger.info(f"Starting execution cycle for floor {floor_id}, room {room_id}")
+    logger.info(f"Starting execution cycle for floor {room_info.floor_id}, room {room_info.room_id}")
     execution_cycle(sensors,actuators,gateway_network, virtual_environment, max_cycle_time)
     logger.info("Execution cycle ended.")
 

@@ -25,7 +25,8 @@ class GatewayNetworkReciever:
 
     def recv_messages(self, topic, payload):
         try:
-            hotel_prefix, floor_id, room_id, iot_type, device_uuid, comand = topic.split('/')
+            # hotel_prefix, floor_id, room_id, iot_type, device_uuid, comand = topic.split('/')
+            _, _, _, iot_type, device_uuid, _ = topic.split('/')
             
             payload_json = json.loads(payload)
             new_value = float(payload_json["new_value"])

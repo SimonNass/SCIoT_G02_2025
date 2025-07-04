@@ -10,10 +10,11 @@ from networking.networking_reciever import GatewayNetworkReciever
 from sensors.sensor import SensorInterface
 from actuators.actuator import ActuatorInterface
 
+from room_info import Room_Info
+
 class GatewayNetwork:
-    def __init__(self, host: str, port: int, username: str, password: str, floor_id: int, max_rooms_per_floor: int, room_id: int, actuators: List[ActuatorInterface]):
-        room_extended_id = int(floor_id) * int(max_rooms_per_floor) + int(room_id)
-        topic_prefix = "SCIoT_G02_2025/" + str(floor_id) + "/" + str(room_extended_id) + "/"
+    def __init__(self, host: str, port: int, username: str, password: str, room_info: Room_Info, actuators: List[ActuatorInterface]):
+        topic_prefix = "SCIoT_G02_2025/" + str(room_info.floor_id) + "/" + str(room_info.room_extended_id) + "/"
         self.gateway_network_reciever = GatewayNetworkReciever(actuators)
         self.publisher = MQTTEndpoint(gateway=self.gateway_network_reciever, host=host,port=port,username=username,password=password,topic_prefix=topic_prefix)
 

@@ -1,16 +1,61 @@
 import json
 import logging
+from typing import List, Dict
 logger = logging.getLogger(__name__)
 
-from sensors.sensor import AnalogSensor, DigitalSensor, DigitalMultipleSensor, VirtualSensor
+from sensors.sensor import SensorInterface, AnalogSensor, DigitalSensor, DigitalMultipleSensor, VirtualSensor
 from sensors.ardoino_sensor import ArdoinoSensor
 
-from actuators.actuator import AnalogActuator, DigitalActuator, VirtualActuator
+from actuators.actuator import ActuatorInterface, AnalogActuator, DigitalActuator, VirtualActuator
 from actuators.display import DisplayActuator
 from actuators.ardoino_actuator import ArdoinoActuator
 
+from virtual_environment import Virtual_environment
+
 from enumdef import Connectortype, Notifyinterval
 from networking.ardoino_reverse_proxy import ArdoinoReverseProxy
+from networking.networking_domain import GatewayNetwork
+
+from room_info import Room_Info
+
+def configure_network_gateway(host: str, 
+                              port: int, 
+                              username: str, 
+                              password: str, 
+                              room_info: Room_Info,
+                              actuators: List[ActuatorInterface]):  
+    gateway_network = None
+    try:
+        gateway_network = GatewayNetwork(
+            host=host,
+            port=port,
+            username=username,
+            password=password,
+            room_info=room_info,
+            actuators=actuators
+        )
+    except Exception as e:
+        print ("MQTT broker not connected.")
+        print (e, flush=True)
+        logger.error(f"MQTT broker not connected. {e}")
+    return gateway_network
+
+def configure_environment(sensors: List[SensorInterface], actuators: List[ActuatorInterface], virtual_enfironment_list: List[Dict[str,str]]):  
+    virtual_environment = None
+    try:
+        virtual_environment = Virtual_environment(
+            sensors=sensors,
+            actuators=actuators,
+            mapping=virtual_enfironment_list
+        )
+    except Exception as e:
+        print ("virtual_environment not initialised.")
+        print (e, flush=True)
+        logger.error(f"virtual_environment not initialised. {e}")
+    return virtual_environment
+
+def configure_room_inof(floor_id: int, max_rooms_per_floor: int, room_id: int):  
+    return Room_Info(floor_id, max_rooms_per_floor, room_id)
 
 def configure_ardoino_connection(message_end_signal: str, usb_channel_type: str, usb_channel_data_rate: int):  
     ardoino_serial = None
@@ -18,7 +63,7 @@ def configure_ardoino_connection(message_end_signal: str, usb_channel_type: str,
         ardoino_serial = ArdoinoReverseProxy(message_end_signal=message_end_signal,usb_channel_type=usb_channel_type,usb_channel_data_rate=usb_channel_data_rate)
     except Exception as e:
         print (e, flush=True)
-        logger.error("{}".format(e))
+        logger.error(f"{e}")
     return ardoino_serial
 
 def configure_environment_map(json_list: json):
@@ -41,39 +86,52 @@ def configure_sensors(json_list: json, types: dict, ardoino_serial: ArdoinoRever
         notify_interval = types[type_name]['notify_interval']
         notify_change_precision = types[type_name]['notify_change_precision']
         try:
-            sensor_object = choose_sensor_class(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial)
+            sensor_object = choose_sensor_class(name=name,
+                                                type_name=type_name,
+                                                connector=connector,
+                                                connector_types=connector_types,
+                                                min_value=min_value,
+                                                max_value=max_value, 
+                                                datatype=datatype,
+                                                unit=unit,
+                                                read_interval=read_interval,
+                                                notify_interval=notify_interval,
+                                                notify_change_precision=notify_change_precision,
+                                                ardoino_serial=ardoino_serial)
             
             sensors.append(sensor_object)
         except Exception as e:
             print (e, flush=True)
-            logger.info("{}".format(e))
+            logger.info(f"{e}")
     return sensors
 
 def choose_sensor_class(name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int, ardoino_serial: ArdoinoReverseProxy):
     try:
+        sensor_object = None
         if connector_types == Connectortype.Analog:
-            return AnalogSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            sensor_object = AnalogSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
         elif connector_types == Connectortype.Digital:
-            return DigitalSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            sensor_object = DigitalSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
         elif connector_types == Connectortype.Digital_multiple_0:
-            return DigitalMultipleSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=0)
+            sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=0)
         elif connector_types == Connectortype.Digital_multiple_1:
-            return DigitalMultipleSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=1)
+            sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=1)
         elif connector_types == Connectortype.Virtual:
-            return VirtualSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            sensor_object = VirtualSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
         elif connector_types == Connectortype.Ardoino_temperature:
-            return ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="temperature")
+            sensor_object = ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="temperature")
         elif connector_types == Connectortype.Ardoino_humidity:
-            return ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="humidity")
+            sensor_object = ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="humidity")
         elif connector_types == Connectortype.Ardoino_soundlevel:
-            return ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="soundlevel")
+            sensor_object = ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="soundlevel")
         elif connector_types == Connectortype.Ardoino_rfid:
-            return ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="rfid")
+            sensor_object = ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="rfid")
         else:
             raise ValueError("Connector_type is not implemented.")
+        return sensor_object
     except Exception as e:
         print (e, flush=True)
-        logger.error("{}".format(e))
+        logger.error(f"{e}")
     raise ValueError("Connector_type is not implemented.")
 
 def configure_sensor_types(json_list: json):
@@ -108,31 +166,98 @@ def configure_actuators(json_list: json, types: dict, ardoino_serial: ArdoinoRev
         initial_value = types[type_name]['initial_value']
         off_value = types[type_name]['off_value']
         try:
-            actuator_object = choose_actuator_class(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value,ardoino_serial=ardoino_serial)
+            actuator_object = choose_actuator_class(name=name,
+                                                    type_name=type_name,
+                                                    connector=connector,
+                                                    connector_types=connector_types,
+                                                    min_value=min_value,
+                                                    max_value=max_value,
+                                                    datatype=datatype,
+                                                    unit=unit,
+                                                    initial_value=initial_value,
+                                                    off_value=off_value,
+                                                    ardoino_serial=ardoino_serial)
 
             actuators.append(actuator_object)
         except Exception as e:
             print (e, flush=True)
-            logger.error("{}".format(e))
+            logger.error(f"{e}")
     return actuators
 
-def choose_actuator_class(name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: int, off_value: int, ardoino_serial: ArdoinoReverseProxy):
+def choose_actuator_class(name: str, 
+                          type_name: str, 
+                          connector: int, 
+                          connector_types: Connectortype, 
+                          min_value: int, 
+                          max_value: int, 
+                          datatype: str, 
+                          unit: str, 
+                          initial_value: int, 
+                          off_value: int, 
+                          ardoino_serial: ArdoinoReverseProxy):
     try:
         if connector_types == Connectortype.I2C_display:
-            return DisplayActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+            return DisplayActuator(name=name,
+                                   type_name=type_name,
+                                   connector=connector,
+                                   connector_types=connector_types, 
+                                   min_value=min_value,
+                                   max_value=max_value,
+                                   datatype=datatype,
+                                   unit=unit,
+                                   initial_value=initial_value,
+                                   off_value=off_value)
         elif connector_types == Connectortype.Analog:
-            return AnalogActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+            return AnalogActuator(name=name,
+                                  type_name=type_name,
+                                  connector=connector,
+                                  connector_types=connector_types,
+                                  min_value=min_value,
+                                  max_value=max_value,
+                                  datatype=datatype,
+                                  unit=unit,
+                                  initial_value=initial_value,
+                                  off_value=off_value)
         elif connector_types == Connectortype.Digital:
-            return DigitalActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+            return DigitalActuator(name=name,
+                                   type_name=type_name,
+                                   connector=connector,
+                                   connector_types=connector_types,
+                                   min_value=min_value,
+                                   max_value=max_value,
+                                   datatype=datatype,
+                                   unit=unit,
+                                   initial_value=initial_value,
+                                   off_value=off_value)
         elif connector_types == Connectortype.Virtual:
-            return VirtualActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+            return VirtualActuator(name=name,
+                                   type_name=type_name,
+                                   connector=connector,
+                                   connector_types=connector_types,
+                                   min_value=min_value,
+                                   max_value=max_value,
+                                   datatype=datatype,
+                                   unit=unit,
+                                   initial_value=initial_value,
+                                   off_value=off_value)
         elif connector_types == Connectortype.Ardoino_motor:
-            return ArdoinoActuator(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value,ardoino_serial=ardoino_serial,type_name_ardoino="motor")
+            return ArdoinoActuator(name=name,
+                                   type_name=type_name,
+                                   connector=connector,
+                                   connector_types=connector_types,
+                                   min_value=min_value,
+                                   max_value=max_value,
+                                   datatype=datatype,
+                                   unit=unit,
+                                   initial_value=initial_value,
+                                   off_value=off_value,
+                                   ardoino_serial=ardoino_serial, 
+                                   type_name_ardoino="motor")
         else:
             raise ValueError("Connector_type is not implemented.")
     except Exception as e:
         print (e, flush=True)
-        logger.error("{}".format(e))
+        logger.error(f"{e}")
     logger.warning("Connector_type is not implemented.")
     raise ValueError("Connector_type is not implemented.")
 
