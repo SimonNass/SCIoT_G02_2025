@@ -196,8 +196,9 @@ def choose_actuator_class(name: str,
                           off_value: int, 
                           ardoino_serial: ArdoinoReverseProxy):
     try:
+        actuator_object = None
         if connector_types == Connectortype.I2C_display:
-            return DisplayActuator(name=name,
+            actuator_object = DisplayActuator(name=name,
                                    type_name=type_name,
                                    connector=connector,
                                    connector_types=connector_types, 
@@ -208,7 +209,7 @@ def choose_actuator_class(name: str,
                                    initial_value=initial_value,
                                    off_value=off_value)
         elif connector_types == Connectortype.Analog:
-            return AnalogActuator(name=name,
+            actuator_object = AnalogActuator(name=name,
                                   type_name=type_name,
                                   connector=connector,
                                   connector_types=connector_types,
@@ -219,7 +220,7 @@ def choose_actuator_class(name: str,
                                   initial_value=initial_value,
                                   off_value=off_value)
         elif connector_types == Connectortype.Digital:
-            return DigitalActuator(name=name,
+            actuator_object = DigitalActuator(name=name,
                                    type_name=type_name,
                                    connector=connector,
                                    connector_types=connector_types,
@@ -230,7 +231,7 @@ def choose_actuator_class(name: str,
                                    initial_value=initial_value,
                                    off_value=off_value)
         elif connector_types == Connectortype.Virtual:
-            return VirtualActuator(name=name,
+            actuator_object = VirtualActuator(name=name,
                                    type_name=type_name,
                                    connector=connector,
                                    connector_types=connector_types,
@@ -241,7 +242,7 @@ def choose_actuator_class(name: str,
                                    initial_value=initial_value,
                                    off_value=off_value)
         elif connector_types == Connectortype.Ardoino_motor:
-            return ArdoinoActuator(name=name,
+            actuator_object = ArdoinoActuator(name=name,
                                    type_name=type_name,
                                    connector=connector,
                                    connector_types=connector_types,
@@ -255,6 +256,7 @@ def choose_actuator_class(name: str,
                                    type_name_ardoino="motor")
         else:
             raise ValueError("Connector_type is not implemented.")
+        return actuator_object
     except Exception as e:
         print (e, flush=True)
         logger.error(f"{e}")

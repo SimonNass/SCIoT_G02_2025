@@ -23,4 +23,6 @@ pylint --disable=missing-module-docstring ^
  --disable=fixme ^
  --disable=wrong-import-order ^
  --disable=import-error ^
+ --disable=too-many-arguments ^
+ --disable=too-many-locals ^
  %mypath%room_unit_gateway\

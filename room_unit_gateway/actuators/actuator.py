@@ -63,7 +63,7 @@ class ActuatorInterface(ABC):
             logger.error("{}: write was unsucesful {}".format(self.name, e))
 
     @abstractmethod
-    def write_internal_actuator(self, value: int):
+    def write_internal_actuator(self, write_value: int):
         pass
 
     def is_valid(self, value: int):

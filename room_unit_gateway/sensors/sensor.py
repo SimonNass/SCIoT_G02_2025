@@ -100,10 +100,10 @@ class DigitalMultipleSensor(SensorInterface):
     def read_internal_sensor(self):
         return_value = 0
         while True:
-                return_value = grovepi.dht(self.i2c_connector,0)[self.i]
-                if not any(np.isnan([return_value])):
-                    # no value is NaN
-                    break
+            return_value = grovepi.dht(self.i2c_connector,0)[self.i]
+            if not any(np.isnan([return_value])):
+                # no value is NaN
+                break
         return return_value
 
 class VirtualSensor(SensorInterface):
@@ -115,22 +115,25 @@ class VirtualSensor(SensorInterface):
         _ = self.read_sensor()
 
     def read_internal_sensor(self):
+        value = self.last_value
         if self.rng_selector == 0:
-            return rng.constant(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value)
+            value = rng.constant(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value)
         elif self.rng_selector == 1:
-            return rng.simple_random(min_value=self.min_value, max_value=self.max_value)
+            value = rng.simple_random(min_value=self.min_value, max_value=self.max_value)
         elif self.rng_selector == 2:
-            return rng.binary_random()
+            value = rng.binary_random()
         elif self.rng_selector == 3:
-            return rng.complex_random(min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision)
+            value = rng.complex_random(min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision)
         elif self.rng_selector == 4:
             # TODO rebounce
-            return rng.bounce_random(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision, alpha=0.5)
+            value = rng.bounce_random(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision, alpha=0.5)
         elif self.rng_selector == 5:
-            return rng.random_value(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision, alpha=0.5)
+            value = rng.random_value(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision, alpha=0.5)
         elif self.rng_selector == 6:
             # TODO seed and index hop
-            return rng.predefined_sequence(min_value=self.min_value, max_value=self.max_value, seed=0, index=0)
-        # defoult
-        return rng.random_value(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision, alpha=0.5)
+            value = rng.predefined_sequence(min_value=self.min_value, max_value=self.max_value, seed=0, index=0)
+        else:
+            # defoult
+            value = rng.random_value(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision, alpha=0.5)
+        return value
     

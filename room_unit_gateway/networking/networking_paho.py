@@ -64,7 +64,7 @@ class MQTTEndpoint:
     
     
     def is_connected(self):
-        return (self.mqtt_client != None) and (self.mqtt_client.is_connected())
+        return (self.mqtt_client is not None) and (self.mqtt_client.is_connected())
 
 def remove_quotation(string):
     return string.replace("'","").replace('"','')

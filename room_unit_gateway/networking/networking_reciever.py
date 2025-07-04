@@ -33,7 +33,7 @@ class GatewayNetworkReciever:
 
             # malke sure the message has an actuator uuid
             if iot_type != 'actuator':
-                logger.error(f"iot_type {iot_type} Answer failed {e}")
+                logger.error(f"iot_type {iot_type} Answer failed {device_uuid}")
                 return
             
             #select the actuator based on uuid
