@@ -1,6 +1,9 @@
 SET mypath=%~dp0
 
-pyreverse -o pdf -d %mypath%\auto_generated --all-associated --all-ancestors %mypath%\room_unit_gateway\ 
+pyreverse -o pdf -d %mypath%auto_generated ^
+ --all-associated ^
+ --all-ancestors ^
+%mypath%room_unit_gateway\
 
 pylint --disable=missing-module-docstring ^
  --disable=missing-class-docstring ^
@@ -20,4 +23,4 @@ pylint --disable=missing-module-docstring ^
  --disable=fixme ^
  --disable=wrong-import-order ^
  --disable=import-error ^
- %mypath%\room_unit_gateway\
+ %mypath%room_unit_gateway\
