@@ -9,6 +9,11 @@ from pddl.action import Action
 from pddl.requirements import Requirements
 from pddl import parse_domain, parse_problem
 
+def iterator_rooms_per_floor(floor_uids: List[str], room_uids_per_floor: Dict[str,str]): # TODO
+    for floor in floor_uids:
+        for room in room_uids_per_floor[floor]:
+            yield room
+
 def create_objects(name_list: List[str], type_name: str):
     names = ''
     for i in range(len(name_list)):
@@ -388,7 +393,7 @@ def create_objects_room_topology(floor_uids: List[str], room_uids_per_floor: Dic
     uid_to_pddl_variable_floor = {floor_uids[i]:floors[i] for i in range(len(floors))}
     rooms = []
     uid_to_pddl_variable_rooms = {}
-    for _, room_uids in room_uids_per_floor.items():
+    for room_uids in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
         new_rooms = create_objects(room_uids, "room")
         rooms = rooms + new_rooms
         uid_to_pddl_variable_rooms.update({room_uids[i]:new_rooms[i] for i in range(len(new_rooms))})
@@ -399,23 +404,21 @@ def create_objects_room_topology(floor_uids: List[str], room_uids_per_floor: Dic
 def create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_mapping, actuator_room_mapping):
     sensors = []
     uid_to_pddl_variable_sensors = {}
-    for floor in floor_uids:
-        for room in room_uids_per_floor[floor]:
-            if room not in sensor_room_mapping:
-                continue
-            new_sensors = create_objects(sensor_room_mapping[room], "numerical_s")
-            sensors = sensors + new_sensors
-            uid_to_pddl_variable_sensors.update({sensor_room_mapping[room][i]:new_sensors[i] for i in range(len(new_sensors))})
+    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+        if room not in sensor_room_mapping:
+            continue
+        new_sensors = create_objects(sensor_room_mapping[room], "numerical_s")
+        sensors = sensors + new_sensors
+        uid_to_pddl_variable_sensors.update({sensor_room_mapping[room][i]:new_sensors[i] for i in range(len(new_sensors))})
 
     actuators = []
     uid_to_pddl_variable_actuators = {}
-    for floor in floor_uids:
-        for room in room_uids_per_floor[floor]:
-            if room not in actuator_room_mapping:
-                continue
-            new_actuators = create_objects(actuator_room_mapping[room], "actuator")
-            actuators = actuators + new_actuators
-            uid_to_pddl_variable_actuators.update({actuator_room_mapping[room][i]:new_actuators[i] for i in range(len(new_actuators))})
+    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+        if room not in actuator_room_mapping:
+            continue
+        new_actuators = create_objects(actuator_room_mapping[room], "actuator")
+        actuators = actuators + new_actuators
+        uid_to_pddl_variable_actuators.update({actuator_room_mapping[room][i]:new_actuators[i] for i in range(len(new_actuators))})
     return sensors, actuators, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators
 
 def create_initial_state_room_topology(floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, elevators):
@@ -465,39 +468,36 @@ def create_initial_state_room_topology(floor_uids, room_uids_per_floor, uid_to_p
 def create_iot_room_mapping(floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], uids_to_object: Dict[str,constants], uids_to_room: Dict[str,constants], room_mapping: Dict[str,List[str]], iot_is_part_of_room):
     initial_state = []
     
-    for floor in floor_uids:
-        for room in room_uids_per_floor[floor]:
-            sensor_room = uids_to_room[room]
-            if room not in room_mapping:
-                continue
-            for device in room_mapping[room]:
-                object_instance = uids_to_object[device]
-                next_part_of_room = iot_is_part_of_room(object_instance, sensor_room)
-                initial_state.append(next_part_of_room)
+    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+        sensor_room = uids_to_room[room]
+        if room not in room_mapping:
+            continue
+        for device in room_mapping[room]:
+            object_instance = uids_to_object[device]
+            next_part_of_room = iot_is_part_of_room(object_instance, sensor_room)
+            initial_state.append(next_part_of_room)
 
     return initial_state
 
 def create_sensor_values(floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], sensor_room_mapping:Dict[str,List[str]], uid_to_pddl_variable_sensors: Dict[str,constants], sensor_initial_values: List[int]):
     state_list = []
 
-    for floor in floor_uids:
-        for room in room_uids_per_floor[floor]:
-            if room not in sensor_room_mapping:
-                continue
-            for s in sensor_room_mapping[room]:
-                sensor_object = uid_to_pddl_variable_sensors[s]
-                object_state = 0
+    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+        if room not in sensor_room_mapping:
+            continue
+        for s in sensor_room_mapping[room]:
+            sensor_object = uid_to_pddl_variable_sensors[s]
+            object_state = 0
+            state = is_ok(sensor_object)
+            if s in sensor_initial_values:
+                object_state = sensor_initial_values[s]
+            if object_state == -1:
+                state = is_low(sensor_object)
+            elif object_state == 0:
                 state = is_ok(sensor_object)
-                if s in sensor_initial_values:
-                    object_state = sensor_initial_values[s]
-
-                if object_state == -1:
-                    state = is_low(sensor_object)
-                elif object_state == 0:
-                    state = is_ok(sensor_object)
-                elif object_state == 1:
-                    state = is_high(sensor_object)
-                state_list.append(state)
+            elif object_state == 1:
+                state = is_high(sensor_object)
+            state_list.append(state)
 
     return state_list
 
@@ -593,35 +593,32 @@ def create_objects_and_initial_state(input: Dict[str,Any]):
 
     individual_sensor_goals = create_sensor_values(floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_goal_values)
 
-    for floor in floor_uids:
-        for room in room_uids_per_floor[floor]:
-            if room not in actuator_room_mapping:
-                continue
-            for a in actuator_room_mapping[room]:
-                actuator_object = uid_to_pddl_variable_actuators[a]
-                object_state = False
-                if a in actuator_initial_values:
-                    object_state = actuator_initial_values[a]
-
-                state = base.Not(is_activated(actuator_object))
-                if object_state:
-                    state = is_activated(actuator_object)
-                initial_state.append(state)
+    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+        if room not in actuator_room_mapping:
+            continue
+        for a in actuator_room_mapping[room]:
+            actuator_object = uid_to_pddl_variable_actuators[a]
+            object_state = False
+            if a in actuator_initial_values:
+                object_state = actuator_initial_values[a]
+            state = base.Not(is_activated(actuator_object))
+            if object_state:
+                state = is_activated(actuator_object)
+            initial_state.append(state)
 
     # context room occupied
     room_occupied_actuator_initial_values = input['room_occupied_actuator_initial_values']
 
     assert len(room_occupied_actuator_initial_values) <= len(rooms)
 
-    for floor in floor_uids:
-        for room in room_uids_per_floor[floor]:
-            object_state = room_occupied_actuator_initial_values[room]
+    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+        object_state = room_occupied_actuator_initial_values[room]
+        state = base.Not(is_occupied(rooms[i]))
+        if object_state:
+            state = is_occupied(rooms[i])
+        else:
             state = base.Not(is_occupied(rooms[i]))
-            if object_state:
-                state = is_occupied(rooms[i])
-            else:
-                state = base.Not(is_occupied(rooms[i]))
-            initial_state.append(state)
+        initial_state.append(state)
     return all_objects, initial_state, individual_sensor_goals
 
 def create_goal(plan_cleaning: bool = True):
