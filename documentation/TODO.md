@@ -31,6 +31,8 @@
   - [x] First attempts at lecture implementation
   - [X] (Simon) plan cleaning and do not plan cleaning toggle
   - [ ] (Simon) mapping in pddl a -> s
+  - [ ] (Simon) individual sensor goals
+  - [ ] (Simon) room positiones
   - [ ] (Maximilian, Simon) Sensor aggregation
 
 - [ ] Frontend
