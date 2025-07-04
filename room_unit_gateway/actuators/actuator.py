@@ -34,6 +34,7 @@ class ActuatorInterface(ABC):
         if not self.is_valid(self.initial_value):
             self.last_value = min_value
         self.off_value = max(min_value,min(max_value,off_value))
+        self.value_has_changed = False
 
     @abstractmethod
     def __del__(self):
@@ -55,6 +56,7 @@ class ActuatorInterface(ABC):
             self.last_value_timestamp = time.time()
             self.last_value = write_value
             self.datatype = str(type(self.last_value))
+            self.value_has_changed = True
             print (f"uuid: {self.id}, device name: {self.name}, value: {self.last_value}")
             logger.info(f"uuid: {self.id}, device name: {self.name}, value: {self.last_value}, type: {self.datatype}")
         except (Exception, IOError, TypeError, AttributeError) as e:

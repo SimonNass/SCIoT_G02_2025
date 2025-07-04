@@ -53,6 +53,12 @@ def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface
             text = f"{sensor.name}: {str(read_dict['last_value'])}"
             write_all_displays(displays, text)
 
+def cyclic_actuator_read(actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
+    for actuator in actuators:
+        if actuator.value_has_changed:
+            network_connection.send_all_data_actuator(actuator)
+            actuator.value_has_changed = False
+
 def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork, virtual_environment: Virtual_environment, max_cycle_time: int = 100):
     logger.info("max_cycle_time: " + str(max_cycle_time))
     print ("", flush=True)
@@ -69,6 +75,7 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
             #write_all_displays(actuators,"12345678910131517192123252729313335")
             #read_all_actuators(actuators)
             cyclic_read(sensors,actuators,cycle,network_connection)
+            cyclic_actuator_read(actuators, network_connection)
 
             # Reset
             if cycle > max_cycle_time:
