@@ -20,9 +20,9 @@
   - [ ] (Simon) send after actuator change
   - [ ] (Simon) disable sensors ?
   - [ ] (Simon) update random number generator manual list
-  - [ ] bug when broker not connected
-  - [ ] ardoino sensor return prefix needs to be removed
-  - [ ] send ardoino values not 0 to mqtt broker
+  - [X] bug when broker not connected ?bug no longer apeares
+  - [X] ardoino sensor return prefix needs to be removed
+  - [X] send ardoino values not 0 to mqtt broker
 
 - [ ] AI Planning
   - [x] Overarching Goals
