@@ -12,8 +12,9 @@ import pddl_converter_actions
 import pddl_converter_goals
 import pddl_converter_types
 import pddl_converter_predicates
+import pddl_converter_objects
 
-def iterator_rooms_per_floor(floor_uids: List[str], room_uids_per_floor: Dict[str,str]): # TODO
+def iterator_rooms_per_floor(floor_uids: List[str], room_uids_per_floor: Dict[str,List[str]]):
     for floor in floor_uids:
         for room in room_uids_per_floor[floor]:
             yield room
@@ -26,39 +27,6 @@ def create_objects(name_list: List[str], type_name: str):
     objects = constants(names, type_=type_name + '_type')
     #print (objects)
     return objects
-
-def create_objects_room_topology(floor_uids: List[str], room_uids_per_floor: Dict[str,List[str]], elevator_uids: List[str]):
-    floors = create_objects(floor_uids, "floor")
-    uid_to_pddl_variable_floor = {floor_uids[i]:floors[i] for i in range(len(floors))}
-    rooms = []
-    uid_to_pddl_variable_rooms = {}
-    for _, room_uids in room_uids_per_floor.items():
-        new_rooms = create_objects(room_uids, "room")
-        rooms = rooms + new_rooms
-        uid_to_pddl_variable_rooms.update({room_uids[i]:new_rooms[i] for i in range(len(new_rooms))})
-    elevators = create_objects(elevator_uids, "room")
-
-    return floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms
-
-def create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_mapping, actuator_room_mapping):
-    sensors = []
-    uid_to_pddl_variable_sensors = {}
-    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
-        if room not in sensor_room_mapping:
-            continue
-        new_sensors = create_objects(sensor_room_mapping[room], "numerical_s")
-        sensors = sensors + new_sensors
-        uid_to_pddl_variable_sensors.update({sensor_room_mapping[room][i]:new_sensors[i] for i in range(len(new_sensors))})
-
-    actuators = []
-    uid_to_pddl_variable_actuators = {}
-    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
-        if room not in actuator_room_mapping:
-            continue
-        new_actuators = create_objects(actuator_room_mapping[room], "actuator")
-        actuators = actuators + new_actuators
-        uid_to_pddl_variable_actuators.update({actuator_room_mapping[room][i]:new_actuators[i] for i in range(len(new_actuators))})
-    return sensors, actuators, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators
 
 def create_initial_state_room_topology(floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, elevators):
     initial_state = []
@@ -154,13 +122,13 @@ def create_objects_and_initial_state(input: Dict[str,Any]):
     cleaning_team_uids = input['cleaning_team_uids']
     names_room_positions = input['names_room_positions']
     
-    floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms = create_objects_room_topology(floor_uids, room_uids_per_floor, elevator_uids)
+    floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms = pddl_converter_objects.create_objects_room_topology(floor_uids, room_uids_per_floor, elevator_uids)
     all_objects = all_objects + floors + rooms + elevators
 
     cleaning_teams = create_objects(cleaning_team_uids, "cleaning_team")
     all_objects = all_objects + cleaning_teams
 
-    sensors, actuators, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators = create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_mapping, actuator_room_mapping)
+    sensors, actuators, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators = pddl_converter_objects.create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_mapping, actuator_room_mapping)
     all_objects = all_objects + sensors + actuators
 
     room_positions = create_objects(names_room_positions, "room_position")
@@ -431,7 +399,6 @@ def main():
     
     with open(os.path.join(output_path, problem_file_name),'w') as f:
         f.write(p.__str__())
-
 
 if __name__ == '__main__':
     main()

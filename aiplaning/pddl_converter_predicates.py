@@ -72,5 +72,3 @@ def create_predicates_variables(floor_type, room_type, room2_type, room_position
     predicates_list.append(fulfilled_activity)
 
     return predicates_list, room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, has_specified_activity_at, activity_names, is_doing_activitys_at, is_sensing, is_low, is_ok, is_high, is_activated, fulfilled_activity
-
-

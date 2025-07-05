@@ -3,7 +3,6 @@
 # pip install pddl==0.4.3
 from pddl.logic import variables
 
-
 def create_type_variables():
     # set up variables
     floor_type, floor2_type = variables("floor_type floor2_type", types=["floor_type"])
@@ -19,7 +18,6 @@ def create_type_variables():
     binary_a_type, numerical_a_type, textual_a_type = variables("binary_a_type numerical_a_type textual_a_type", types=["actuator_type"])
 
     return floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, actuator_type, actuator2_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type
-
 
 def create_type_dict():
     # set up types
