@@ -15,11 +15,7 @@ import pddl_converter_predicates
 import pddl_converter_objects
 import pddl_converter_input
 import pddl_converter_initial_state
-
-def iterator_rooms_per_floor(floor_uids: List[str], room_uids_per_floor: Dict[str,List[str]]):
-    for floor in floor_uids:
-        for room in room_uids_per_floor[floor]:
-            yield room
+import pddl_converter_help
 
 def create_objects(name_list: List[str], type_name: str):
     names = ''
@@ -122,7 +118,7 @@ def create_objects_and_initial_state(input_dictionary: Dict[str,Any]):
 
     individual_sensor_goals = pddl_converter_initial_state.create_sensor_values(is_high, is_ok, is_low, floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_goal_values)
 
-    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+    for room in pddl_converter_help.iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
         if room not in actuator_room_mapping:
             continue
         for a in actuator_room_mapping[room]:
@@ -140,7 +136,7 @@ def create_objects_and_initial_state(input_dictionary: Dict[str,Any]):
 
     assert len(room_occupied_actuator_initial_values) <= len(rooms)
 
-    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+    for room in pddl_converter_help.iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
         object_state = room_occupied_actuator_initial_values[room]
         state = base.Not(is_occupied(rooms[i]))
         if object_state:
@@ -212,23 +208,8 @@ def create():
     #print(problem)
     return domain, problem
 
-def reading_in_pddl():
-    domaine_file_name = 'domain.pddl'
-    problem_file_name = 'problem.pddl'
-
-    domain = parse_domain(domaine_file_name)
-    print(domain)
-    problem = parse_problem(problem_file_name)
-    print(problem)
-
-def check_lib_versions():
-    import pddl
-    version_pddl = pddl.__version__
-    print(version_pddl)
-    # make sure that it is above 0.4.2
-
 def main():
-    check_lib_versions()
+    pddl_converter_help.check_lib_versions()
 
     # output_path is relative to working directory
     output_path = "auto_generated/"

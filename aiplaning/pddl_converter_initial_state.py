@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 
 # pip install pddl==0.4.3
-from typing import Any, Dict, List
-from pddl.logic import constants, base
-
-def iterator_rooms_per_floor(floor_uids: List[str], room_uids_per_floor: Dict[str,List[str]]):
-    for floor in floor_uids:
-        for room in room_uids_per_floor[floor]:
-            yield room
+from typing import Dict, List
+from pddl.logic import constants
+import pddl_converter_help
 
 def create_initial_state_room_topology(room_is_part_of_floor, is_next_to, is_cleaned, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, elevators):
     initial_state = []
@@ -56,7 +52,7 @@ def create_initial_state_room_topology(room_is_part_of_floor, is_next_to, is_cle
 def create_iot_room_mapping(floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], uids_to_object: Dict[str,constants], uids_to_room: Dict[str,constants], room_mapping: Dict[str,List[str]], iot_is_part_of_room):
     initial_state = []
     
-    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+    for room in pddl_converter_help.iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
         sensor_room = uids_to_room[room]
         if room not in room_mapping:
             continue
@@ -70,7 +66,7 @@ def create_iot_room_mapping(floor_uids: List[str], room_uids_per_floor:Dict[str,
 def create_sensor_values(is_high, is_ok, is_low, floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], sensor_room_mapping:Dict[str,List[str]], uid_to_pddl_variable_sensors: Dict[str,constants], sensor_initial_values: List[int]):
     state_list = []
 
-    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+    for room in pddl_converter_help.iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
         if room not in sensor_room_mapping:
             continue
         for s in sensor_room_mapping[room]:
