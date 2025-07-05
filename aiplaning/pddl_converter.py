@@ -109,19 +109,19 @@ def create_sensor_values(floor_uids: List[str], room_uids_per_floor:Dict[str,Lis
 
     return state_list
 
-def create_objects_and_initial_state(input: Dict[str,Any]):
+def create_objects_and_initial_state(input_dictionary: Dict[str,Any]):
         # create objects / constants
     all_objects = []
 
-    floor_uids = input['floor_uids']
-    room_uids_per_floor = input['room_uids_per_floor']
-    elevator_uids = input['elevator_uids']
+    floor_uids = input_dictionary['floor_uids']
+    room_uids_per_floor = input_dictionary['room_uids_per_floor']
+    elevator_uids = input_dictionary['elevator_uids']
     assert 1 <= len(elevator_uids)
 
-    sensor_room_mapping = input['sensor_room_mapping']
-    actuator_room_mapping = input['actuator_room_mapping']
-    cleaning_team_uids = input['cleaning_team_uids']
-    names_room_positions = input['names_room_positions']
+    sensor_room_mapping = input_dictionary['sensor_room_mapping']
+    actuator_room_mapping = input_dictionary['actuator_room_mapping']
+    cleaning_team_uids = input_dictionary['cleaning_team_uids']
+    names_room_positions = input_dictionary['names_room_positions']
     
     floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms = pddl_converter_objects.create_objects_room_topology(floor_uids, room_uids_per_floor, elevator_uids)
     all_objects = all_objects + floors + rooms + elevators
@@ -164,8 +164,8 @@ def create_objects_and_initial_state(input: Dict[str,Any]):
         initial_state.append(next_pos)
 
     # sensor actuator mapping
-    actuator_increases_sensor_mapping_matrix = input['actuator_increases_sensor_mapping_matrix']
-    actuator_decreases_sensor_mapping_matrix = input['actuator_decreases_sensor_mapping_matrix']
+    actuator_increases_sensor_mapping_matrix = input_dictionary['actuator_increases_sensor_mapping_matrix']
+    actuator_decreases_sensor_mapping_matrix = input_dictionary['actuator_decreases_sensor_mapping_matrix']
 
     assert len(actuator_increases_sensor_mapping_matrix.keys()) <= len(actuators)
     for _, sensor_list_mapping in actuator_increases_sensor_mapping_matrix.items():
@@ -185,10 +185,10 @@ def create_objects_and_initial_state(input: Dict[str,Any]):
 
     # context
     # raw sensor data
-    sensor_initial_values = input['sensor_initial_values']
+    sensor_initial_values = input_dictionary['sensor_initial_values']
     # TODO
-    sensor_goal_values = input['sensor_goal_values']
-    actuator_initial_values = input['actuator_initial_values']
+    sensor_goal_values = input_dictionary['sensor_goal_values']
+    actuator_initial_values = input_dictionary['actuator_initial_values']
 
     individual_sensor_goals = []
 
@@ -215,7 +215,7 @@ def create_objects_and_initial_state(input: Dict[str,Any]):
             initial_state.append(state)
 
     # context room occupied
-    room_occupied_actuator_initial_values = input['room_occupied_actuator_initial_values']
+    room_occupied_actuator_initial_values = input_dictionary['room_occupied_actuator_initial_values']
 
     assert len(room_occupied_actuator_initial_values) <= len(rooms)
 
@@ -255,7 +255,7 @@ def create_domain(domain_name: str, predicates_list: List[variables]):
 
 def create():
 
-    input = pddl_converter_input.query_input()
+    input_dictionary = pddl_converter_input.query_input_dictionary()
 
     # set up variables and constants
     global floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type
@@ -270,16 +270,16 @@ def create():
 
     predicates_list, room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, has_specified_activity_at, activity_names, is_doing_activitys_at, is_sensing, is_low, is_ok, is_high, is_activated, fulfilled_activity = pddl_converter_predicates.create_predicates_variables(floor_type, room_type, room2_type, room_position_type, cleaning_team_type, iot_type, sensor_type, actuator_type, numerical_s_type)
 
-    domain = create_domain(input['domain_name'], predicates_list)
+    domain = create_domain(input_dictionary['domain_name'], predicates_list)
 
-    all_objects, initial_state, individual_sensor_goals = create_objects_and_initial_state(input)
+    all_objects, initial_state, individual_sensor_goals = create_objects_and_initial_state(input_dictionary)
 
     # create goal
     goal_state = None
-    goal_state = pddl_converter_goals.create_goal(fulfilled_activity, is_activated, is_cleaned, is_occupied, actuator_is_part_of_room, room_type, room_position_type, actuator_type, input['plan_cleaning'])
+    goal_state = pddl_converter_goals.create_goal(fulfilled_activity, is_activated, is_cleaned, is_occupied, actuator_is_part_of_room, room_type, room_position_type, actuator_type, input_dictionary['plan_cleaning'])
 
     problem = Problem(
-        input['problem_name'],
+        input_dictionary['problem_name'],
         domain=domain,
         requirements=domain.requirements,
         
