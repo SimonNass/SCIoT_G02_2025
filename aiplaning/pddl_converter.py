@@ -14,6 +14,7 @@ import pddl_converter_types
 import pddl_converter_predicates
 import pddl_converter_objects
 import pddl_converter_input
+import pddl_converter_initial_state
 
 def iterator_rooms_per_floor(floor_uids: List[str], room_uids_per_floor: Dict[str,List[str]]):
     for floor in floor_uids:
@@ -28,86 +29,6 @@ def create_objects(name_list: List[str], type_name: str):
     objects = constants(names, type_=type_name + '_type')
     #print (objects)
     return objects
-
-def create_initial_state_room_topology(floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, elevators):
-    initial_state = []
-
-    #comulative_rooms_bevore = [sum(rooms_per_floor[:i]) for i in range(len(rooms_per_floor))]
-    #print (comulative_rooms_bevore)
-
-    # assigns each rooms to one floor they are a part of
-    for floor in floor_uids:
-        for room in room_uids_per_floor[floor]:
-            next_room_floor_mapping = room_is_part_of_floor(uid_to_pddl_variable_rooms[room], uid_to_pddl_variable_floor[floor])
-            initial_state.append(next_room_floor_mapping)
-
-    # connects rooms that are next to each other on the same floor
-    # defaults to a line topology
-    for floor in floor_uids:
-        for i in range(len(room_uids_per_floor[floor]) - 1): 
-            current_room = uid_to_pddl_variable_rooms[room_uids_per_floor[floor][i]]
-            next_room = uid_to_pddl_variable_rooms[room_uids_per_floor[floor][i + 1]]
-
-            next_room_room_mapping = is_next_to(current_room, next_room)
-            initial_state.append(next_room_room_mapping)
-            next_room_room_mapping = is_next_to(next_room, current_room)
-            initial_state.append(next_room_room_mapping)
-
-    for i in range(len(elevators)):
-        for floor in floor_uids:
-            # connect the elevators to all floors
-            next_elevator_floor_mapping = room_is_part_of_floor(elevators[i],uid_to_pddl_variable_floor[floor])
-            initial_state.append(next_elevator_floor_mapping)
-        
-            # connect the elevators to a room in each floor
-            room_near_elevator = uid_to_pddl_variable_rooms[room_uids_per_floor[floor][i % len(room_uids_per_floor[floor])]]
-
-            next_elevator_room_mapping = is_next_to(elevators[i],room_near_elevator)
-            initial_state.append(next_elevator_room_mapping)
-            next_elevator_room_mapping = is_next_to(room_near_elevator,elevators[i])
-            initial_state.append(next_elevator_room_mapping)
-
-        # elevators do not have to be cleaned
-        next_elevator_is_clean = is_cleaned(elevators[i])
-        initial_state.append(next_elevator_is_clean)
-
-    return initial_state
-
-def create_iot_room_mapping(floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], uids_to_object: Dict[str,constants], uids_to_room: Dict[str,constants], room_mapping: Dict[str,List[str]], iot_is_part_of_room):
-    initial_state = []
-    
-    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
-        sensor_room = uids_to_room[room]
-        if room not in room_mapping:
-            continue
-        for device in room_mapping[room]:
-            object_instance = uids_to_object[device]
-            next_part_of_room = iot_is_part_of_room(object_instance, sensor_room)
-            initial_state.append(next_part_of_room)
-
-    return initial_state
-
-def create_sensor_values(floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], sensor_room_mapping:Dict[str,List[str]], uid_to_pddl_variable_sensors: Dict[str,constants], sensor_initial_values: List[int]):
-    state_list = []
-
-    for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
-        if room not in sensor_room_mapping:
-            continue
-        for s in sensor_room_mapping[room]:
-            sensor_object = uid_to_pddl_variable_sensors[s]
-            object_state = 0
-            state = is_ok(sensor_object)
-            if s in sensor_initial_values:
-                object_state = sensor_initial_values[s]
-            if object_state == -1:
-                state = is_low(sensor_object)
-            elif object_state == 0:
-                state = is_ok(sensor_object)
-            elif object_state == 1:
-                state = is_high(sensor_object)
-            state_list.append(state)
-
-    return state_list
 
 def create_objects_and_initial_state(input_dictionary: Dict[str,Any]):
         # create objects / constants
@@ -138,7 +59,7 @@ def create_objects_and_initial_state(input_dictionary: Dict[str,Any]):
     # create initial state
     initial_state = []
     
-    initial_state_topology = create_initial_state_room_topology(floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, elevators,)
+    initial_state_topology = pddl_converter_initial_state.create_initial_state_room_topology(room_is_part_of_floor, is_next_to, is_cleaned, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, elevators,)
     initial_state = initial_state + initial_state_topology
 
     # cleaning teams starting at different elevators
@@ -147,9 +68,9 @@ def create_objects_and_initial_state(input_dictionary: Dict[str,Any]):
         initial_state.append(next_is_at)
 
     # iot to room papping
-    sm = create_iot_room_mapping(floor_uids, room_uids_per_floor, uid_to_pddl_variable_sensors, uid_to_pddl_variable_rooms, sensor_room_mapping, sensor_is_part_of_room)
+    sm = pddl_converter_initial_state.create_iot_room_mapping(floor_uids, room_uids_per_floor, uid_to_pddl_variable_sensors, uid_to_pddl_variable_rooms, sensor_room_mapping, sensor_is_part_of_room)
     initial_state = initial_state + sm
-    am = create_iot_room_mapping(floor_uids, room_uids_per_floor, uid_to_pddl_variable_actuators, uid_to_pddl_variable_rooms, actuator_room_mapping, actuator_is_part_of_room)
+    am = pddl_converter_initial_state.create_iot_room_mapping(floor_uids, room_uids_per_floor, uid_to_pddl_variable_actuators, uid_to_pddl_variable_rooms, actuator_room_mapping, actuator_is_part_of_room)
     initial_state = initial_state + am
 
     # iot position mapping
@@ -196,10 +117,10 @@ def create_objects_and_initial_state(input_dictionary: Dict[str,Any]):
     assert len(sensor_goal_values) <= len(sensors)
     assert len(actuator_initial_values) <= len(actuators)
 
-    initial_sensor_state = create_sensor_values(floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_initial_values)
+    initial_sensor_state = pddl_converter_initial_state.create_sensor_values(is_high, is_ok, is_low, floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_initial_values)
     initial_state = initial_state + initial_sensor_state
 
-    individual_sensor_goals = create_sensor_values(floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_goal_values)
+    individual_sensor_goals = pddl_converter_initial_state.create_sensor_values(is_high, is_ok, is_low, floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_goal_values)
 
     for room in iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
         if room not in actuator_room_mapping:
