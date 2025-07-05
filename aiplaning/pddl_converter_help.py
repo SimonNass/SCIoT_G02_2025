@@ -3,11 +3,17 @@
 # pip install pddl==0.4.3
 from typing import Dict, List
 from pddl import parse_domain, parse_problem
+import os
 
 def iterator_ofer_dict_list_elements(keys: List[str], key_to_element_lists: Dict[str,List[str]]):
     for key in keys:
         for element in key_to_element_lists[key]:
             yield element
+
+def write_out_pddl(output_path, file_name, pddl_structure):
+    os.makedirs(output_path, exist_ok=True)
+    with open(os.path.join(output_path, file_name),'w') as f:
+        f.write(pddl_structure.__str__())
 
 def reading_in_pddl():
     domaine_file_name = 'domain.pddl'

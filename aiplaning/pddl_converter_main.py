@@ -2,11 +2,9 @@
 
 # pip install pddl==0.4.3
 from typing import Any, Dict, List
-from pddl.logic import Predicate, constants, variables, base
+from pddl.logic import constants, variables, base
 from pddl.core import Domain, Problem
 from pddl.requirements import Requirements
-from pddl import parse_domain, parse_problem
-import os
 
 import pddl_converter_actions
 import pddl_converter_goals
@@ -167,11 +165,9 @@ def create_domain(domain_name: str, predicates_list: List[variables]):
                     actions=actions_list)
 
     #print(domain)
-
     return domain
 
 def create():
-
     input_dictionary = pddl_converter_input.query_input()
 
     # set up variables and constants
@@ -213,17 +209,12 @@ def main():
 
     # output_path is relative to working directory
     output_path = "auto_generated/"
-    os.makedirs(output_path, exist_ok=True)
     domaine_file_name = 'test_domain.pddl'
     problem_file_name = 'test_problem.pddl'
 
     d, p = create()
-    
-    with open(os.path.join(output_path, domaine_file_name),'w') as f:
-        f.write(d.__str__())
-    
-    with open(os.path.join(output_path, problem_file_name),'w') as f:
-        f.write(p.__str__())
+    pddl_converter_help.write_out_pddl(output_path, domaine_file_name, d)
+    pddl_converter_help.write_out_pddl(output_path, problem_file_name, p)
 
 if __name__ == '__main__':
     main()
