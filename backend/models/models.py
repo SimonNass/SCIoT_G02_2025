@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List, Optional
 from backend.extensions import db
 import uuid
+import enum
 
 class Floor(db.Model):
     __tablename__ = 'floors'
@@ -37,6 +38,7 @@ class Room(db.Model):
     last_cleaned: Mapped[Optional[datetime]] = mapped_column(DateTime)
     is_cleaned: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    rfid_access_id: Mapped[float] = mapped_column(Float)
     
     # Foreign key to Floor
     floor_id: Mapped[str] = mapped_column(ForeignKey("floors.id"), nullable=False)
@@ -136,3 +138,57 @@ class TypeNameConfig(db.Model):
     unit: Mapped[Optional[str]] = mapped_column(String(20))
 
     devices: Mapped[List["Device"]] = relationship(back_populates="device_type_config")
+
+    def __repr__(self) -> str:
+        return f"TypeNameConfig(id={self.id!r}, device_type={self.device_type!r}, type_name={self.type_name!r}, lower_mid_limit={self.lower_mid_limit!r}, lower_mid_limit={self.upper_mid_limit!r})"
+
+class PlanScope(enum.Enum):
+    BUILDING = "building"
+    FLOOR = "floor"
+    ROOM = "room"
+
+class PDDLPlan(db.Model):
+    """Store PDDL plans with their metadata and scope"""
+    __tablename__ = 'plans'
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    scope: Mapped[PlanScope] = mapped_column(Enum(PlanScope), nullable=False)
+    target_floor_id: Mapped[Optional[str]] = mapped_column(ForeignKey("floors.id"))
+    target_room_id: Mapped[Optional[str]] = mapped_column(ForeignKey("rooms.id"))
+
+    total_cost: Mapped[Optional[float]] = mapped_column(Float)
+    planning_time: Mapped[Optional[float]] = mapped_column(Float)
+    planner_used: Mapped[str] = mapped_column(String(100))
+    raw_plan: Mapped[str] = mapped_column(Text, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    target_floor: Mapped[Optional["Floor"]] = relationship("Floor", foreign_keys=[target_floor_id])
+    target_room: Mapped[Optional["Room"]] = relationship("Room", foreign_keys=[target_room_id])
+    steps: Mapped[List["PlanStep"]] = relationship(
+        back_populates="plan", 
+        cascade="all, delete-orphan",
+        order_by="PlanStep.step_order"
+    )
+
+    def __repr__(self) -> str:
+        return f"Plan(id={self.id!r}, scope={self.scope!r}, planner_used={self.planner_used!r}, raw_plan={self.raw_plan!r})"
+
+class PlanStep(db.Model):
+    """Store individual steps of a PDDL plan"""
+    __tablename__ = 'plan_steps'
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    plan_id: Mapped[str] = mapped_column(ForeignKey("plans.id"), nullable=False)
+
+    # Step details
+    step_order: Mapped[int] = mapped_column(Integer, nullable=False)
+    action_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    parameters: Mapped[Optional[str]] = mapped_column(Text)
+    raw_step: Mapped[str] = mapped_column(Text, nullable=False)  # Original step string from planner
+
+    target_device_id: Mapped[Optional[str]] = mapped_column(ForeignKey("devices.id"))
+    
+    # Relationships
+    plan: Mapped["PDDLPlan"] = relationship(back_populates="steps")
+    target_device: Mapped[Optional["Device"]] = relationship("Device")

@@ -19,7 +19,7 @@ def get_or_create_device(app_instance, floor_number, room_number, sensor_type, d
         if device_id in device_cache:
             logging.debug(f"Device {device_id} found in cache")
             # Process payload and update device status in a single transaction
-            success = _process_device_payload_and_status(app_instance, device_id, sensor_type, payload, update_only=True)
+            success = _process_device_payload_and_status(app_instance, device_id, sensor_type, payload, room)
             if success:
                 return device_cache[device_id]
             else:
@@ -44,7 +44,7 @@ def get_or_create_device(app_instance, floor_number, room_number, sensor_type, d
             
             if existing_device:
                 # Device exists in DB but not in cache
-                return _handle_existing_device(app_instance, existing_device, sensor_type, payload)
+                return _handle_existing_device(app_instance, existing_device, sensor_type, room, payload)
             else:
                 # Create new device
                 return _create_new_device(app_instance, device_id, sensor_type, room, floor_number, room_number, payload)
@@ -57,7 +57,7 @@ def get_or_create_device(app_instance, floor_number, room_number, sensor_type, d
             pass
         return None
 
-def _handle_existing_device(app_instance, existing_device, sensor_type, payload):
+def _handle_existing_device(app_instance, existing_device, sensor_type, room, payload):
     """Handle existing device found in database but not in cache"""
     try:
         device_info = {
@@ -73,8 +73,8 @@ def _handle_existing_device(app_instance, existing_device, sensor_type, payload)
         device_cache[existing_device.device_id] = device_info
         
         # Process payload and update device status in a single transaction
-        success = _process_device_payload_and_status(app_instance, existing_device.device_id, sensor_type, payload, 
-                                                   device_obj=existing_device, update_only=True)
+        success = _process_device_payload_and_status(app_instance, existing_device.device_id, sensor_type, payload, room,
+                                                   device_obj=existing_device)
         
         if success:
             logging.info(f"Device {existing_device.device_id} added to cache from database and payload processed")
@@ -143,6 +143,9 @@ def _create_new_device(app_instance, device_id, sensor_type, room, floor_number,
                         simplified_value=simplified_value,
                         timestamp=datetime.utcnow()
                     )
+                    # Handle RFID sensor behavious
+                    _handle_rfid_sensor(room, parsed_payload, latest_value)
+
                     db.session.add(sensor_data)
                     sensor_data_created = True
                     logging.debug(f"Sensor data record created for new device {device_id}")
@@ -180,7 +183,7 @@ def _create_new_device(app_instance, device_id, sensor_type, room, floor_number,
         db.session.rollback()
         return None
 
-def _process_device_payload_and_status(app_instance, device_id, sensor_type, payload, device_obj=None, update_only=False):
+def _process_device_payload_and_status(app_instance, device_id, sensor_type, payload, room, device_obj=None,):
     """
     Process device payload and update device status in a single transaction.
     Returns True if successful, False otherwise.
@@ -210,8 +213,6 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
                     if sensor_type == 'sensor' and parsed_payload['last_value'] is not None:
                         try:
                             latest_value = float(parsed_payload['last_value'])
-                            create_device_type_config(app_instance, device_obj.device_type, device_obj.type_name, 
-                                                      device_obj.max_value, device_obj.min_value, device_obj.unit)
                             simplified_value = get_simplified_value(latest_value, device_obj.device_type, device_obj.type_name)
                             device_obj.last_value = latest_value  # Update latest value in device object
                             device_obj.last_value_simplified = simplified_value  # Update simplified value in device object
@@ -221,6 +222,8 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
                                 simplified_value=simplified_value,
                                 timestamp=datetime.utcnow()
                             )
+                            _handle_rfid_sensor(room, parsed_payload, latest_value)
+
                             db.session.add(sensor_data)
                             sensor_data_created = True
                             logging.debug(f"Sensor data record created for device {device_id}")
@@ -411,3 +414,46 @@ def get_simplified_value(value: float, device_type: str, type_name: str) -> str:
     except Exception as e:
         logging.error(f"Error simplifying value {value} for device type {device_type}: {str(e)}")
         raise
+
+def _handle_rfid_sensor(room, parsed_payload, latest_value):
+    """
+    Handle RFID sensor behavior for room occupancy tracking.
+    
+    Args:
+        room: Room object from database
+        parsed_payload: Parsed MQTT payload containing sensor data
+        latest_value: Latest RFID value read from sensor
+    
+    Returns:
+        bool: True if room state was modified, False otherwise
+    """
+    if "rfid" not in parsed_payload.get("type_name", "").lower():
+        return False
+    
+    try:
+        # Convert latest_value to float for comparison
+        rfid_value = float(latest_value)
+    except (ValueError, TypeError):
+        logging.warning(f"Invalid RFID value received: {latest_value}")
+        return False
+    
+    # Initialize RFID access ID if not set
+    if room.rfid_access_id is None:
+        room.rfid_access_id = rfid_value
+        logging.info(f"RFID access ID initialized for room {room.room_number}: {rfid_value}")
+        return True
+    
+    # Check if the RFID value matches the registered access ID
+    if room.rfid_access_id == rfid_value:
+        # Toggle occupancy status
+        room.is_occupied = not room.is_occupied
+        
+        status_change = "entered" if room.is_occupied else "exited"
+        logging.info(f"Room {room.room_number}: User {status_change} (RFID: {rfid_value})")
+        
+        return True
+    else:
+        # RFID value doesn't match - could be unauthorized access attempt
+        logging.warning(f"Unauthorized RFID access attempt in room {room.room_number}: "
+                       f"Expected {room.rfid_access_id}, got {rfid_value}")
+        return False
