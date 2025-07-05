@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+
+def query_input():
+    domain_name = "test_SCIoT_G02_2025"
+    problem_name = 'test'
+
+    floor_uids = ['f0','f1']
+    room_uids_per_floor = {'f0':['r0','r1'],'f1':['r2']}
+    room_occupied_actuator_initial_values = {'r0':False, 'r1': True, 'r2':False}
+    #floor_list = db.list_all_floors()
+    #floor_uids = [floor['id'] for floor in floor_list]
+    #room_uids_per_floor = {floor['id']:floor['rooms'] for floor in floor_list}
+    #for floor in floor_list:
+    #    room_occupied_actuator_initial_values = {room['id']:room['is_occupied'] for room in room_uids_per_floor[floor]}
+
+    elevator_uids = ['e0','e1']
+    cleaning_team_uids = ['cleaning_team_1','cleaning_team_2']
+    names_room_positions = ['overall_room', 'bed', 'closet', 'window']
+
+    sensor_room_mapping = {'r0':['s1'], 'r2':['s2']}
+    actuator_room_mapping = {'r0':['a1'], 'r2':['a2']}
+    #for floor in floor_uids:
+    #    for room in room_uids_per_floor[floor]:
+    #        device_list = db.list_devices_in_room(floor,room)['devices']
+    #        sensor_uids = []
+    #        actuator_uids = []
+    #        for device in device_list:
+    #            if device is_sensor():
+    #                sensor_uids.append(device)
+    #            elif device is_actuator():
+    #                actuator_uids.append(device)
+    #        sensor_room_mapping.update({room:sensor_uids})
+    #        actuator_room_mapping.update({room:actuator_uids})
+            
+
+    
+
+    # TODO get info from db
+    actuator_increases_sensor_mapping_matrix = {'a1':['s1','s2'], 'a2':['s2']}
+    actuator_decreases_sensor_mapping_matrix = {'a1':['s1']}
+
+    sensor_initial_values = {'s1': -1, 's2':1}
+    sensor_goal_values = {'s1': -1, 's2':1}
+    actuator_initial_values = {'a1': True, 'a2':False}
+    #for floor in floor_uids:
+    #    for room in room_uids_per_floor[floor]:
+    #        for device in sensor_room_mapping[room]:
+    #            curent_value = db.request_current_value_hierarchical(floor,room,device)
+    #            sensor_initial_values.update({device:curent_value})
+    #        for device in actuator_room_mapping[room]:
+    #            curent_value = db.request_current_value_hierarchical(floor,room,device)
+    #            sensor_initial_values.update({device:curent_value})
+
+
+
+    return {'domain_name':domain_name, 
+            'problem_name':problem_name,
+
+            'plan_cleaning':True,
+
+            'floor_uids':floor_uids,
+            'room_uids_per_floor':room_uids_per_floor,
+            'elevator_uids':elevator_uids,
+
+            'cleaning_team_uids':cleaning_team_uids,
+            'names_room_positions':names_room_positions,
+
+            'sensor_room_mapping':sensor_room_mapping,
+            'actuator_room_mapping':actuator_room_mapping,
+
+            'actuator_increases_sensor_mapping_matrix':actuator_increases_sensor_mapping_matrix,
+            'actuator_decreases_sensor_mapping_matrix':actuator_decreases_sensor_mapping_matrix,
+
+            'sensor_initial_values':sensor_initial_values,
+            'sensor_goal_values':sensor_goal_values,
+            'actuator_initial_values':actuator_initial_values,
+
+            'room_occupied_actuator_initial_values':room_occupied_actuator_initial_values,
+            }
