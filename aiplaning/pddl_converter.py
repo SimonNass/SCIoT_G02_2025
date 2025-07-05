@@ -255,7 +255,7 @@ def create_domain(domain_name: str, predicates_list: List[variables]):
 
 def create():
 
-    input_dictionary = pddl_converter_input.query_input_dictionary()
+    input_dictionary = pddl_converter_input.query_input()
 
     # set up variables and constants
     global floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type
