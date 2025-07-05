@@ -11,6 +11,7 @@ import os
 import pddl_converter_actions
 import pddl_converter_goals
 import pddl_converter_types
+import pddl_converter_predicates
 
 def iterator_rooms_per_floor(floor_uids: List[str], room_uids_per_floor: Dict[str,str]): # TODO
     for floor in floor_uids:
@@ -25,88 +26,6 @@ def create_objects(name_list: List[str], type_name: str):
     objects = constants(names, type_=type_name + '_type')
     #print (objects)
     return objects
-
-def create_type_variables():
-    # set up variables and constants
-    global floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type
-    global iot_type, cleaning_team_type, sensor_type, actuator_type, actuator2_type
-    global binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type
-
-    floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, actuator_type, actuator2_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type = pddl_converter_types.create_type_variables()
-
-def create_predicates_variables():
-    # define predicates
-    global room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, has_specified_activity_at, activity_names, is_doing_activitys_at
-    global is_sensing, is_low, is_ok, is_high, is_activated
-    global fulfilled_activity
-
-    predicates_list = []
-
-    # topology
-    room_is_part_of_floor = Predicate("room_is_part_of_floor", room_type, floor_type)
-    predicates_list.append(room_is_part_of_floor)
-
-    sensor_is_part_of_room = Predicate("sensor_is_part_of_room", sensor_type, room_type)
-    predicates_list.append(sensor_is_part_of_room)
-    actuator_is_part_of_room = Predicate("actuator_is_part_of_room", actuator_type, room_type)
-    predicates_list.append(actuator_is_part_of_room)
-    # problem to lock down a sensor that is part of two room positions
-    positioned_at = Predicate("positioned_at", iot_type, room_position_type)
-    predicates_list.append(positioned_at)
-
-    actuator_increases_sensor = Predicate("actuator_increases_sensor", actuator_type, sensor_type)
-    predicates_list.append(actuator_increases_sensor)
-    actuator_decreases_sensor = Predicate("actuator_decreases_sensor", actuator_type, sensor_type)
-    predicates_list.append(actuator_decreases_sensor)
-
-    is_next_to = Predicate("is_next_to", room_type, room2_type)
-    predicates_list.append(is_next_to)
-
-    is_at = Predicate("is_at", cleaning_team_type, room_type)
-    predicates_list.append(is_at)
-
-    # meta context
-
-    is_occupied = Predicate("is_occupied", room_type)
-    predicates_list.append(is_occupied)
-
-    will_become_occupied = Predicate("will_become_occupied", room_type)
-    predicates_list.append(will_become_occupied)
-
-    is_cleaned = Predicate("is_cleaned", room_type)
-    predicates_list.append(is_cleaned)
-
-    # activity
-    has_specified_activity_at = Predicate("has_specified_activity_at", room_type, room_position_type)
-    predicates_list.append(has_specified_activity_at)
-    
-    activity_names = ['read','sleep','bath']
-    is_doing_activitys_at = {}
-    for activity in activity_names:
-        is_doing_a_at = Predicate(f"is_doing_{activity}_at", room_type, room_position_type)
-        is_doing_activitys_at.update({f"{activity}":is_doing_a_at})
-        predicates_list.append(is_doing_a_at)
-
-    # sensors
-    is_sensing = Predicate("is_sensing", sensor_type)
-    predicates_list.append(is_sensing)
-
-    is_low = Predicate("is_low", numerical_s_type)
-    predicates_list.append(is_low)
-    is_ok = Predicate("is_ok", numerical_s_type)
-    predicates_list.append(is_ok)
-    is_high = Predicate("is_high", numerical_s_type)
-    predicates_list.append(is_high)
-
-    # actuators
-    is_activated = Predicate("is_activated", actuator_type)
-    predicates_list.append(is_activated)
-
-    # force checks predicate
-    fulfilled_activity = Predicate("fulfilled_activity", room_type, room_position_type)
-    predicates_list.append(fulfilled_activity)
-
-    return predicates_list
 
 def create_objects_room_topology(floor_uids: List[str], room_uids_per_floor: Dict[str,List[str]], elevator_uids: List[str]):
     floors = create_objects(floor_uids, "floor")
@@ -447,8 +366,18 @@ def create():
 
     input = query_input()
 
-    create_type_variables()
-    predicates_list = create_predicates_variables()
+    # set up variables and constants
+    global floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type
+    global iot_type, cleaning_team_type, sensor_type, actuator_type, actuator2_type
+    global binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type
+
+    floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, actuator_type, actuator2_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type = pddl_converter_types.create_type_variables()
+
+    global room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, has_specified_activity_at, activity_names, is_doing_activitys_at
+    global is_sensing, is_low, is_ok, is_high, is_activated
+    global fulfilled_activity
+
+    predicates_list, room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, has_specified_activity_at, activity_names, is_doing_activitys_at, is_sensing, is_low, is_ok, is_high, is_activated, fulfilled_activity = pddl_converter_predicates.create_predicates_variables(floor_type, room_type, room2_type, room_position_type, cleaning_team_type, iot_type, sensor_type, actuator_type, numerical_s_type)
 
     domain = create_domain(input['domain_name'], predicates_list)
 
