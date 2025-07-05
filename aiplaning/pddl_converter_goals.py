@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 # pip install pddl==0.4.3
-from typing import List
-from pddl.logic import Predicate, constants, variables, base
+from pddl.logic import base
 
 def create_goal(fulfilled_activity, is_activated, is_cleaned, is_occupied, actuator_is_part_of_room, room_type, room_position_type, actuator_type, plan_cleaning: bool = True):
     goal_state = None
