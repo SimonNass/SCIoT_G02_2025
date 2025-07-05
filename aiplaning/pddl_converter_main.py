@@ -118,7 +118,7 @@ def create_objects_and_initial_state(input_dictionary: Dict[str,Any]):
 
     individual_sensor_goals = pddl_converter_initial_state.create_sensor_values(is_high, is_ok, is_low, floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_goal_values)
 
-    for room in pddl_converter_help.iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+    for room in pddl_converter_help.iterator_ofer_dict_list_elements(floor_uids,room_uids_per_floor):
         if room not in actuator_room_mapping:
             continue
         for a in actuator_room_mapping[room]:
@@ -136,7 +136,7 @@ def create_objects_and_initial_state(input_dictionary: Dict[str,Any]):
 
     assert len(room_occupied_actuator_initial_values) <= len(rooms)
 
-    for room in pddl_converter_help.iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+    for room in pddl_converter_help.iterator_ofer_dict_list_elements(floor_uids,room_uids_per_floor):
         object_state = room_occupied_actuator_initial_values[room]
         state = base.Not(is_occupied(rooms[i]))
         if object_state:

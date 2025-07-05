@@ -30,7 +30,7 @@ def create_objects_room_topology(floor_uids: List[str], room_uids_per_floor: Dic
 def create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_mapping, actuator_room_mapping):
     sensors = []
     uid_to_pddl_variable_sensors = {}
-    for room in pddl_converter_help.iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+    for room in pddl_converter_help.iterator_ofer_dict_list_elements(floor_uids,room_uids_per_floor):
         if room not in sensor_room_mapping:
             continue
         new_sensors = create_objects(sensor_room_mapping[room], "numerical_s")
@@ -39,7 +39,7 @@ def create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_ma
 
     actuators = []
     uid_to_pddl_variable_actuators = {}
-    for room in pddl_converter_help.iterator_rooms_per_floor(floor_uids,room_uids_per_floor):
+    for room in pddl_converter_help.iterator_ofer_dict_list_elements(floor_uids,room_uids_per_floor):
         if room not in actuator_room_mapping:
             continue
         new_actuators = create_objects(actuator_room_mapping[room], "actuator")
