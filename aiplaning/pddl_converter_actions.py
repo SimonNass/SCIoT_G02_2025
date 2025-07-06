@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Module specifies the actions of a pddl domain file."""
 
 # pip install pddl==0.4.3
 from pddl.logic import base
@@ -17,7 +18,7 @@ def create_cleaning_actions(is_cleaned, will_become_occupied, is_occupied, is_at
         "move_to_floor",
         parameters=[cleaning_team_type, room_type, room2_type, floor_type, floor2_type],
         precondition=is_at(cleaning_team_type,room_type)
-                    & is_next_to_bidirectional(room_type, room2_type) 
+                    & is_next_to_bidirectional(room_type, room2_type)
                     & rooms_are_part_of_floors(room_type, room2_type, floor_type, floor2_type)
                     & base.Not(EqualTo(floor_type, floor2_type)),
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
@@ -28,7 +29,7 @@ def create_cleaning_actions(is_cleaned, will_become_occupied, is_occupied, is_at
         "move_to_room",
         parameters=[cleaning_team_type, room_type, room2_type, floor_type],
         precondition=is_at(cleaning_team_type,room_type)
-                    & is_next_to_bidirectional(room_type, room2_type) 
+                    & is_next_to_bidirectional(room_type, room2_type)
                     & rooms_are_part_of_floors(room_type, room2_type, floor_type, floor_type),
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
     )
@@ -38,7 +39,7 @@ def create_cleaning_actions(is_cleaned, will_become_occupied, is_occupied, is_at
         "move_to_isolated_room",
         parameters=[cleaning_team_type, room_type, room2_type, floor_type],
         precondition=is_at(cleaning_team_type,room_type)
-                    & (base.ForallCondition(is_not_next_to_bidirectional(room3_type, room2_type) , [room3_type])) 
+                    & (base.ForallCondition(is_not_next_to_bidirectional(room3_type, room2_type) , [room3_type]))
                     & rooms_are_part_of_floors(room_type, room2_type, floor_type, floor_type),
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
     )
@@ -48,10 +49,10 @@ def create_cleaning_actions(is_cleaned, will_become_occupied, is_occupied, is_at
         "team_clean",
         parameters=[cleaning_team_type, room_type],
         precondition=is_at(cleaning_team_type,room_type)
-                    & ~is_cleaned(room_type) 
-                    & ~is_occupied(room_type) 
+                    & ~is_cleaned(room_type)
+                    & ~is_occupied(room_type)
                     & ~will_become_occupied(room_type),
-        effect=is_cleaned(room_type) 
+        effect=is_cleaned(room_type)
     )
     actions_list.append(team_clean)
 
@@ -64,7 +65,7 @@ def create_assign_actions(positioned_at, room_is_part_of_floor, iot_type, room_p
         "assign_floor",
         parameters=[room_type, floor_type],
         precondition=base.ForallCondition(~(room_is_part_of_floor(room_type, floor2_type)), [floor2_type]),
-        effect=room_is_part_of_floor(room_type, floor_type) 
+        effect=room_is_part_of_floor(room_type, floor_type)
     )
     actions_list.append(assign_floor)
 
@@ -181,7 +182,7 @@ def create_actuator_actions(is_locked, is_activated, is_high, is_ok, is_low, is_
 
     return actions_list
 
-def create_activity_detection_actions(checked_activity, checked_all_activitys, is_doing_activitys_at, positioned_at, sensor_is_part_of_room, sensor_type, room_position_type, room_type):
+def create_activity_detection_actions(checked_activity, checked_all_activitys, is_doing_activitys_at, room_position_type, room_type):
     actions_list = []
 
     is_doing_read_at = is_doing_activitys_at['read']
@@ -201,7 +202,7 @@ def create_activity_detection_actions(checked_activity, checked_all_activitys, i
     detect_no_activity_sleep = Action(
         "detect_no_activity_sleep",
         parameters=[room_type, room_position_type],
-        precondition=~is_doing_sleep_at(room_type, room_position_type) 
+        precondition=~is_doing_sleep_at(room_type, room_position_type)
                     & ~checked_activity(room_type, room_position_type),
         effect=checked_activity(room_type, room_position_type) & ~is_doing_sleep_at(room_type, room_position_type)
     )
@@ -210,7 +211,7 @@ def create_activity_detection_actions(checked_activity, checked_all_activitys, i
     detect_all_activitys = Action(
         "detect_all_activitys",
         parameters=[room_type, room_position_type],
-        precondition=base.And(checked_activity(room_type, room_position_type), 
+        precondition=base.And(checked_activity(room_type, room_position_type),
                               ~checked_all_activitys(room_type, room_position_type)),
         effect=checked_all_activitys(room_type, room_position_type)
     )
@@ -221,8 +222,8 @@ def create_activity_detection_actions(checked_activity, checked_all_activitys, i
 def create_activity_fulfilled_actions(is_locked, fulfilled_activity, fulfilled_activitys, checked_all_activitys, is_doing_activitys_at, positioned_at, sensor_is_part_of_room, sensor_type, room_position_type, room_type):
     actions_list = []
 
-    is_doing_read_at = is_doing_activitys_at['read']
-    is_doing_bath_at = is_doing_activitys_at['bath']
+    #is_doing_read_at = is_doing_activitys_at['read']
+    #is_doing_bath_at = is_doing_activitys_at['bath']
     is_doing_sleep_at = is_doing_activitys_at['sleep']
 
     # TODO fine tune sensor ideal position for the activitys
@@ -262,7 +263,7 @@ def create_activity_fulfilled_actions(is_locked, fulfilled_activity, fulfilled_a
     fulfill_all_activitys = Action(
         "fulfill_all_activitys",
         parameters=[room_type, room_position_type, sensor_type],
-        precondition=fulfilled_activity(room_type, room_position_type, sensor_type) 
+        precondition=fulfilled_activity(room_type, room_position_type, sensor_type)
                     & ~fulfilled_activitys(room_type, room_position_type, sensor_type),
         effect=fulfilled_activitys(room_type, room_position_type, sensor_type)
     )

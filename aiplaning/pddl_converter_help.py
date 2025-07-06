@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+"""Module specifies miscelenius helper functions to hide some complexity in the main file."""
 
 # pip install pddl==0.4.3
-from typing import Dict, List
-from pddl import parse_domain, parse_problem
 import os
+from typing import Dict, List
+import pddl
+from pddl import parse_domain, parse_problem
 
 def iterator_ofer_dict_list_elements(keys: List[str], key_to_element_lists: Dict[str,List[str]]):
     for key in keys:
@@ -25,7 +27,6 @@ def reading_in_pddl():
     print(problem)
 
 def check_lib_versions():
-    import pddl
     version_pddl = pddl.__version__
     print(version_pddl)
     # make sure that it is above 0.4.2

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Module specifies the predicates of a pddl domain file."""
 
 # pip install pddl==0.4.3
 from pddl.logic import Predicate

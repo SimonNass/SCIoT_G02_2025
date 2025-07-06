@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Module specifies the types of a pddl domain file."""
 
 # pip install pddl==0.4.3
 from pddl.logic import variables
@@ -13,7 +14,7 @@ def create_type_variables():
 
     sensor_type = variables("sensor_type", types=["sensor_type"])[0]
     actuator_type, actuator2_type = variables("actuator_type actuator2_type", types=["actuator_type"])
-    
+
     binary_s_type, numerical_s_type, textual_s_type = variables("binary_s_type numerical_s_type textual_s_type", types=["sensor_type"])
     binary_a_type, numerical_a_type, textual_a_type = variables("binary_a_type numerical_a_type textual_a_type", types=["actuator_type"])
 
@@ -29,7 +30,7 @@ def create_type_dict():
         "room_position_type": "object_type",
         "iot_type": "object_type",
         "cleaning_team_type": "object_type",
-        
+
         "sensor_type": "iot_type",
         "actuator_type": "iot_type",
 

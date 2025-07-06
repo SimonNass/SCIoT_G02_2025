@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Module specifies the data input to generate the pddl domain and problem based on the data in the backend DB."""
 
 def query_input():
     domain_name = "test_SCIoT_G02_2025"
@@ -31,9 +32,9 @@ def query_input():
     #                actuator_uids.append(device)
     #        sensor_room_mapping.update({room:sensor_uids})
     #        actuator_room_mapping.update({room:actuator_uids})
-            
 
-    
+
+
 
     # TODO get info from db
     actuator_increases_sensor_mapping_matrix = {'a1':['s1','s2'], 'a2':['s2']}
@@ -53,7 +54,7 @@ def query_input():
 
 
 
-    return {'domain_name':domain_name, 
+    return {'domain_name':domain_name,
             'problem_name':problem_name,
 
             'plan_cleaning':True,

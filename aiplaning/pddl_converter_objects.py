@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Module specifies the objects in the initial state of a pddl problem file."""
 
 # pip install pddl==0.4.3
 from typing import Dict, List
@@ -53,7 +54,7 @@ def create_all_obbjects(floor_uids, room_uids_per_floor, elevator_uids, sensor_r
     all_objects = []
 
     assert 1 <= len(elevator_uids)
-    
+
     floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_elevators = create_objects_room_topology(floor_uids, room_uids_per_floor, elevator_uids)
     all_objects = all_objects + floors + rooms + elevators
 
