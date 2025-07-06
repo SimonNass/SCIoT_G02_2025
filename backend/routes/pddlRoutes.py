@@ -83,3 +83,289 @@ def planning_test():
         time.sleep(0.5)
     
     return celery_result.json()
+
+# Get all plans
+@pddl_api.route('/api/planning/plans/list', methods=['GET'])
+def list_all_plans():
+    """Get all PDDL plans"""
+    try:
+        from backend import models
+        
+        plans = models.PDDLPlan.query.order_by(models.PDDLPlan.created_at.desc()).all()
+        
+        plans_data = []
+        for plan in plans:
+            plan_data = {
+                'id': plan.id,
+                'scope': plan.scope.value,
+                'target_floor_id': plan.target_floor_id,
+                'target_room_id': plan.target_room_id,
+                'total_cost': plan.total_cost,
+                'planning_time': plan.planning_time,
+                'planner_used': plan.planner_used,
+                'raw_plan': plan.raw_plan,
+                'created_at': plan.created_at.isoformat(),
+                'steps': []
+            }
+            
+            # Include plan steps
+            for step in plan.steps:
+                step_data = {
+                    'id': step.id,
+                    'step_order': step.step_order,
+                    'action_name': step.action_name,
+                    'raw_step': step.raw_step,
+                    'target_device_ids': step.target_device_ids
+                }
+                plan_data['steps'].append(step_data)
+            
+            plans_data.append(plan_data)
+        
+        return jsonify({
+            'plans': plans_data,
+            'total_plans': len(plans_data)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Get all plans for a specific floor
+@pddl_api.route('/api/planning/floors/<int:floor_number>/plans/list', methods=['GET'])
+def list_plans_for_floor(floor_number):
+    """Get all PDDL plans for a specific floor by floor number"""
+    try:
+        from backend import models
+        
+        floor = models.Floor.query.filter_by(floor_number=floor_number).first()
+        if not floor:
+            return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
+        
+        plans = models.PDDLPlan.query.filter_by(target_floor_id=floor.id).order_by(models.PDDLPlan.created_at.desc()).all()
+        
+        plans_data = []
+        for plan in plans:
+            plan_data = {
+                'id': plan.id,
+                'scope': plan.scope.value,
+                'target_floor_id': plan.target_floor_id,
+                'target_room_id': plan.target_room_id,
+                'total_cost': plan.total_cost,
+                'planning_time': plan.planning_time,
+                'planner_used': plan.planner_used,
+                'raw_plan': plan.raw_plan,
+                'created_at': plan.created_at.isoformat(),
+                'steps': []
+            }
+            
+            # Include plan steps
+            for step in plan.steps:
+                step_data = {
+                    'id': step.id,
+                    'step_order': step.step_order,
+                    'action_name': step.action_name,
+                    'raw_step': step.raw_step,
+                    'target_device_ids': step.target_device_ids
+                }
+                plan_data['steps'].append(step_data)
+            
+            plans_data.append(plan_data)
+        
+        return jsonify({
+            'floor_number': floor_number,
+            'floor_name': floor.floor_name,
+            'plans': plans_data,
+            'total_plans': len(plans_data)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Get all plans for a specific room
+@pddl_api.route('/api/planning/rooms/<string:room_number>/plans/list', methods=['GET'])
+def list_plans_for_room(room_number):
+    """Get all PDDL plans for a specific room by room number"""
+    try:
+        from backend import models
+        
+        room = models.Room.query.filter_by(room_number=room_number).first()
+        if not room:
+            return jsonify({'error': f'Room {room_number} does not exist'}), 404
+        
+        plans = models.PDDLPlan.query.filter_by(target_room_id=room.id).order_by(models.PDDLPlan.created_at.desc()).all()
+        
+        plans_data = []
+        for plan in plans:
+            plan_data = {
+                'id': plan.id,
+                'scope': plan.scope.value,
+                'target_floor_id': plan.target_floor_id,
+                'target_room_id': plan.target_room_id,
+                'total_cost': plan.total_cost,
+                'planning_time': plan.planning_time,
+                'planner_used': plan.planner_used,
+                'raw_plan': plan.raw_plan,
+                'created_at': plan.created_at.isoformat(),
+                'steps': []
+            }
+            
+            # Include plan steps
+            for step in plan.steps:
+                step_data = {
+                    'id': step.id,
+                    'step_order': step.step_order,
+                    'action_name': step.action_name,
+                    'raw_step': step.raw_step,
+                    'target_device_ids': step.target_device_ids
+                }
+                plan_data['steps'].append(step_data)
+            
+            plans_data.append(plan_data)
+        
+        return jsonify({
+            'room_number': room_number,
+            'room_type': room.room_type,
+            'plans': plans_data,
+            'total_plans': len(plans_data)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Get the latest plan (most recent)
+@pddl_api.route('/api/planning/plans/latest', methods=['GET'])
+def get_latest_plan():
+    """Get the most recent PDDL plan"""
+    try:
+        from backend import models
+        
+        plan = models.PDDLPlan.query.order_by(models.PDDLPlan.created_at.desc()).first()
+        
+        if not plan:
+            return jsonify({'error': 'No plans found'}), 404
+        
+        plan_data = {
+            'id': plan.id,
+            'scope': plan.scope.value,
+            'target_floor_id': plan.target_floor_id,
+            'target_room_id': plan.target_room_id,
+            'total_cost': plan.total_cost,
+            'planning_time': plan.planning_time,
+            'planner_used': plan.planner_used,
+            'raw_plan': plan.raw_plan,
+            'created_at': plan.created_at.isoformat(),
+            'steps': []
+        }
+        
+        # Include plan steps
+        for step in plan.steps:
+            step_data = {
+                'id': step.id,
+                'step_order': step.step_order,
+                'action_name': step.action_name,
+                'raw_step': step.raw_step,
+                'target_device_ids': step.target_device_ids
+            }
+            plan_data['steps'].append(step_data)
+        
+        return jsonify(plan_data)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Get the latest plan for a specific floor
+@pddl_api.route('/api/planning/floors/<int:floor_number>/plans/latest', methods=['GET'])
+def get_latest_plan_for_floor(floor_number):
+    """Get the most recent PDDL plan for a specific floor by floor number"""
+    try:
+        from backend import models
+        
+        floor = models.Floor.query.filter_by(floor_number=floor_number).first()
+        if not floor:
+            return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
+        
+        plan = models.PDDLPlan.query.filter_by(target_floor_id=floor.id).order_by(models.PDDLPlan.created_at.desc()).first()
+        
+        if not plan:
+            return jsonify({'error': f'No plans found for floor {floor_number}'}), 404
+        
+        plan_data = {
+            'id': plan.id,
+            'scope': plan.scope.value,
+            'target_floor_id': plan.target_floor_id,
+            'target_room_id': plan.target_room_id,
+            'total_cost': plan.total_cost,
+            'planning_time': plan.planning_time,
+            'planner_used': plan.planner_used,
+            'raw_plan': plan.raw_plan,
+            'created_at': plan.created_at.isoformat(),
+            'steps': []
+        }
+        
+        # Include plan steps
+        for step in plan.steps:
+            step_data = {
+                'id': step.id,
+                'step_order': step.step_order,
+                'action_name': step.action_name,
+                'raw_step': step.raw_step,
+                'target_device_ids': step.target_device_ids
+            }
+            plan_data['steps'].append(step_data)
+        
+        return jsonify({
+            'floor_number': floor_number,
+            'floor_name': floor.floor_name,
+            'latest_plan': plan_data
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Get the latest plan for a specific room
+@pddl_api.route('/api/planning/rooms/<string:room_number>/plans/latest', methods=['GET'])
+def get_latest_plan_for_room(room_number):
+    """Get the most recent PDDL plan for a specific room by room number"""
+    try:
+        from backend import models
+        
+        room = models.Room.query.filter_by(room_number=room_number).first()
+        if not room:
+            return jsonify({'error': f'Room {room_number} does not exist'}), 404
+        
+        plan = models.PDDLPlan.query.filter_by(target_room_id=room.id).order_by(models.PDDLPlan.created_at.desc()).first()
+        
+        if not plan:
+            return jsonify({'error': f'No plans found for room {room_number}'}), 404
+        
+        plan_data = {
+            'id': plan.id,
+            'scope': plan.scope.value,
+            'target_floor_id': plan.target_floor_id,
+            'target_room_id': plan.target_room_id,
+            'total_cost': plan.total_cost,
+            'planning_time': plan.planning_time,
+            'planner_used': plan.planner_used,
+            'raw_plan': plan.raw_plan,
+            'created_at': plan.created_at.isoformat(),
+            'steps': []
+        }
+        
+        # Include plan steps
+        for step in plan.steps:
+            step_data = {
+                'id': step.id,
+                'step_order': step.step_order,
+                'action_name': step.action_name,
+                'raw_step': step.raw_step,
+                'target_device_ids': step.target_device_ids
+            }
+            plan_data['steps'].append(step_data)
+        
+        return jsonify({
+            'room_number': room_number,
+            'room_type': room.room_type,
+            'latest_plan': plan_data
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

@@ -21,7 +21,8 @@ class PDDLPlannerService:
         self.planner_url = app.config.get('PLANNER_SERVICE_URL')
         self.logger.info(f"PDDL Planner Service initialized with URL: {self.planner_url}")
     
-    def solve_planning_problem(self, domain: str, problem: str, planner: str) -> Optional[Dict]:
+    def solve_planning_problem(self, domain: str, problem: str, planner: str, save_to_db: bool = True, scope=None,
+                          target_floor_id: Optional[str] = None, target_room_id: Optional[str] = None) -> Optional[Dict]:
         """
         Solve a PDDL planning problem
         
@@ -29,10 +30,21 @@ class PDDLPlannerService:
             domain: PDDL domain definition as string
             problem: PDDL problem definition as string
             planner: Name of the planner to use
+            save_to_db: Whether to save the plan to database
+            scope: The scope of the plan (building, floor, or room)
+            target_floor_id: Optional floor ID if scope is floor or room
+            target_room_id: Optional room ID if scope is room
         
         Returns:
             Dictionary containing the solution or None if failed
         """
+        # Import inside the function to avoid circular imports
+        from backend.models.models import PlanScope
+        
+        # Set default scope if not provided
+        if scope is None:
+            scope = PlanScope.BUILDING
+            
         try:
             # Prepare the request payload
             payload = {
@@ -85,7 +97,7 @@ class PDDLPlannerService:
                     # Default to lama-first parser for unknown planners
                     plan_actions, cost, planner_time, raw_plan = parse_values_lama_first(plan_result)
 
-                return {
+                result_data = {
                     'success': True,
                     'plan': plan_actions,
                     'cost': cost,
@@ -94,6 +106,11 @@ class PDDLPlannerService:
                     'stdout': plan_result.get('stdout', ''),
                     'stderr': plan_result.get('stderr', '')
                 }
+                if save_to_db:
+                    from backend.services.utils.dbUtils import save_plan_to_database
+                    save_plan_to_database(result_data, planner, scope, target_floor_id, target_room_id)
+
+                return result_data
             else:
                 self.logger.error(f"Planning failed: {result.get('result', 'Unknown error')}")
                 return {

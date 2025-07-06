@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text, Boolean, Integer, DateTime, ForeignKey, Float, Enum
+from sqlalchemy import String, Text, Boolean, Integer, DateTime, ForeignKey, Float, Enum, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from typing import List, Optional
@@ -184,11 +184,9 @@ class PlanStep(db.Model):
     # Step details
     step_order: Mapped[int] = mapped_column(Integer, nullable=False)
     action_name: Mapped[str] = mapped_column(String(200), nullable=False)
-    parameters: Mapped[Optional[str]] = mapped_column(Text)
     raw_step: Mapped[str] = mapped_column(Text, nullable=False)  # Original step string from planner
 
-    target_device_id: Mapped[Optional[str]] = mapped_column(ForeignKey("devices.id"))
+    target_device_ids: Mapped[Optional[List[str]]] = mapped_column(JSON)
     
     # Relationships
     plan: Mapped["PDDLPlan"] = relationship(back_populates="steps")
-    target_device: Mapped[Optional["Device"]] = relationship("Device")
