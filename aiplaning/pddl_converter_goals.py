@@ -3,7 +3,7 @@
 # pip install pddl==0.4.3
 from pddl.logic import base
 
-def create_goal(fulfilled_activity, is_activated, is_cleaned, is_occupied, actuator_is_part_of_room, room_type, room_position_type, actuator_type, plan_cleaning: bool = True):
+def create_goal(fulfilled_activitys, checked_all_activitys, is_activated, is_cleaned, is_occupied, actuator_is_part_of_room, room_type, room_position_type, actuator_type, sensor_type, plan_cleaning: bool = True):
     goal_state = None
 
     # individual_sensor_goals TODO
@@ -17,7 +17,8 @@ def create_goal(fulfilled_activity, is_activated, is_cleaned, is_occupied, actua
     then_turn_off_actuator = base.Not(is_activated(actuator_type))
     actuator_off_unoccupied_rooms = base.ForallCondition(base.Imply(if_case2, then_turn_off_actuator), [room_type, actuator_type])
 
-    enforce_checks = base.ForallCondition(fulfilled_activity(room_type, room_position_type), [room_type, room_position_type])
+    enforce_checks = base.And(base.ForallCondition(checked_all_activitys(room_type, room_position_type), [room_type, room_position_type]), 
+                              base.ForallCondition(fulfilled_activitys(room_type, room_position_type, sensor_type), [room_type, room_position_type, sensor_type]))
 
     if plan_cleaning:
         goal_state = base.And(clean_unoccupied_rooms, actuator_off_unoccupied_rooms, enforce_checks)
