@@ -52,8 +52,8 @@ def create_cleaning_teams_starting_position(uid_to_pddl_variable_cleaning_teams:
 
     cleaning_teams = list(uid_to_pddl_variable_cleaning_teams.values())
     elevators = list(uid_to_pddl_variable_elevators.values())
-    for i in range(len(cleaning_teams)):
-        next_is_at = is_at(cleaning_teams[i], elevators[i % len(elevators)])
+    for i, cleaning_team in enumerate(cleaning_teams):
+        next_is_at = is_at(cleaning_team, elevators[i % len(elevators)])
         initial_state.append(next_is_at)
 
     return initial_state

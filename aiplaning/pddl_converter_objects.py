@@ -8,8 +8,8 @@ import pddl_converter_help
 
 def create_objects(name_list: List[str], type_name: str):
     names = ''
-    for i in range(len(name_list)):
-        names = names + str(f'{type_name}_{name_list[i]} ')
+    for name in name_list:
+        names = names + str(f'{type_name}_{name} ')
 
     objects = constants(names, type_=type_name + '_type')
     #print (objects)
