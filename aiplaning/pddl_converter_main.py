@@ -169,13 +169,15 @@ def main():
 
     # output_path is relative to working directory
     output_path = "auto_generated/"
-    domaine_file_name = 'test_domain.pddl'
-    problem_file_name = 'test_problem.pddl'
+    domaine_file_name = 'test_domain'
+    problem_file_name = 'test_problem'
 
     d, p = create()
-    
-    pddl_converter_help.write_out_pddl(output_path, domaine_file_name, d)
-    pddl_converter_help.write_out_pddl(output_path, problem_file_name, p)
+
+    pddl_converter_help.write_out_pddl(output_path, domaine_file_name + ".pddl", d)
+    pddl_converter_help.write_out_pddl(output_path, problem_file_name + ".pddl", p)
+    json_text = '{"excludeActions": ["detect_no_activity_sleep","detect_all_activitys","fulfill_all_activitys"]}'
+    pddl_converter_help.write_out_pddl_visualisation_hints(output_path, domaine_file_name + ".planviz.json", json_text)
 
 if __name__ == '__main__':
     main()
