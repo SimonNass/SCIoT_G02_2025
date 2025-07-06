@@ -5,7 +5,6 @@ from backend.config import Config
 from backend.extensions import db, pddl_service
 from backend.mqtt.mqtt_client import start_mqtt_client
 from backend.routes import register_routes
-from backend.services.pddl_service import create_sample_planning_routes
 # Necessary s.t. create_all() knows what models to create
 from backend.models import models
 from backend.cron.deviceCron import start_scheduler
@@ -33,9 +32,6 @@ def create_app(config_class=Config):
     
     # Register routes
     register_routes(app)
-    
-    # Register planning routes
-    create_sample_planning_routes(app)
     
     # Should prevent double initialization when debug=True (hopefully)
     app.mqtt_client = start_mqtt_client(app)
