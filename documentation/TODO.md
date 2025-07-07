@@ -47,7 +47,7 @@
   - [x] (Maximilian) Set Config values
   - [ ] (Maximilian) Start AI Planning for list of rooms (check with database values and thresholds to create problem)
   - [x] Endpoint to change any actuator value
-  - [ ] (Maximilian) Add lastest values as normal and simplified value to list_devices_in_room
+  - [x] (Maximilian) Add lastest values as normal and simplified value to list_devices_in_room
   - [ ] (Maximilian) (optional) Endpoint to provide values and simplified values across a certain timespan
   - [ ] (Maximilian) Endpoint that provides the plan
   - [ ] convert sensor values to high ok low
