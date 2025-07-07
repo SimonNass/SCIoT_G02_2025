@@ -50,6 +50,25 @@ def create_predicates_variables(floor_type, room_type, room2_type, room_position
         is_doing_activitys_at.update({f"{activity}":is_doing_a_at})
         predicates_list.append(is_doing_a_at)
 
+    # force checks predicate
+    checked_activity_x = {}
+    for activity in activity_names:
+        checked_a = Predicate(f"checked_activity_{activity}", room_type, room_position_type)
+        checked_activity_x.update({f"{activity}":checked_a})
+        predicates_list.append(checked_a)
+
+    fulfilled_activity_x = {}
+    for activity in activity_names:
+        checked_a = Predicate(f"checked_activity_{activity}", room_type, room_position_type)
+        fulfilled_activity_x.update({f"{activity}":checked_a})
+        predicates_list.append(checked_a)
+    
+    checked_all_activitys = Predicate("checked_activitys", room_type, room_position_type)
+    predicates_list.append(checked_all_activitys)
+
+    fulfilled_activitys = Predicate("fulfilled_activitys", room_type, room_position_type)
+    predicates_list.append(fulfilled_activitys)
+
     # sensors
     is_locked = Predicate("is_locked", sensor_type)
     predicates_list.append(is_locked)
@@ -68,15 +87,5 @@ def create_predicates_variables(floor_type, room_type, room2_type, room_position
     is_activated = Predicate("is_activated", actuator_type)
     predicates_list.append(is_activated)
 
-    # force checks predicate
-    checked_activity = Predicate("checked_activity", room_type, room_position_type)
-    predicates_list.append(checked_activity)
-    checked_all_activitys = Predicate("checked_activitys", room_type, room_position_type)
-    predicates_list.append(checked_all_activitys)
 
-    fulfilled_activity = Predicate("fulfilled_activity", room_type, room_position_type, sensor_type)
-    predicates_list.append(fulfilled_activity)
-    fulfilled_activitys = Predicate("fulfilled_activitys", room_type, room_position_type, sensor_type)
-    predicates_list.append(fulfilled_activitys)
-
-    return predicates_list, room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, activity_names, is_doing_activitys_at, is_sensing, is_low, is_ok, is_high, is_activated, is_locked, checked_activity, checked_all_activitys, fulfilled_activity, fulfilled_activitys
+    return predicates_list, room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, activity_names, is_doing_activitys_at, is_sensing, is_low, is_ok, is_high, is_activated, is_locked, checked_activity_x, checked_all_activitys, fulfilled_activity_x, fulfilled_activitys

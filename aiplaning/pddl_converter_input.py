@@ -57,7 +57,7 @@ def query_input():
     return {'domain_name':domain_name,
             'problem_name':problem_name,
 
-            'plan_cleaning':True,
+            'plan_cleaning':False,
 
             'floor_uids':floor_uids,
             'room_uids_per_floor':room_uids_per_floor,

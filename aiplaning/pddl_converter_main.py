@@ -26,6 +26,7 @@ room_position_type = None
 iot_type = None
 cleaning_team_type = None
 sensor_type = None
+sensor2_type = None
 actuator_type = None
 actuator2_type = None
 binary_s_type = None
@@ -54,9 +55,9 @@ is_ok = None
 is_high = None
 is_activated = None
 is_locked = None
-checked_activity = None
+checked_activity_x = None
 checked_all_activitys = None
-fulfilled_activity = None
+fulfilled_activity_x = None
 fulfilled_activitys = None
 
 def create_domain(domain_name: str, predicates_list: List[variables]):
@@ -68,8 +69,8 @@ def create_domain(domain_name: str, predicates_list: List[variables]):
     actions_list = actions_list + pddl_converter_actions.create_cleaning_actions(is_cleaned, will_become_occupied, is_occupied, is_at, is_next_to, room_is_part_of_floor, cleaning_team_type, room_type, room2_type, room3_type, floor_type, floor2_type)
     actions_list = actions_list + pddl_converter_actions.create_assign_actions(positioned_at, room_is_part_of_floor, iot_type, room_position_type, room_type, floor_type, floor2_type)
     actions_list = actions_list + pddl_converter_actions.create_actuator_actions(is_locked, is_activated, is_high, is_ok, is_low, is_sensing, positioned_at, actuator_decreases_sensor, actuator_increases_sensor, sensor_is_part_of_room, sensor_type, actuator_type, room_position_type, room_type)
-    actions_list = actions_list + pddl_converter_actions.create_activity_detection_actions(checked_activity, checked_all_activitys, is_doing_activitys_at, room_position_type, room_type)
-    actions_list = actions_list + pddl_converter_actions.create_activity_fulfilled_actions(is_locked, fulfilled_activity, fulfilled_activitys, checked_all_activitys, is_doing_activitys_at, positioned_at, sensor_is_part_of_room, sensor_type, room_position_type, room_type)
+    actions_list = actions_list + pddl_converter_actions.create_activity_detection_actions(checked_activity_x, checked_all_activitys, is_doing_activitys_at, room_position_type, room_type, binary_s_type, is_sensing, positioned_at, sensor_is_part_of_room)
+    actions_list = actions_list + pddl_converter_actions.create_activity_fulfilled_actions(is_low, is_ok, is_high, is_locked, fulfilled_activity_x, fulfilled_activitys, checked_all_activitys, is_doing_activitys_at, positioned_at, sensor_is_part_of_room, sensor_type, sensor2_type, room_position_type, room_type)
     actions_list = actions_list + pddl_converter_actions.create_energy_saving_actions(is_activated, will_become_occupied, is_occupied, actuator_decreases_sensor, actuator_increases_sensor, actuator_is_part_of_room, sensor_is_part_of_room, sensor_type, actuator_type, actuator2_type, room_type)
 
     # define the domain object.
@@ -87,17 +88,17 @@ def create():
     input_dictionary = pddl_converter_input.query_input()
 
     global floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type
-    global iot_type, cleaning_team_type, sensor_type, actuator_type, actuator2_type
+    global iot_type, cleaning_team_type, sensor_type, sensor2_type, actuator_type, actuator2_type
     global binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type
 
     global room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, activity_names, is_doing_activitys_at
     global is_sensing, is_low, is_ok, is_high, is_activated, is_locked
-    global checked_activity, checked_all_activitys, fulfilled_activity, fulfilled_activitys
+    global checked_activity_x, checked_all_activitys, fulfilled_activity_x, fulfilled_activitys
 
     # set up variables and constants
-    floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, actuator_type, actuator2_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type = pddl_converter_types.create_type_variables()
+    floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, sensor2_type, actuator_type, actuator2_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type = pddl_converter_types.create_type_variables()
 
-    predicates_list, room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, activity_names, is_doing_activitys_at, is_sensing, is_low, is_ok, is_high, is_activated, is_locked, checked_activity, checked_all_activitys, fulfilled_activity, fulfilled_activitys = pddl_converter_predicates.create_predicates_variables(floor_type, room_type, room2_type, room_position_type, cleaning_team_type, iot_type, sensor_type, actuator_type, numerical_s_type)
+    predicates_list, room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, activity_names, is_doing_activitys_at, is_sensing, is_low, is_ok, is_high, is_activated, is_locked, checked_activity_x, checked_all_activitys, fulfilled_activity_x, fulfilled_activitys = pddl_converter_predicates.create_predicates_variables(floor_type, room_type, room2_type, room_position_type, cleaning_team_type, iot_type, sensor_type, actuator_type, numerical_s_type)
 
     domain = create_domain(input_dictionary['domain_name'], predicates_list)
 
@@ -176,7 +177,8 @@ def main():
 
     pddl_converter_help.write_out_pddl(output_path, domaine_file_name + ".pddl", d)
     pddl_converter_help.write_out_pddl(output_path, problem_file_name + ".pddl", p)
-    json_text = '{"excludeActions": ["detect_no_activity_sleep","detect_all_activitys","fulfill_all_activitys"]}'
+    json_text = '{"excludeActions": []}'
+    #json_text = '{"excludeActions": ["detect_no_activity_sleep","detect_all_activitys","fulfill_all_activitys"]}'
     pddl_converter_help.write_out_pddl_visualisation_hints(output_path, domaine_file_name + ".planviz.json", json_text)
 
 if __name__ == '__main__':

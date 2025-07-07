@@ -182,36 +182,53 @@ def create_actuator_actions(is_locked, is_activated, is_high, is_ok, is_low, is_
 
     return actions_list
 
-def create_activity_detection_actions(checked_activity, checked_all_activitys, is_doing_activitys_at, room_position_type, room_type):
+def create_activity_detection_actions(checked_activity_x, checked_all_activitys, is_doing_activitys_at, room_position_type, room_type, binary_s_type, is_sensing, positioned_at, sensor_is_part_of_room):
     actions_list = []
 
     is_doing_read_at = is_doing_activitys_at['read']
     is_doing_bath_at = is_doing_activitys_at['bath']
     is_doing_sleep_at = is_doing_activitys_at['sleep']
 
+    checked_activity_sleep = checked_activity_x['sleep']
+    checked_activity_read = checked_activity_x['read']
+
     # TODO fine tune sensor detection for the activitys
     detect_activity_sleep = Action(
         "detect_activity_sleep",
-        parameters=[room_type, room_position_type],
-        precondition=base.Or(is_doing_read_at(room_type, room_position_type), is_doing_bath_at(room_type, room_position_type), is_doing_sleep_at(room_type, room_position_type))
-                    & ~checked_activity(room_type, room_position_type),
-        effect=checked_activity(room_type, room_position_type) & is_doing_sleep_at(room_type, room_position_type)
+        parameters=[binary_s_type, room_type, room_position_type],
+        precondition=is_sensing(binary_s_type)
+                    & positioned_at(binary_s_type, room_position_type) 
+                    & sensor_is_part_of_room(binary_s_type, room_type)
+                    & ~checked_activity_sleep(room_type, room_position_type),
+        effect=checked_activity_sleep(room_type, room_position_type) & is_doing_sleep_at(room_type, room_position_type)
     )
     actions_list.append(detect_activity_sleep)
 
     detect_no_activity_sleep = Action(
         "detect_no_activity_sleep",
-        parameters=[room_type, room_position_type],
-        precondition=~is_doing_sleep_at(room_type, room_position_type)
-                    & ~checked_activity(room_type, room_position_type),
-        effect=checked_activity(room_type, room_position_type) & ~is_doing_sleep_at(room_type, room_position_type)
+        parameters=[binary_s_type, room_type, room_position_type],
+        precondition=~is_sensing(binary_s_type)
+                    & positioned_at(binary_s_type, room_position_type) 
+                    & sensor_is_part_of_room(binary_s_type, room_type)
+                    & ~checked_activity_sleep(room_type, room_position_type),
+        effect=checked_activity_sleep(room_type, room_position_type) & ~is_doing_sleep_at(room_type, room_position_type)
     )
     actions_list.append(detect_no_activity_sleep)
+
+    detect_no_possible_activity_sleep = Action(
+        "detect_no_possible_activity_sleep",
+        parameters=[room_type, room_position_type],
+        precondition=base.Not(base.ExistsCondition(positioned_at(binary_s_type, room_position_type) 
+                                                    & sensor_is_part_of_room(binary_s_type, room_type), [binary_s_type]))
+                    & ~checked_activity_sleep(room_type, room_position_type),
+        effect=checked_activity_sleep(room_type, room_position_type) & ~is_doing_sleep_at(room_type, room_position_type)
+    )
+    actions_list.append(detect_no_possible_activity_sleep)
 
     detect_all_activitys = Action(
         "detect_all_activitys",
         parameters=[room_type, room_position_type],
-        precondition=base.And(checked_activity(room_type, room_position_type),
+        precondition=base.And(checked_activity_sleep(room_type, room_position_type),
                               ~checked_all_activitys(room_type, room_position_type)),
         effect=checked_all_activitys(room_type, room_position_type)
     )
@@ -219,53 +236,70 @@ def create_activity_detection_actions(checked_activity, checked_all_activitys, i
 
     return actions_list
 
-def create_activity_fulfilled_actions(is_locked, fulfilled_activity, fulfilled_activitys, checked_all_activitys, is_doing_activitys_at, positioned_at, sensor_is_part_of_room, sensor_type, room_position_type, room_type):
+def create_activity_fulfilled_actions(is_low, is_ok, is_high, is_locked, fulfilled_activity_x, fulfilled_activitys, checked_all_activitys, is_doing_activitys_at, positioned_at, sensor_is_part_of_room, sensor_type, sensor2_type, room_position_type, room_type):
     actions_list = []
 
-    #is_doing_read_at = is_doing_activitys_at['read']
+    precondition_to_fulfill_activity = lambda s1, r1, p1 : (base.And(positioned_at(s1, p1), 
+                                                                     sensor_is_part_of_room(s1, r1), 
+                                                                     checked_all_activitys(r1, p1)))
+
+    is_doing_read_at = is_doing_activitys_at['read']
     #is_doing_bath_at = is_doing_activitys_at['bath']
     is_doing_sleep_at = is_doing_activitys_at['sleep']
 
+    fulfilled_activity_read = fulfilled_activity_x['read']
+    fulfilled_activity_sleep = fulfilled_activity_x['sleep']
+
     # TODO fine tune sensor ideal position for the activitys
+    # TODO remove sensor_type from fulfilled_activity?
+    fulfill_activity_sleep = Action(
+        "fulfill_activity_read",
+        parameters=[sensor_type, room_type, room_position_type],
+        precondition=precondition_to_fulfill_activity(sensor_type, room_type, room_position_type)
+                    & is_doing_read_at(room_type, room_position_type)
+                    & ~fulfilled_activity_read(room_type, room_position_type)
+                    & is_high(sensor_type),
+        effect=fulfilled_activity_read(room_type, room_position_type) & is_locked(sensor_type)
+    )
+    actions_list.append(fulfill_activity_sleep)
+
     fulfill_activity_sleep = Action(
         "fulfill_activity_sleep",
         parameters=[sensor_type, room_type, room_position_type],
-        precondition=positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
+        precondition=precondition_to_fulfill_activity(sensor_type, room_type, room_position_type)
                     & is_doing_sleep_at(room_type, room_position_type)
-                    & checked_all_activitys(room_type, room_position_type)
-                    & ~fulfilled_activity(room_type, room_position_type, sensor_type),
-        effect=fulfilled_activity(room_type, room_position_type, sensor_type) & is_locked(sensor_type)
+                    & ~fulfilled_activity_sleep(room_type, room_position_type)
+                    & is_low(sensor_type),
+        effect=fulfilled_activity_sleep(room_type, room_position_type) & is_locked(sensor_type)
     )
     actions_list.append(fulfill_activity_sleep)
 
     fulfill_activity_no_sleep = Action(
-        "fulfill_activity_no_sleep",
-        parameters=[sensor_type, room_type, room_position_type],
-        precondition=positioned_at(sensor_type, room_position_type)
-                    & sensor_is_part_of_room(sensor_type, room_type)
-                    & ~is_doing_sleep_at(room_type, room_position_type)
-                    & checked_all_activitys(room_type, room_position_type)
-                    & ~fulfilled_activity(room_type, room_position_type, sensor_type),
-        effect=fulfilled_activity(room_type, room_position_type, sensor_type)
+        "fulfill_activity_no_read",
+        parameters=[room_type, room_position_type],
+        precondition=checked_all_activitys(room_type, room_position_type)
+                    & ~is_doing_read_at(room_type, room_position_type)
+                    & ~fulfilled_activity_read(room_type, room_position_type),
+        effect=fulfilled_activity_read(room_type, room_position_type)
     )
     actions_list.append(fulfill_activity_no_sleep)
 
-    fulfill_activity_no_dummy = Action(
-        "fulfill_activity_no_dummy",
-        parameters=[sensor_type, room_type, room_position_type],
-        precondition= checked_all_activitys(room_type, room_position_type)
-                    & ~fulfilled_activity(room_type, room_position_type, sensor_type),
-        effect=fulfilled_activity(room_type, room_position_type, sensor_type)
+    fulfill_activity_no_sleep = Action(
+        "fulfill_activity_no_sleep",
+        parameters=[room_type, room_position_type],
+        precondition=checked_all_activitys(room_type, room_position_type)
+                    & ~is_doing_sleep_at(room_type, room_position_type)
+                    & ~fulfilled_activity_sleep(room_type, room_position_type),
+        effect=fulfilled_activity_sleep(room_type, room_position_type)
     )
-    actions_list.append(fulfill_activity_no_dummy)
+    actions_list.append(fulfill_activity_no_sleep)
 
     fulfill_all_activitys = Action(
         "fulfill_all_activitys",
-        parameters=[room_type, room_position_type, sensor_type],
-        precondition=fulfilled_activity(room_type, room_position_type, sensor_type)
-                    & ~fulfilled_activitys(room_type, room_position_type, sensor_type),
-        effect=fulfilled_activitys(room_type, room_position_type, sensor_type)
+        parameters=[room_type, room_position_type],
+        precondition=fulfilled_activity_sleep(room_type, room_position_type)
+                    & ~fulfilled_activitys(room_type, room_position_type),
+        effect=fulfilled_activitys(room_type, room_position_type)
     )
     actions_list.append(fulfill_all_activitys)
 

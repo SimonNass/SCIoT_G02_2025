@@ -12,13 +12,13 @@ def create_type_variables():
     iot_type = variables("iot_type", types=["iot_type"])[0]
     cleaning_team_type = variables("cleaning_team_type", types=["cleaning_team_type"])[0]
 
-    sensor_type = variables("sensor_type", types=["sensor_type"])[0]
+    sensor_type, sensor2_type = variables("sensor_type sensor2_type", types=["sensor_type"])
     actuator_type, actuator2_type = variables("actuator_type actuator2_type", types=["actuator_type"])
 
     binary_s_type, numerical_s_type, textual_s_type = variables("binary_s_type numerical_s_type textual_s_type", types=["sensor_type"])
     binary_a_type, numerical_a_type, textual_a_type = variables("binary_a_type numerical_a_type textual_a_type", types=["actuator_type"])
 
-    return floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, actuator_type, actuator2_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type
+    return floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, sensor2_type, actuator_type, actuator2_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type
 
 def create_type_dict():
     # set up types
