@@ -154,3 +154,4 @@ dmypy.json
 server/db_data
 
 db_data/
+auto_generated/
