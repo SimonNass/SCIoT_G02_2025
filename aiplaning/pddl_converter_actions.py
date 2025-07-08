@@ -324,6 +324,10 @@ def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types):
 
     # TODO add or for sensor state
     # TODO fine tune sensor ideal position for the activitys
+    # TODO defoalt gole per sensor if not used in any activity at a location
+    # TODO check activitc colisions
+
+
     activity_mapping = {'bath':{'temperature_s':'is_ok'},
                         'read':{'temperature_s':'is_ok', 'light_s':'is_high', 'sound_s':'is_ok'},
                         'sleep':{'light_s':'is_low', 'sound_s':'is_low'},
