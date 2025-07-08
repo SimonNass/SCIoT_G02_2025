@@ -25,7 +25,12 @@ def create_type_variables():
                   "binary_a": 1,
                   "numerical_a": 1,
                   "textual_a": 1,
-                  "temperature_s": 1}
+                  "temperature_s": 1,
+                  "humidity_s": 1,
+                  "light_s": 1,
+                  "sound_s": 1,
+                  "rotation_s": 1,
+                  }
 
     pddl_variables = {}
     for name, amount in type_names.items():

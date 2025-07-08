@@ -61,7 +61,7 @@ def create_domain(domain_name: str, predicates_dict: Dict[str,variables], pddl_v
     actions_list = actions_list + pddl_converter_actions.create_assign_actions(positioned_at, room_is_part_of_floor, iot_type, room_position_type, room_type, floor_type, floor2_type)
     actions_list = actions_list + pddl_converter_actions.create_actuator_actions(is_locked, is_activated, is_high, is_ok, is_low, is_sensing, positioned_at, actuator_decreases_sensor, actuator_increases_sensor, sensor_is_part_of_room, sensor_type, actuator_type, room_position_type, room_type)
     actions_list = actions_list + pddl_converter_actions.create_activity_detection_actions(checked_activity_x, checked_all_activitys, is_doing_activitys_at, room_position_type, room_type, binary_s_type, is_sensing, positioned_at, sensor_is_part_of_room, fulfilled_activity_x)
-    actions_list = actions_list + pddl_converter_actions.create_activity_fulfilled_actions(is_low, is_ok, is_high, is_locked, fulfilled_activity_x, fulfilled_activitys, checked_all_activitys, is_doing_activitys_at, positioned_at, sensor_is_part_of_room, sensor_type, sensor2_type, room_position_type, room_type)
+    actions_list = actions_list + pddl_converter_actions.create_activity_fulfilled_actions(predicates_dict, pddl_variable_types)
     actions_list = actions_list + pddl_converter_actions.create_energy_saving_actions(is_activated, will_become_occupied, is_occupied, actuator_decreases_sensor, actuator_increases_sensor, actuator_is_part_of_room, sensor_is_part_of_room, sensor_type, actuator_type, actuator2_type, room_type)
 
     # define the domain object.
