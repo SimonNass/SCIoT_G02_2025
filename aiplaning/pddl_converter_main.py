@@ -125,6 +125,7 @@ def create():
     initial_state = []
 
     initial_state = initial_state + pddl_converter_initial_state.create_initial_state_room_topology(room_is_part_of_floor, is_next_to, is_cleaned, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_elevators)
+    initial_state = initial_state + pddl_converter_initial_state.create_initial_state_elevator_topology(room_is_part_of_floor, is_next_to, is_cleaned, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_elevators, uid_to_pddl_variable_room_positions, checked_all_activitys, fulfilled_activitys)
 
     initial_state = initial_state + pddl_converter_initial_state.create_cleaning_teams_starting_position(uid_to_pddl_variable_cleaning_teams, uid_to_pddl_variable_elevators, is_at)
 
@@ -177,8 +178,8 @@ def main():
 
     pddl_converter_help.write_out_pddl(output_path, domaine_file_name + ".pddl", d)
     pddl_converter_help.write_out_pddl(output_path, problem_file_name + ".pddl", p)
-    json_text = '{"excludeActions": []}'
-    #json_text = '{"excludeActions": ["detect_no_activity_sleep","detect_all_activitys","fulfill_all_activitys"]}'
+    #json_text = '{"excludeActions": []}'
+    json_text = '{"excludeActions": ["detect_all_activitys","fulfill_all_activitys"]}'
     pddl_converter_help.write_out_pddl_visualisation_hints(output_path, domaine_file_name + ".planviz.json", json_text)
 
 if __name__ == '__main__':

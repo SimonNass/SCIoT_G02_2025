@@ -16,7 +16,8 @@ def query_input():
 
     elevator_uids = ['e0','e1']
     cleaning_team_uids = ['cleaning_team_1','cleaning_team_2']
-    names_room_positions = ['overall_room', 'bed', 'closet', 'window']
+    names_room_positions = ['overall_room']
+    #['overall_room', 'bed', 'closet', 'window']
 
     sensor_room_mapping = {'r0':['s1'], 'r2':['s2']}
     actuator_room_mapping = {'r0':['a1'], 'r2':['a2']}
