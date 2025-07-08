@@ -313,20 +313,7 @@ def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types):
 
     room_type = pddl_variable_types["room"][0]
     room_position_type = pddl_variable_types["room_position"][0]
-    sensor_type = pddl_variable_types["sensor"][0]
-    temperature_s_type = pddl_variable_types["temperature_s"][0]
-    humidity_s_type = pddl_variable_types["humidity_s"][0]
-    light_s_type = pddl_variable_types["light_s"][0]
-    sound_s_type = pddl_variable_types["sound_s"][0]
-    rotation_s_type = pddl_variable_types["rotation_s"][0]
 
-    sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
-    positioned_at = predicates_dict["positioned_at"]
-    is_sensing = predicates_dict["is_sensing"]
-    is_low = predicates_dict["is_low"]
-    is_ok = predicates_dict["is_ok"]
-    is_high = predicates_dict["is_high"]
-    is_locked = predicates_dict["is_locked"]
     checked_all_activitys = predicates_dict["checked_all_activitys"]
     fulfilled_activitys = predicates_dict["fulfilled_activitys"]
 
@@ -335,53 +322,16 @@ def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types):
     fulfilled_activity_sleep = predicates_dict["fulfilled_activity_sleep"]
     fulfilled_activity_read = predicates_dict["fulfilled_activity_read"]
 
-    is_doing_sleep_at = predicates_dict[f"is_doing_sleep_at"]
-    is_doing_read_at = predicates_dict[f"is_doing_read_at"]
-
     # TODO add or for sensor state
+    # TODO fine tune sensor ideal position for the activitys
     activity_mapping = {'bath':{'temperature_s':'is_ok'},
                         'read':{'temperature_s':'is_ok', 'light_s':'is_high', 'sound_s':'is_ok'},
                         'sleep':{'light_s':'is_low', 'sound_s':'is_low'},
                         }
 
-    precondition_to_fulfill_activity = lambda s1, r1, p1 : (base.And(positioned_at(s1, p1), 
-                                                                     sensor_is_part_of_room(s1, r1), 
-                                                                     checked_all_activitys(r1, p1)))
-
-
-    # TODO fine tune sensor ideal position for the activitys
-    # TODO remove sensor_type from fulfilled_activity?
     for activity_name, sensor_type_x_dict in activity_mapping.items():
         fulfill_activity_sleep = create_activity_fulfilled_action_x(predicates_dict, pddl_variable_types, activity_name, sensor_type_x_dict)
         actions_list.append(fulfill_activity_sleep)
-
-    #fulfill_activity_sleep = Action(
-    #    "fulfill_activity_read",
-    #    parameters=[temperature_s_type, light_s_type, room_type, room_position_type],
-    #    precondition=precondition_to_fulfill_activity(temperature_s_type, room_type, room_position_type)
-    #                & precondition_to_fulfill_activity(light_s_type, room_type, room_position_type)
-    #                & is_doing_read_at(room_type, room_position_type)
-    #                & ~fulfilled_activity_read(room_type, room_position_type)
-    #                & is_high(light_s_type)
-    #                & is_ok(sound_s_type)
-    #                & is_ok(temperature_s_type),
-    #    effect=fulfilled_activity_read(room_type, room_position_type) 
-    #            & is_locked(light_s_type) 
-    #            & is_locked(sound_s_type) 
-    #            & is_locked(temperature_s_type)
-    #)
-    #actions_list.append(fulfill_activity_sleep)
-
-    #fulfill_activity_sleep = Action(
-    #    "fulfill_activity_sleep",
-    #    parameters=[sensor_type, room_type, room_position_type],
-    #    precondition=precondition_to_fulfill_activity(sensor_type, room_type, room_position_type)
-    #                & is_doing_sleep_at(room_type, room_position_type)
-    #                & ~fulfilled_activity_sleep(room_type, room_position_type)
-    #                & is_low(sensor_type),
-    #    effect=fulfilled_activity_sleep(room_type, room_position_type) & is_locked(sensor_type)
-    #)
-    #actions_list.append(fulfill_activity_sleep)
 
     for activity in activity_names:
         fulfill_activity_no_x = Action(
