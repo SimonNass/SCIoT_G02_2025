@@ -26,6 +26,9 @@ docker-compose pull
 docker-compose build
 docker-compose up
 
+sudo service docker stop
+sudo rm -rf /var/lib/docker
+sudo service docker start
 
 ### pi room
 - make sure ssh and I2C are allowed in the configurations of the pi
