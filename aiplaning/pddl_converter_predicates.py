@@ -59,7 +59,7 @@ def create_predicates_variables(floor_type, room_type, room2_type, room_position
 
     fulfilled_activity_x = {}
     for activity in activity_names:
-        checked_a = Predicate(f"checked_activity_{activity}", room_type, room_position_type)
+        checked_a = Predicate(f"fulfilled_activity_{activity}", room_type, room_position_type)
         fulfilled_activity_x.update({f"{activity}":checked_a})
         predicates_list.append(checked_a)
     

@@ -182,7 +182,7 @@ def create_actuator_actions(is_locked, is_activated, is_high, is_ok, is_low, is_
 
     return actions_list
 
-def create_activity_detection_actions(checked_activity_x, checked_all_activitys, is_doing_activitys_at, room_position_type, room_type, binary_s_type, is_sensing, positioned_at, sensor_is_part_of_room):
+def create_activity_detection_actions(checked_activity_x, checked_all_activitys, is_doing_activitys_at, room_position_type, room_type, binary_s_type, is_sensing, positioned_at, sensor_is_part_of_room, fulfilled_activity_x):
     actions_list = []
 
     is_doing_read_at = is_doing_activitys_at['read']
@@ -192,6 +192,9 @@ def create_activity_detection_actions(checked_activity_x, checked_all_activitys,
     checked_activity_sleep = checked_activity_x['sleep']
     checked_activity_read = checked_activity_x['read']
 
+    fulfilled_activity_read = fulfilled_activity_x['read']
+    fulfilled_activity_sleep = fulfilled_activity_x['sleep']
+
     # TODO fine tune sensor detection for the activitys
     detect_activity_sleep = Action(
         "detect_activity_sleep",
@@ -200,7 +203,7 @@ def create_activity_detection_actions(checked_activity_x, checked_all_activitys,
                     & positioned_at(binary_s_type, room_position_type) 
                     & sensor_is_part_of_room(binary_s_type, room_type)
                     & ~checked_activity_sleep(room_type, room_position_type),
-        effect=checked_activity_sleep(room_type, room_position_type) & is_doing_sleep_at(room_type, room_position_type)
+        effect=checked_activity_sleep(room_type, room_position_type) & is_doing_sleep_at(room_type, room_position_type) & ~fulfilled_activity_sleep(room_type, room_position_type)
     )
     actions_list.append(detect_activity_sleep)
 
@@ -211,7 +214,7 @@ def create_activity_detection_actions(checked_activity_x, checked_all_activitys,
                     & positioned_at(binary_s_type, room_position_type) 
                     & sensor_is_part_of_room(binary_s_type, room_type)
                     & ~checked_activity_sleep(room_type, room_position_type),
-        effect=checked_activity_sleep(room_type, room_position_type) & ~is_doing_sleep_at(room_type, room_position_type)
+        effect=checked_activity_sleep(room_type, room_position_type) & ~is_doing_sleep_at(room_type, room_position_type) & ~fulfilled_activity_sleep(room_type, room_position_type)
     )
     actions_list.append(detect_no_activity_sleep)
 
@@ -221,7 +224,7 @@ def create_activity_detection_actions(checked_activity_x, checked_all_activitys,
         precondition=base.Not(base.ExistsCondition(positioned_at(binary_s_type, room_position_type) 
                                                     & sensor_is_part_of_room(binary_s_type, room_type), [binary_s_type]))
                     & ~checked_activity_sleep(room_type, room_position_type),
-        effect=checked_activity_sleep(room_type, room_position_type) & ~is_doing_sleep_at(room_type, room_position_type)
+        effect=checked_activity_sleep(room_type, room_position_type) & ~is_doing_sleep_at(room_type, room_position_type) & ~fulfilled_activity_sleep(room_type, room_position_type)
     )
     actions_list.append(detect_no_possible_activity_sleep)
 
@@ -232,7 +235,7 @@ def create_activity_detection_actions(checked_activity_x, checked_all_activitys,
                     & positioned_at(binary_s_type, room_position_type) 
                     & sensor_is_part_of_room(binary_s_type, room_type)
                     & ~checked_activity_read(room_type, room_position_type),
-        effect=checked_activity_read(room_type, room_position_type) & is_doing_read_at(room_type, room_position_type)
+        effect=checked_activity_read(room_type, room_position_type) & is_doing_read_at(room_type, room_position_type) & ~fulfilled_activity_read(room_type, room_position_type)
     )
     actions_list.append(detect_activity_read)
 
@@ -243,7 +246,7 @@ def create_activity_detection_actions(checked_activity_x, checked_all_activitys,
                     & positioned_at(binary_s_type, room_position_type) 
                     & sensor_is_part_of_room(binary_s_type, room_type)
                     & ~checked_activity_read(room_type, room_position_type),
-        effect=checked_activity_read(room_type, room_position_type) & ~is_doing_read_at(room_type, room_position_type)
+        effect=checked_activity_read(room_type, room_position_type) & ~is_doing_read_at(room_type, room_position_type) & ~fulfilled_activity_read(room_type, room_position_type)
     )
     actions_list.append(detect_no_activity_read)
 
@@ -253,7 +256,7 @@ def create_activity_detection_actions(checked_activity_x, checked_all_activitys,
         precondition=base.Not(base.ExistsCondition(positioned_at(binary_s_type, room_position_type) 
                                                     & sensor_is_part_of_room(binary_s_type, room_type), [binary_s_type]))
                     & ~checked_activity_read(room_type, room_position_type),
-        effect=checked_activity_read(room_type, room_position_type) & ~is_doing_read_at(room_type, room_position_type)
+        effect=checked_activity_read(room_type, room_position_type) & ~is_doing_read_at(room_type, room_position_type) & ~fulfilled_activity_read(room_type, room_position_type)
     )
     actions_list.append(detect_no_possible_activity_read)
 
