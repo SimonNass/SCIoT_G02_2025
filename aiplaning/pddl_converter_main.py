@@ -17,31 +17,7 @@ import pddl_converter_initial_state
 import pddl_converter_help
 
 
-room_is_part_of_floor = None
-sensor_is_part_of_room = None
-actuator_is_part_of_room = None
-positioned_at = None
-actuator_increases_sensor = None
-actuator_decreases_sensor = None
-is_next_to = None
-is_at = None
-is_occupied = None
-will_become_occupied = None
-is_cleaned = None
-activity_names = None
-is_doing_activitys_at = None
-is_sensing = None
-is_low = None
-is_ok = None
-is_high = None
-is_activated = None
-is_locked = None
-checked_activity_x = None
-checked_all_activitys = None
-fulfilled_activity_x = None
-fulfilled_activitys = None
-
-def create_domain(domain_name: str, predicates_list: List[variables], pddl_variable_types: Dict[str,List[variables]]):
+def create_domain(domain_name: str, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], is_doing_activitys_at, checked_activity_x, fulfilled_activity_x):
     # set up types
     type_dict = pddl_converter_types.create_type_dict()
 
@@ -59,6 +35,26 @@ def create_domain(domain_name: str, predicates_list: List[variables], pddl_varia
     actuator2_type = pddl_variable_types["actuator"][1]
     binary_s_type = pddl_variable_types["binary_s"][0]
 
+    room_is_part_of_floor = predicates_dict["room_is_part_of_floor"]
+    sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
+    actuator_is_part_of_room = predicates_dict["actuator_is_part_of_room"]
+    positioned_at = predicates_dict["positioned_at"]
+    actuator_increases_sensor = predicates_dict["actuator_increases_sensor"]
+    actuator_decreases_sensor = predicates_dict["actuator_decreases_sensor"]
+    is_next_to = predicates_dict["is_next_to"]
+    is_at = predicates_dict["is_at"]
+    is_occupied = predicates_dict["is_occupied"]
+    will_become_occupied = predicates_dict["will_become_occupied"]
+    is_cleaned = predicates_dict["is_cleaned"]
+    is_sensing = predicates_dict["is_sensing"]
+    is_low = predicates_dict["is_low"]
+    is_ok = predicates_dict["is_ok"]
+    is_high = predicates_dict["is_high"]
+    is_activated = predicates_dict["is_activated"]
+    is_locked = predicates_dict["is_locked"]
+    checked_all_activitys = predicates_dict["checked_all_activitys"]
+    fulfilled_activitys = predicates_dict["fulfilled_activitys"]
+
     # define actions
     actions_list = []
     actions_list = actions_list + pddl_converter_actions.create_cleaning_actions(is_cleaned, will_become_occupied, is_occupied, is_at, is_next_to, room_is_part_of_floor, cleaning_team_type, room_type, room2_type, room3_type, floor_type, floor2_type)
@@ -73,7 +69,7 @@ def create_domain(domain_name: str, predicates_list: List[variables], pddl_varia
     domain = Domain(domain_name,
                     requirements=requirements,
                     types=type_dict,
-                    predicates=predicates_list,
+                    predicates=list(predicates_dict.values()),
                     actions=actions_list)
 
     #print(domain)
@@ -82,12 +78,7 @@ def create_domain(domain_name: str, predicates_list: List[variables], pddl_varia
 def create():
     input_dictionary = pddl_converter_input.query_input()
 
-    global room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, activity_names, is_doing_activitys_at
-    global is_sensing, is_low, is_ok, is_high, is_activated, is_locked
-    global checked_activity_x, checked_all_activitys, fulfilled_activity_x, fulfilled_activitys
-
     # set up variables and constants
-    #floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, sensor2_type, actuator_type, actuator2_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type = pddl_converter_types.create_type_variables()
     pddl_variable_types = pddl_converter_types.create_type_variables()
     floor_type = pddl_variable_types["floor"][0]
     room_type = pddl_variable_types["room"][0]
@@ -99,9 +90,29 @@ def create():
     actuator_type = pddl_variable_types["actuator"][0]
     numerical_s_type = pddl_variable_types["numerical_s"][0]
 
-    predicates_list, room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, activity_names, is_doing_activitys_at, is_sensing, is_low, is_ok, is_high, is_activated, is_locked, checked_activity_x, checked_all_activitys, fulfilled_activity_x, fulfilled_activitys = pddl_converter_predicates.create_predicates_variables(floor_type, room_type, room2_type, room_position_type, cleaning_team_type, iot_type, sensor_type, actuator_type, numerical_s_type)
+    predicates_dict, activity_names, is_doing_activitys_at, checked_activity_x, fulfilled_activity_x = pddl_converter_predicates.create_predicates_variables(floor_type, room_type, room2_type, room_position_type, cleaning_team_type, iot_type, sensor_type, actuator_type, numerical_s_type)
 
-    domain = create_domain(input_dictionary['domain_name'], predicates_list, pddl_variable_types)
+    room_is_part_of_floor = predicates_dict["room_is_part_of_floor"]
+    sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
+    actuator_is_part_of_room = predicates_dict["actuator_is_part_of_room"]
+    positioned_at = predicates_dict["positioned_at"]
+    actuator_increases_sensor = predicates_dict["actuator_increases_sensor"]
+    actuator_decreases_sensor = predicates_dict["actuator_decreases_sensor"]
+    is_next_to = predicates_dict["is_next_to"]
+    is_at = predicates_dict["is_at"]
+    is_occupied = predicates_dict["is_occupied"]
+    will_become_occupied = predicates_dict["will_become_occupied"]
+    is_cleaned = predicates_dict["is_cleaned"]
+    is_sensing = predicates_dict["is_sensing"]
+    is_low = predicates_dict["is_low"]
+    is_ok = predicates_dict["is_ok"]
+    is_high = predicates_dict["is_high"]
+    is_activated = predicates_dict["is_activated"]
+    is_locked = predicates_dict["is_locked"]
+    checked_all_activitys = predicates_dict["checked_all_activitys"]
+    fulfilled_activitys = predicates_dict["fulfilled_activitys"]
+
+    domain = create_domain(input_dictionary['domain_name'], predicates_dict, pddl_variable_types, is_doing_activitys_at, checked_activity_x, fulfilled_activity_x)
 
     floor_uids = input_dictionary['floor_uids']
     room_uids_per_floor = input_dictionary['room_uids_per_floor']
