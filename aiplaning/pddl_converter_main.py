@@ -2,7 +2,7 @@
 """Module generates pddl domain and problem files."""
 
 # pip install pddl==0.4.3
-from typing import List
+from typing import List, Dict
 from pddl.logic import variables
 from pddl.core import Domain, Problem
 from pddl.requirements import Requirements
@@ -16,25 +16,6 @@ import pddl_converter_input
 import pddl_converter_initial_state
 import pddl_converter_help
 
-
-floor_type = None
-floor2_type = None
-room_type = None
-room2_type = None
-room3_type = None
-room_position_type = None
-iot_type = None
-cleaning_team_type = None
-sensor_type = None
-sensor2_type = None
-actuator_type = None
-actuator2_type = None
-binary_s_type = None
-numerical_s_type = None
-textual_s_type = None
-binary_a_type = None
-numerical_a_type = None
-textual_a_type = None
 
 room_is_part_of_floor = None
 sensor_is_part_of_room = None
@@ -60,9 +41,23 @@ checked_all_activitys = None
 fulfilled_activity_x = None
 fulfilled_activitys = None
 
-def create_domain(domain_name: str, predicates_list: List[variables]):
+def create_domain(domain_name: str, predicates_list: List[variables], pddl_variable_types: Dict[str,List[variables]]):
     # set up types
     type_dict = pddl_converter_types.create_type_dict()
+
+    floor_type = pddl_variable_types["floor"][0]
+    floor2_type = pddl_variable_types["floor"][1]
+    room_type = pddl_variable_types["room"][0]
+    room2_type = pddl_variable_types["room"][1]
+    room3_type = pddl_variable_types["room"][2]
+    room_position_type = pddl_variable_types["room_position"][0]
+    iot_type = pddl_variable_types["iot"][0]
+    cleaning_team_type = pddl_variable_types["cleaning_team"][0]
+    sensor_type = pddl_variable_types["sensor"][0]
+    sensor2_type = pddl_variable_types["sensor"][1]
+    actuator_type = pddl_variable_types["actuator"][0]
+    actuator2_type = pddl_variable_types["actuator"][1]
+    binary_s_type = pddl_variable_types["binary_s"][0]
 
     # define actions
     actions_list = []
@@ -87,20 +82,26 @@ def create_domain(domain_name: str, predicates_list: List[variables]):
 def create():
     input_dictionary = pddl_converter_input.query_input()
 
-    global floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type
-    global iot_type, cleaning_team_type, sensor_type, sensor2_type, actuator_type, actuator2_type
-    global binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type
-
     global room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, activity_names, is_doing_activitys_at
     global is_sensing, is_low, is_ok, is_high, is_activated, is_locked
     global checked_activity_x, checked_all_activitys, fulfilled_activity_x, fulfilled_activitys
 
     # set up variables and constants
-    floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, sensor2_type, actuator_type, actuator2_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type = pddl_converter_types.create_type_variables()
+    #floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, sensor2_type, actuator_type, actuator2_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type = pddl_converter_types.create_type_variables()
+    pddl_variable_types = pddl_converter_types.create_type_variables()
+    floor_type = pddl_variable_types["floor"][0]
+    room_type = pddl_variable_types["room"][0]
+    room2_type = pddl_variable_types["room"][1]
+    room_position_type = pddl_variable_types["room_position"][0]
+    iot_type = pddl_variable_types["iot"][0]
+    cleaning_team_type = pddl_variable_types["cleaning_team"][0]
+    sensor_type = pddl_variable_types["sensor"][0]
+    actuator_type = pddl_variable_types["actuator"][0]
+    numerical_s_type = pddl_variable_types["numerical_s"][0]
 
     predicates_list, room_is_part_of_floor, sensor_is_part_of_room, actuator_is_part_of_room, positioned_at, actuator_increases_sensor, actuator_decreases_sensor, is_next_to, is_at, is_occupied, will_become_occupied, is_cleaned, activity_names, is_doing_activitys_at, is_sensing, is_low, is_ok, is_high, is_activated, is_locked, checked_activity_x, checked_all_activitys, fulfilled_activity_x, fulfilled_activitys = pddl_converter_predicates.create_predicates_variables(floor_type, room_type, room2_type, room_position_type, cleaning_team_type, iot_type, sensor_type, actuator_type, numerical_s_type)
 
-    domain = create_domain(input_dictionary['domain_name'], predicates_list)
+    domain = create_domain(input_dictionary['domain_name'], predicates_list, pddl_variable_types)
 
     floor_uids = input_dictionary['floor_uids']
     room_uids_per_floor = input_dictionary['room_uids_per_floor']
@@ -179,7 +180,7 @@ def main():
     pddl_converter_help.write_out_pddl(output_path, domaine_file_name + ".pddl", d)
     pddl_converter_help.write_out_pddl(output_path, problem_file_name + ".pddl", p)
     #json_text = '{"excludeActions": []}'
-    json_text = '{"excludeActions": ["detect_all_activitys","fulfill_all_activitys"]}'
+    json_text = '{"excludeActions": ["detect_all_activitys","fulfill_all_activitys","detect_no_possible_activity_sleep","detect_no_possible_activity_read","fulfill_activity_no_sleep","fulfill_activity_no_read"]}'
     pddl_converter_help.write_out_pddl_visualisation_hints(output_path, domaine_file_name + ".planviz.json", json_text)
 
 if __name__ == '__main__':
