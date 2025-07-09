@@ -1,7 +1,0 @@
-{
-    "excludeActions": [
-        "move_to_isolated_room",
-        "fulfill_no_activity",
-        "assign_floor"
-    ]
-}
