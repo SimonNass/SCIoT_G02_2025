@@ -317,8 +317,6 @@ def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types):
     checked_all_activitys = predicates_dict["checked_all_activitys"]
     fulfilled_activitys = predicates_dict["fulfilled_activitys"]
 
-    activity_names = ['read','sleep','bath']
-
     fulfilled_activity_sleep = predicates_dict["fulfilled_activity_sleep"]
     fulfilled_activity_read = predicates_dict["fulfilled_activity_read"]
 
@@ -337,7 +335,7 @@ def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types):
         fulfill_activity_sleep = create_activity_fulfilled_action_x(predicates_dict, pddl_variable_types, activity_name, sensor_type_x_dict)
         actions_list.append(fulfill_activity_sleep)
 
-    for activity in activity_names:
+    for activity in activity_mapping.keys():
         fulfill_activity_no_x = Action(
             f"fulfill_activity_no_{activity}",
             parameters=[room_type, room_position_type],
