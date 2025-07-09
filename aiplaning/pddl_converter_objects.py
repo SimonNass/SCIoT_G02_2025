@@ -29,15 +29,16 @@ def create_objects_room_topology(floor_uids: List[str], room_uids_per_floor: Dic
 
     return floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_elevators
 
-def create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_mapping, actuator_room_mapping):
+def create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_mapping, actuator_room_mapping, sensor_types):
     sensors = []
     uid_to_pddl_variable_sensors = {}
     for room in pddl_converter_help.iterator_ofer_dict_list_elements(floor_uids,room_uids_per_floor):
         if room not in sensor_room_mapping:
             continue
-        new_sensors = create_objects(sensor_room_mapping[room], "numerical_s")
-        sensors = sensors + new_sensors
-        uid_to_pddl_variable_sensors.update({sensor_room_mapping[room][i]:new_sensors[i] for i in range(len(new_sensors))})
+        for sensor_name in sensor_room_mapping[room]:
+            new_sensors = create_objects([sensor_name], sensor_types[sensor_name])
+            sensors = sensors + new_sensors
+            uid_to_pddl_variable_sensors.update({[sensor_name][i]:new_sensors[i] for i in range(len(new_sensors))})
 
     actuators = []
     uid_to_pddl_variable_actuators = {}
@@ -49,7 +50,7 @@ def create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_ma
         uid_to_pddl_variable_actuators.update({actuator_room_mapping[room][i]:new_actuators[i] for i in range(len(new_actuators))})
     return sensors, actuators, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators
 
-def create_all_obbjects(floor_uids, room_uids_per_floor, elevator_uids, sensor_room_mapping, actuator_room_mapping, cleaning_team_uids, room_positions_uids):
+def create_all_obbjects(floor_uids, room_uids_per_floor, elevator_uids, sensor_room_mapping, actuator_room_mapping, cleaning_team_uids, room_positions_uids, sensor_types):
             # create objects / constants
     all_objects = []
 
@@ -62,7 +63,7 @@ def create_all_obbjects(floor_uids, room_uids_per_floor, elevator_uids, sensor_r
     uid_to_pddl_variable_cleaning_teams = {cleaning_team_uids[i]:cleaning_teams[i] for i in range(len(cleaning_team_uids))}
     all_objects = all_objects + cleaning_teams
 
-    sensors, actuators, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators = create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_mapping, actuator_room_mapping)
+    sensors, actuators, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators = create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_mapping, actuator_room_mapping, sensor_types)
     all_objects = all_objects + sensors + actuators
 
     room_positions = create_objects(room_positions_uids, "room_position")

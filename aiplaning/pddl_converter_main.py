@@ -124,6 +124,8 @@ def create():
 
     actuator_increases_sensor_mapping_matrix = input_dictionary['actuator_increases_sensor_mapping_matrix']
     actuator_decreases_sensor_mapping_matrix = input_dictionary['actuator_decreases_sensor_mapping_matrix']
+    
+    sensor_types = input_dictionary['sensor_types']
 
     sensor_initial_values = input_dictionary['sensor_initial_values']
     # TODO
@@ -131,7 +133,7 @@ def create():
     actuator_initial_values = input_dictionary['actuator_initial_values']
     room_occupied_actuator_initial_values = input_dictionary['room_occupied_actuator_initial_values']
 
-    all_objects, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_sensors,uid_to_pddl_variable_actuators, uid_to_pddl_variable_elevators, uid_to_pddl_variable_cleaning_teams, uid_to_pddl_variable_room_positions = pddl_converter_objects.create_all_obbjects(floor_uids, room_uids_per_floor, elevator_uids, sensor_room_mapping, actuator_room_mapping, input_dictionary['cleaning_team_uids'], input_dictionary['names_room_positions'])
+    all_objects, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_sensors,uid_to_pddl_variable_actuators, uid_to_pddl_variable_elevators, uid_to_pddl_variable_cleaning_teams, uid_to_pddl_variable_room_positions = pddl_converter_objects.create_all_obbjects(floor_uids, room_uids_per_floor, elevator_uids, sensor_room_mapping, actuator_room_mapping, input_dictionary['cleaning_team_uids'], input_dictionary['names_room_positions'], sensor_types)
 
     # create initial state
     initial_state = []
@@ -163,7 +165,7 @@ def create():
     initial_state = initial_state + pddl_converter_initial_state.create_room_occupied_values(is_occupied, room_occupied_actuator_initial_values, floor_uids, room_uids_per_floor, uid_to_pddl_variable_rooms)
 
     # create goal
-    goal_state = pddl_converter_goals.create_goal(fulfilled_activitys, checked_all_activitys, is_activated, is_cleaned, is_occupied, actuator_is_part_of_room, room_type, room_position_type, actuator_type, sensor_type, input_dictionary['plan_cleaning'])
+    goal_state = pddl_converter_goals.create_goal(predicates_dict, pddl_variable_types, input_dictionary['plan_cleaning'])
 
     # define the problem object.
     problem = Problem(
