@@ -60,8 +60,22 @@ def create_cleaning_actions(is_cleaned, will_become_occupied, is_occupied, is_at
 
     return actions_list
 
-def create_assign_actions(positioned_at, room_is_part_of_floor, iot_type, room_position_type, room_type, floor_type, floor2_type):
+def create_assign_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
     actions_list = []
+
+    floor_type = pddl_variable_types["floor"][0]
+    floor2_type = pddl_variable_types["floor"][1]
+    room_type = pddl_variable_types["room"][0]
+    room_position_type = pddl_variable_types["room_position"][0]
+    iot_type = pddl_variable_types["iot"][0]
+    sensor_type = pddl_variable_types["sensor"][0]
+    actuator_type = pddl_variable_types["actuator"][0]
+
+    room_is_part_of_floor = predicates_dict["room_is_part_of_floor"]
+    positioned_at = predicates_dict["positioned_at"]
+    actuator_increases_sensor = predicates_dict["actuator_increases_sensor"]
+    actuator_decreases_sensor = predicates_dict["actuator_decreases_sensor"]
+    is_locked = predicates_dict["is_locked"]
 
     assign_floor = Action(
         "assign_floor",
@@ -78,6 +92,14 @@ def create_assign_actions(positioned_at, room_is_part_of_floor, iot_type, room_p
         effect=base.ForallCondition((positioned_at(iot_type, room_position_type)), [room_position_type])
     )
     actions_list.append(assign_room_position)
+
+    assign_lock_for_sensor = Action(
+        "assign_lock_for_sensor",
+        parameters=[sensor_type],
+        precondition=base.ForallCondition(base.And(base.Not(actuator_increases_sensor(actuator_type, sensor_type)),base.Not(actuator_decreases_sensor(actuator_type, sensor_type))), [actuator_type]),
+        effect=is_locked(sensor_type)
+    )
+    actions_list.append(assign_lock_for_sensor)
 
     return actions_list
 
@@ -322,7 +344,6 @@ def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types):
 
     # TODO add or for sensor state
     # TODO fine tune sensor ideal position for the activitys
-    # TODO defoalt gole per sensor if not used in any activity at a location
     # TODO check activitc colisions
 
 

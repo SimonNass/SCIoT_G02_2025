@@ -35,8 +35,7 @@ def query_input():
     #        sensor_room_mapping.update({room:sensor_uids})
     #        actuator_room_mapping.update({room:actuator_uids})
 
-    sensor_types = {'s1':'numerical_s', 's2':'numerical_s', 's3':'numerical_s'}
-    #sensor_types = {'s1':'light_s', 's2':'humidity_s', 's3':'temperature_s'}
+    sensor_types = {'s1':'light_s', 's2':'humidity_s', 's3':'temperature_s'}
 
     # TODO get info from db
     actuator_increases_sensor_mapping_matrix = {'a1':['s1','s2'], 'a2':['s2']}
@@ -54,6 +53,7 @@ def query_input():
     #            curent_value = db.request_current_value_hierarchical(floor,room,device)
     #            sensor_initial_values.update({device:curent_value})
 
+    # TODO add list of locked sensors
 
 
     return {'domain_name':domain_name,
