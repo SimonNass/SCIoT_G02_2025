@@ -38,5 +38,5 @@ class GatewayNetwork:
     def send_actuator_sensor_mapping(self, mapping: List[Dict[str,str]]):
         topic = 'mapping/all'
         text = json.dumps(mapping, ensure_ascii=False).encode('utf8')
-        print(text)
+        #print(text)
         self.publisher.send(topic,text)
