@@ -307,7 +307,7 @@ def _update_device_from_payload(device_obj, parsed_payload):
         if parsed_payload.get('off_value'):
             device_obj.off_value = parsed_payload['off_value']
             
-        if parsed_payload.get('is_off'):
+        if parsed_payload.get('is_off') is not None:
             device_obj.is_off = parsed_payload['is_off']
             
         logging.debug(f"Device {device_obj.device_id} updated with payload data")
