@@ -81,6 +81,7 @@ def parse_device_payload(payload, device_type):
         "unit": str,
         "initial_value": any,
         "off_value": any,
+        "is_off": bool,
         "last_value": any
     }
     """
@@ -123,6 +124,7 @@ def parse_device_payload(payload, device_type):
             parsed_data.update({
                 'initial_value': str(data.get('initial_value')) if data.get('initial_value') is not None else None,
                 'off_value': str(data.get('off_value')) if data.get('off_value') is not None else None,
+                'is_off': bool(data.get('is_off')) if data.get('is_off') is not None else None,
             })
         
         # Remove None values to avoid overwriting existing data with None
@@ -163,6 +165,25 @@ def validate_device_data(data, device_type):
             if data.get('read_interval') is not None and data['read_interval'] <= 0:
                 logging.warning(f"Invalid read_interval: {data['read_interval']}")
                 return False
+        
+        elif device_type == 'actuator':
+            # Validate actuator-specific fields
+            if data.get('is_off') is not None and not isinstance(data['is_off'], bool):
+                logging.warning(f"Invalid is_off value: {data['is_off']}")
+                return False
+            
+            # Validate that off_value is within min/max range if all are provided
+            if (data.get('off_value') is not None and 
+                data.get('min_value') is not None and 
+                data.get('max_value') is not None):
+                try:
+                    off_val = float(data['off_value'])
+                    if off_val < data['min_value'] or off_val > data['max_value']:
+                        logging.warning(f"off_value ({off_val}) outside valid range [{data['min_value']}, {data['max_value']}]")
+                        return False
+                except (ValueError, TypeError):
+                    # Skip validation if off_value is not numeric
+                    pass
                 
         # Additional validation can be added here
         

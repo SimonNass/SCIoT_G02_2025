@@ -205,6 +205,8 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
             
             # Process payload if provided
             sensor_data_created = False
+            actuator_data_updated = False
+            
             if payload:
                 parsed_payload = parse_device_payload(payload, sensor_type)
                 if parsed_payload and validate_device_data(parsed_payload, sensor_type):
@@ -231,6 +233,12 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
                             logging.debug(f"Sensor data record created for device {device_id}")
                         except Exception as sd_error:
                             logging.warning(f"Failed to create sensor data for device {device_id}: {sd_error}")
+                    
+                    # Handle actuator data updates
+                    elif sensor_type == 'actuator':
+                        actuator_data_updated = True
+                        logging.debug(f"Actuator data updated for device {device_id}")
+                        
                 else:
                     logging.warning(f"Invalid payload for device {device_id}")
             
@@ -249,6 +257,8 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
             log_msg = f"Device {device_id} status updated"
             if sensor_data_created:
                 log_msg += " with new sensor data"
+            elif actuator_data_updated:
+                log_msg += " with actuator data"
             logging.debug(log_msg)
             
             return True
@@ -296,6 +306,9 @@ def _update_device_from_payload(device_obj, parsed_payload):
             
         if parsed_payload.get('off_value'):
             device_obj.off_value = parsed_payload['off_value']
+            
+        if parsed_payload.get('is_off'):
+            device_obj.is_off = parsed_payload['is_off']
             
         logging.debug(f"Device {device_obj.device_id} updated with payload data")
         

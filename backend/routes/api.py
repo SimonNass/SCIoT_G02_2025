@@ -395,6 +395,7 @@ def list_devices_in_room(floor_number, room_number):
                'created_at': device.created_at.isoformat(),
                'last_value': device.last_value,
                'last_value_simplified': device.last_value_simplified,
+               'is_off': device.is_off,
            }
            devices.append(device_data)
 

@@ -85,6 +85,7 @@ class Device(db.Model):
     # Actuator-specific fields
     initial_value: Mapped[Optional[str]] = mapped_column(String(100))
     off_value: Mapped[Optional[str]] = mapped_column(String(100))
+    is_off: Mapped[Optional[bool]] = mapped_column(Boolean, default=None)
     
     # Foreign key to Room
     room_id: Mapped[str] = mapped_column(ForeignKey("rooms.id"), nullable=False)
