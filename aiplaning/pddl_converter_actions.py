@@ -9,8 +9,23 @@ from pddl.logic.predicates import EqualTo
 from pddl.action import Action
 
 
-def create_cleaning_actions(is_cleaned, will_become_occupied, is_occupied, is_at, is_next_to, room_is_part_of_floor, cleaning_team_type, room_type, room2_type, room3_type, floor_type, floor2_type):
+def create_cleaning_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
     actions_list = []
+
+    floor_type = pddl_variable_types["floor"][0]
+    floor2_type = pddl_variable_types["floor"][1]
+    room_type = pddl_variable_types["room"][0]
+    room2_type = pddl_variable_types["room"][1]
+    room3_type = pddl_variable_types["room"][2]
+    cleaning_team_type = pddl_variable_types["cleaning_team"][0]
+
+    room_is_part_of_floor = predicates_dict["room_is_part_of_floor"]
+    is_next_to = predicates_dict["is_next_to"]
+    is_at = predicates_dict["is_at"]
+    is_occupied = predicates_dict["is_occupied"]
+    will_become_occupied = predicates_dict["will_become_occupied"]
+    is_cleaned = predicates_dict["is_cleaned"]
+
     # construct compound predicates
     is_next_to_bidirectional = lambda r1, r2 : (base.Or(is_next_to(r1, r2), is_next_to(r2, r1)))
     is_not_next_to_bidirectional = lambda r1, r2 : (base.And(~is_next_to(r1, r2), ~is_next_to(r2, r1)))
@@ -103,8 +118,25 @@ def create_assign_actions(predicates_dict: Dict[str,variables], pddl_variable_ty
 
     return actions_list
 
-def create_actuator_actions(is_locked, is_activated, is_high, is_ok, is_low, is_sensing, positioned_at, actuator_decreases_sensor, actuator_increases_sensor, sensor_is_part_of_room, sensor_type, actuator_type, room_position_type, room_type):
+def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
     actions_list = []
+
+    room_type = pddl_variable_types["room"][0]
+    room_position_type = pddl_variable_types["room_position"][0]
+    sensor_type = pddl_variable_types["sensor"][0]
+    actuator_type = pddl_variable_types["actuator"][0]
+
+    sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
+    positioned_at = predicates_dict["positioned_at"]
+    actuator_increases_sensor = predicates_dict["actuator_increases_sensor"]
+    actuator_decreases_sensor = predicates_dict["actuator_decreases_sensor"]
+    is_sensing = predicates_dict["is_sensing"]
+    is_low = predicates_dict["is_low"]
+    is_ok = predicates_dict["is_ok"]
+    is_high = predicates_dict["is_high"]
+    is_activated = predicates_dict["is_activated"]
+    is_locked = predicates_dict["is_locked"]
+
     # construct compound predicates
     works_together = lambda s1, p1, r1 : positioned_at(s1, p1) & sensor_is_part_of_room(s1, r1)
 
@@ -206,18 +238,31 @@ def create_actuator_actions(is_locked, is_activated, is_high, is_ok, is_low, is_
 
     return actions_list
 
-def create_activity_detection_actions(checked_activity_x, checked_all_activitys, is_doing_activitys_at, room_position_type, room_type, binary_s_type, is_sensing, positioned_at, sensor_is_part_of_room, fulfilled_activity_x):
+def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
     actions_list = []
 
-    is_doing_read_at = is_doing_activitys_at['read']
-    is_doing_bath_at = is_doing_activitys_at['bath']
-    is_doing_sleep_at = is_doing_activitys_at['sleep']
+    room_type = pddl_variable_types["room"][0]
+    room_position_type = pddl_variable_types["room_position"][0]
+    binary_s_type = pddl_variable_types["binary_s"][0]
 
-    checked_activity_sleep = checked_activity_x['sleep']
-    checked_activity_read = checked_activity_x['read']
+    sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
+    positioned_at = predicates_dict["positioned_at"]
+    is_sensing = predicates_dict["is_sensing"]
+    is_low = predicates_dict["is_low"]
+    is_ok = predicates_dict["is_ok"]
+    is_high = predicates_dict["is_high"]
+    is_activated = predicates_dict["is_activated"]
+    is_locked = predicates_dict["is_locked"]
+    checked_all_activitys = predicates_dict["checked_all_activitys"]
 
-    fulfilled_activity_read = fulfilled_activity_x['read']
-    fulfilled_activity_sleep = fulfilled_activity_x['sleep']
+    fulfilled_activity_sleep = predicates_dict["fulfilled_activity_sleep"]
+    fulfilled_activity_read = predicates_dict["fulfilled_activity_read"]
+
+    is_doing_read_at = predicates_dict["is_doing_read_at"]
+    is_doing_sleep_at = predicates_dict["is_doing_sleep_at"]
+
+    checked_activity_sleep = predicates_dict["checked_activity_sleep"]
+    checked_activity_read = predicates_dict["checked_activity_read"]
 
     # TODO fine tune sensor detection for the activitys
     detect_activity_sleep = Action(
@@ -373,8 +418,21 @@ def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, acti
 
     return actions_list
 
-def create_energy_saving_actions(is_activated, will_become_occupied, is_occupied, actuator_decreases_sensor, actuator_increases_sensor, actuator_is_part_of_room, sensor_is_part_of_room, sensor_type, actuator_type, actuator2_type, room_type):
+def create_energy_saving_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
     actions_list = []
+
+    room_type = pddl_variable_types["room"][0]
+    sensor_type = pddl_variable_types["sensor"][0]
+    actuator_type = pddl_variable_types["actuator"][0]
+    actuator2_type = pddl_variable_types["actuator"][1]
+
+    sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
+    actuator_is_part_of_room = predicates_dict["actuator_is_part_of_room"]
+    actuator_increases_sensor = predicates_dict["actuator_increases_sensor"]
+    actuator_decreases_sensor = predicates_dict["actuator_decreases_sensor"]
+    is_occupied = predicates_dict["is_occupied"]
+    will_become_occupied = predicates_dict["will_become_occupied"]
+    is_activated = predicates_dict["is_activated"]
 
     cancel_out_actuator = Action(
         "cancel_out_actuator",
