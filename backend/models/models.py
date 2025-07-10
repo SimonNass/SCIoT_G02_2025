@@ -38,7 +38,7 @@ class Room(db.Model):
     last_cleaned: Mapped[Optional[datetime]] = mapped_column(DateTime)
     is_cleaned: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    rfid_access_id: Mapped[float] = mapped_column(Float)
+    rfid_access_id: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     
     # Foreign key to Floor
     floor_id: Mapped[str] = mapped_column(ForeignKey("floors.id"), nullable=False)

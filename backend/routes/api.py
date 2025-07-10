@@ -77,9 +77,9 @@ def create_floor_with_rooms():
             }
         }), 201
 
-    except IntegrityError:
+    except IntegrityError as e:
         db.session.rollback()
-        return jsonify({'error': 'Floor number already exists'}), 409
+        return jsonify({'error': f'Floor number already exists: {str(e)}'}), 409
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500

@@ -15,6 +15,19 @@ def get_or_create_device(app_instance, floor_number, room_number, sensor_type, d
     """
     
     try:
+        # First, get the room object that we'll need for both cached and new devices
+        with app_instance.app_context():
+            floor = models.Floor.query.filter_by(floor_number=floor_number).first()
+            if not floor:
+                logging.error(f"Floor {floor_number} does not exist")
+                return None
+            
+            # Check if room exists
+            room = models.Room.query.filter_by(room_number=room_number, floor_id=floor.id).first()
+            if not room:
+                logging.error(f"Room {room_number} on floor {floor_number} does not exist")
+                return None
+        
         # Check if device already exists in cache
         if device_id in device_cache:
             logging.debug(f"Device {device_id} found in cache")
@@ -28,17 +41,6 @@ def get_or_create_device(app_instance, floor_number, room_number, sensor_type, d
         
         # Device not in cache, check database and create if needed
         with app_instance.app_context():
-            floor = models.Floor.query.filter_by(floor_number=floor_number).first()
-            if not floor:
-                logging.error(f"Floor {floor_number} does not exist")
-                return None
-            
-            # Check if room exists
-            room = models.Room.query.filter_by(room_number=room_number, floor_id=floor.id).first()
-            if not room:
-                logging.error(f"Room {room_number} on floor {floor_number} does not exist")
-                return None
-            
             # Try to get existing device first
             existing_device = models.Device.query.filter_by(device_id=device_id).first()
             
@@ -50,7 +52,7 @@ def get_or_create_device(app_instance, floor_number, room_number, sensor_type, d
                 return _create_new_device(app_instance, device_id, sensor_type, room, floor_number, room_number, payload)
     
     except Exception as e:
-        logging.error(f"Error creating/getting device {device_id}: {str(e)}")
+        logging.error(f"Error creating/getting device {device_id} (Floor: {floor_number}, Room: {room_number}): {str(e)}")
         try:
             db.session.rollback()
         except:
@@ -173,7 +175,7 @@ def _create_new_device(app_instance, device_id, sensor_type, room, floor_number,
             # Fetch the device that was created by another process
             existing_device = models.Device.query.filter_by(device_id=device_id).first()
             if existing_device:
-                return _handle_existing_device(app_instance, existing_device, sensor_type, payload)
+                return _handle_existing_device(app_instance, existing_device, sensor_type, room, payload)
             else:
                 logging.error(f"Failed to retrieve device {device_id} after integrity error")
                 return None
