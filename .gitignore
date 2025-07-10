@@ -148,9 +148,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-*.pdf
+#*.pdf
 .vscode
 
 server/db_data
 
 db_data/
+auto_generated/
