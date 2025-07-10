@@ -6,9 +6,10 @@ from sensors.sensor import SensorInterface
 from actuators.actuator import ActuatorInterface
 
 class Virtual_environment():
-    def __init__(self, sensors: List[SensorInterface], actuators: List[ActuatorInterface], mapping: List[str]):
+    def __init__(self, sensors: List[SensorInterface], actuators: List[ActuatorInterface], mapping: List[Dict[str,str]]):
         self.sensors = sensors
         self.actuator = actuators
+        self.input_mapping = mapping
         self.mapping_values = {} # ('<uuid_actuator>','<uuid_sensor>'):{impact_amount:0, fade_in:0, impact_duration:0, fade_out:0}
 
         self.active_influences = {} # ('<uuid_actuator>','<uuid_sensor>'):{cycle:0, amount:0}
@@ -99,7 +100,7 @@ class Virtual_environment():
         self.calculate_next_active_influences_amount()
         self.apply_active_influences_amount()
 
-    def convert_environment_map(self, mapping: List[str]):
+    def convert_environment_map(self, mapping: List[Dict[str,str]]):
         for dictionary_map in mapping:
             try:
                 actuator_name = str(dictionary_map['actuator_name'])
