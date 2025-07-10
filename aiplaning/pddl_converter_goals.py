@@ -5,7 +5,7 @@
 from pddl.logic import base, variables
 from typing import List, Dict
 
-def create_goal(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], plan_cleaning: bool = True):
+def create_goal(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], sensor_goal_state_mapping: Dict[str,str], plan_cleaning: bool = True):
 
     room_type: variables = pddl_variable_types["room"][0]
     room_position_type: variables = pddl_variable_types["room_position"][0]
@@ -20,10 +20,6 @@ def create_goal(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[
     is_locked = predicates_dict["is_locked"]
     checked_all_activitys = predicates_dict["checked_all_activitys"]
     fulfilled_activitys = predicates_dict["fulfilled_activitys"]
-
-    sensor_goal_state_mapping = {'temperature_s':'is_ok', 
-                                 'light_s':'is_high', 
-                                 'sound_s':'is_ok'}
 
     goal_for_sensors_default = base.And()
     for sensor_type_x, expected_value in sensor_goal_state_mapping.items():

@@ -55,6 +55,17 @@ def query_input():
 
     # TODO add list of locked sensors
 
+    sensor_goal_state_mapping = {'temperature_s':'is_ok', 
+                                 'light_s':'is_high', 
+                                 'sound_s':'is_ok'
+                                 }
+    
+    # TODO fine tune sensor ideal position for the activitys
+    activity_mapping = {'bath':{'temperature_s':'is_ok'},
+                        'read':{'temperature_s':'is_ok', 'light_s':'is_high', 'sound_s':'is_ok'},
+                        'sleep':{'light_s':'is_low', 'sound_s':'is_low'},
+                        }
+
 
     return {'domain_name':domain_name,
             'problem_name':problem_name,
@@ -81,4 +92,7 @@ def query_input():
             'actuator_initial_values':actuator_initial_values,
 
             'room_occupied_actuator_initial_values':room_occupied_actuator_initial_values,
+
+            'activity_mapping':activity_mapping,
+            'sensor_goal_state_mapping':sensor_goal_state_mapping,
             }

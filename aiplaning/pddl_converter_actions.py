@@ -330,7 +330,7 @@ def create_activity_fulfilled_action_x(predicates_dict: Dict[str,variables], pdd
 
     return fulfill_activity_x
 
-def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types):
+def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, activity_mapping: Dict[str,Dict[str,str]]):
     actions_list = []
 
     room_type = pddl_variable_types["room"][0]
@@ -343,14 +343,7 @@ def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types):
     fulfilled_activity_read = predicates_dict["fulfilled_activity_read"]
 
     # TODO add or for sensor state
-    # TODO fine tune sensor ideal position for the activitys
     # TODO check activitc colisions
-
-
-    activity_mapping = {'bath':{'temperature_s':'is_ok'},
-                        'read':{'temperature_s':'is_ok', 'light_s':'is_high', 'sound_s':'is_ok'},
-                        'sleep':{'light_s':'is_low', 'sound_s':'is_low'},
-                        }
 
     for activity_name, sensor_type_x_dict in activity_mapping.items():
         fulfill_activity_sleep = create_activity_fulfilled_action_x(predicates_dict, pddl_variable_types, activity_name, sensor_type_x_dict)

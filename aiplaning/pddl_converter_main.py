@@ -17,7 +17,7 @@ import pddl_converter_initial_state
 import pddl_converter_help
 
 
-def create_domain(domain_name: str, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], is_doing_activitys_at, checked_activity_x, fulfilled_activity_x):
+def create_domain(domain_name: str, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], is_doing_activitys_at, checked_activity_x, fulfilled_activity_x, activity_mapping):
     # set up types
     type_dict = pddl_converter_types.create_type_dict()
 
@@ -61,7 +61,7 @@ def create_domain(domain_name: str, predicates_dict: Dict[str,variables], pddl_v
     actions_list = actions_list + pddl_converter_actions.create_assign_actions(predicates_dict, pddl_variable_types)
     actions_list = actions_list + pddl_converter_actions.create_actuator_actions(is_locked, is_activated, is_high, is_ok, is_low, is_sensing, positioned_at, actuator_decreases_sensor, actuator_increases_sensor, sensor_is_part_of_room, sensor_type, actuator_type, room_position_type, room_type)
     actions_list = actions_list + pddl_converter_actions.create_activity_detection_actions(checked_activity_x, checked_all_activitys, is_doing_activitys_at, room_position_type, room_type, binary_s_type, is_sensing, positioned_at, sensor_is_part_of_room, fulfilled_activity_x)
-    actions_list = actions_list + pddl_converter_actions.create_activity_fulfilled_actions(predicates_dict, pddl_variable_types)
+    actions_list = actions_list + pddl_converter_actions.create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, activity_mapping)
     actions_list = actions_list + pddl_converter_actions.create_energy_saving_actions(is_activated, will_become_occupied, is_occupied, actuator_decreases_sensor, actuator_increases_sensor, actuator_is_part_of_room, sensor_is_part_of_room, sensor_type, actuator_type, actuator2_type, room_type)
 
     # define the domain object.
@@ -112,7 +112,7 @@ def create():
     checked_all_activitys = predicates_dict["checked_all_activitys"]
     fulfilled_activitys = predicates_dict["fulfilled_activitys"]
 
-    domain = create_domain(input_dictionary['domain_name'], predicates_dict, pddl_variable_types, is_doing_activitys_at, checked_activity_x, fulfilled_activity_x)
+    domain = create_domain(input_dictionary['domain_name'], predicates_dict, pddl_variable_types, is_doing_activitys_at, checked_activity_x, fulfilled_activity_x, input_dictionary['activity_mapping'])
 
     floor_uids = input_dictionary['floor_uids']
     room_uids_per_floor = input_dictionary['room_uids_per_floor']
@@ -165,7 +165,7 @@ def create():
     initial_state = initial_state + pddl_converter_initial_state.create_room_occupied_values(is_occupied, room_occupied_actuator_initial_values, floor_uids, room_uids_per_floor, uid_to_pddl_variable_rooms)
 
     # create goal
-    goal_state = pddl_converter_goals.create_goal(predicates_dict, pddl_variable_types, input_dictionary['plan_cleaning'])
+    goal_state = pddl_converter_goals.create_goal(predicates_dict, pddl_variable_types, input_dictionary['sensor_goal_state_mapping'], input_dictionary['plan_cleaning'])
 
     # define the problem object.
     problem = Problem(
