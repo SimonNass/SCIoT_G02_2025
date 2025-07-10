@@ -12,12 +12,14 @@ class Connectortype(Enum):
     Digital_multiple_0 = 3
     Digital_multiple_1 = 4
     I2C_display = 5
-    Virtual = 6
-    Ardoino_temperature = 7
-    Ardoino_humidity = 8
-    Ardoino_soundlevel = 9
-    Ardoino_rfid = 10
-    Ardoino_motor = 11
+    Virtual_binary = 6
+    Virtual_numerical = 7
+    Virtual_textual = 8
+    Ardoino_temperature = 9
+    Ardoino_humidity = 10
+    Ardoino_soundlevel = 11
+    Ardoino_rfid = 12
+    Ardoino_motor = 13
     # TODO make x_y mapping not with enums but in the generation itself
 
 class Notifyinterval(Enum):

@@ -19,7 +19,7 @@ class Virtual_environment():
             if actuator.name != actuator_name:
                 continue
             else:
-                return actuator.is_off()
+                return not actuator.is_off()
         logger.warning('Environment bug check_if_actuators_has_influenc')
         return False
 
@@ -28,7 +28,9 @@ class Virtual_environment():
             if actuator.name != actuator_name:
                 continue
             else:
-                return actuator.last_value
+                if isinstance(actuator.last_value, str): 
+                    return 1
+                return float(actuator.last_value)
         logger.warning('Environment bug check_if_actuators_has_influenc')
         return 0
 
