@@ -64,8 +64,8 @@ class Virtual_environment():
 
         for sensor in self.sensors:
             impact = 0
-            if sensor.name in sensor_dict:
-                impact = sensor_dict.get(sensor.name)
+            if sensor.id in sensor_dict:
+                impact = sensor_dict.get(sensor.id)
             sensor.virtual_environment_impact = impact
 
     def performe_environment_step(self):
