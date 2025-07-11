@@ -33,7 +33,7 @@ class Virtual_environment():
     def calculate_actuators_impact(self, actuator_uuid: str):
         for actuator in self.actuators:
             if actuator.id == actuator_uuid:
-                if isinstance(actuator.last_value, str): 
+                if isinstance(actuator.last_value, str):
                     return 1
                 return float(actuator.last_value)
         logger.warning('Environment bug check_if_actuators_has_influenc')

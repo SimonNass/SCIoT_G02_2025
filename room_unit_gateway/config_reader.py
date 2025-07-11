@@ -72,8 +72,8 @@ def read_sensors_config(config, ardoino_serial):
         logger.info("reading in sensors")
         # Sensors
         sensor_types = object_factory.configure_sensor_types(config.get('Sensors','sensor_types', fallback="[]"))
-        sensor_class_list = object_factory.configure_sensors(config.get('Sensors','sensor_list', fallback="[]"), 
-                                                            sensor_types, 
+        sensor_class_list = object_factory.configure_sensors(config.get('Sensors','sensor_list', fallback="[]"),
+                                                            sensor_types,
                                                             ardoino_serial)
         return sensor_class_list
     except Exception as e:
@@ -86,8 +86,8 @@ def read_actuators_config(config, ardoino_serial):
         logger.info("reading in actuators")
         # Actuators
         actuator_types = object_factory.configure_actuator_types(config.get('Actuators','actuator_types', fallback="[]"))
-        actuator_class_list = object_factory.configure_actuators(config.get('Actuators','actuator_list', fallback="[]"), 
-                                                                actuator_types, 
+        actuator_class_list = object_factory.configure_actuators(config.get('Actuators','actuator_list', fallback="[]"),
+                                                                actuator_types,
                                                                 ardoino_serial)
         return actuator_class_list
     except Exception as e:

@@ -62,8 +62,8 @@ class MQTTEndpoint:
             print ("Connection failed.")
             #print (e)
             logger.error(f"Connection failed {e}")
-    
-    
+
+
     def is_connected(self):
         return (self.mqtt_client is not None) and (self.mqtt_client.is_connected())
 
@@ -82,7 +82,7 @@ def recv(gateway: GatewayNetworkReciever, topic_prefix: str):
             if 'GET' not in topic and 'UPDATE' not in topic:
                 logger.info(f"Recieved message from wrong topic prefix {topic}")
                 return
-            
+
             payload = msg.payload.decode('utf-8')
             print (f'Recieved on topic {topic} the message {payload}')
             logger.info(f'Recieved on topic {topic} the message {payload}')

@@ -60,11 +60,11 @@ class DisplayActuator(AbstractActuator_textual):
             print ("setRGB or setText was unsucesful")
             #print (e)
             logger.error("{}: setRGB or setText was unsucesful {}".format(self.name, e))
-    
+
     def write_internal_actuator(self, write_value: str):
         setText(write_value)
         return write_value
-    
+
     def split_state_info(self, write_value: str):
         split = write_value.split(",")
         r = int(split[0])

@@ -37,7 +37,7 @@ class ArdoinoReverseProxy():
             print ("closing ardoino_serial was unsucesful")
             #print (e)
             logger.error("closing ardoino_serial was unsucesful {}".format(e))
-    
+
     def remote_call(self, type_name: str, value):
         try:
             request_str = str(type_name) + ':' + str(value) + '\n'

@@ -29,7 +29,7 @@ class GatewayNetworkReciever:
         try:
             # hotel_prefix, floor_id, room_id, iot_type, device_uuid, comand = topic.split('/')
             _, _, _, iot_type, device_uuid, _ = topic.split('/')
-            
+
             payload_json = json.loads(payload)
             new_value = float(payload_json["new_value"])
 
@@ -37,7 +37,7 @@ class GatewayNetworkReciever:
             if iot_type != 'actuator':
                 logger.error(f"iot_type {iot_type} Answer failed {device_uuid}")
                 return
-            
+
             #select the actuator based on uuid
             specified_actuator = self.find_actuator(device_uuid)
 

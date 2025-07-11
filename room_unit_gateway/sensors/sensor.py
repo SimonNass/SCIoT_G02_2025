@@ -151,4 +151,3 @@ class VirtualSensor_binary(SensorInterface):
     def read_internal_sensor(self):
         value = rng.binary_random()
         return value
-    

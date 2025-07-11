@@ -20,12 +20,12 @@ from networking.networking_domain import GatewayNetwork
 
 from room_info import Room_Info
 
-def configure_network_gateway(host: str, 
-                              port: int, 
-                              username: str, 
-                              password: str, 
+def configure_network_gateway(host: str,
+                              port: int,
+                              username: str,
+                              password: str,
                               room_info: Room_Info,
-                              actuators: List[ActuatorInterface]):  
+                              actuators: List[ActuatorInterface]):
     gateway_network = None
     try:
         gateway_network = GatewayNetwork(
@@ -42,7 +42,7 @@ def configure_network_gateway(host: str,
         logger.error(f"MQTT broker not connected. {e}")
     return gateway_network
 
-def configure_environment(sensors: List[SensorInterface], actuators: List[ActuatorInterface], virtual_enfironment_list: List[Dict[str,str]]):  
+def configure_environment(sensors: List[SensorInterface], actuators: List[ActuatorInterface], virtual_enfironment_list: List[Dict[str,str]]):
     virtual_environment = None
     try:
         virtual_environment = Virtual_environment(
@@ -56,10 +56,10 @@ def configure_environment(sensors: List[SensorInterface], actuators: List[Actuat
         logger.error(f"virtual_environment not initialised. {e}")
     return virtual_environment
 
-def configure_room_info(floor_id: int, max_rooms_per_floor: int, room_id: int):  
+def configure_room_info(floor_id: int, max_rooms_per_floor: int, room_id: int):
     return Room_Info(floor_id, max_rooms_per_floor, room_id)
 
-def configure_ardoino_connection(message_end_signal: str, usb_channel_type: str, usb_channel_data_rate: int):  
+def configure_ardoino_connection(message_end_signal: str, usb_channel_type: str, usb_channel_data_rate: int):
     ardoino_serial = None
     try:
         ardoino_serial = ArdoinoReverseProxy(message_end_signal=message_end_signal,usb_channel_type=usb_channel_type,usb_channel_data_rate=usb_channel_data_rate)
@@ -93,14 +93,14 @@ def configure_sensors(json_list: json, types: dict, ardoino_serial: ArdoinoRever
                                                 connector=connector,
                                                 connector_types=connector_types,
                                                 min_value=min_value,
-                                                max_value=max_value, 
+                                                max_value=max_value,
                                                 datatype=datatype,
                                                 unit=unit,
                                                 read_interval=read_interval,
                                                 notify_interval=notify_interval,
                                                 notify_change_precision=notify_change_precision,
                                                 ardoino_serial=ardoino_serial)
-            
+
             sensors.append(sensor_object)
         except Exception as e:
             print (e, flush=True)
@@ -188,16 +188,16 @@ def configure_actuators(json_list: json, types: dict, ardoino_serial: ArdoinoRev
             logger.error(f"{e}")
     return actuators
 
-def choose_actuator_class(name: str, 
-                          type_name: str, 
-                          connector: int, 
-                          connector_types: Connectortype, 
-                          min_value: Union[int, str], 
-                          max_value: Union[int, str], 
-                          datatype: str, 
-                          unit: str, 
-                          initial_value: Union[int, str], 
-                          off_value: Union[int, str], 
+def choose_actuator_class(name: str,
+                          type_name: str,
+                          connector: int,
+                          connector_types: Connectortype,
+                          min_value: Union[int, str],
+                          max_value: Union[int, str],
+                          datatype: str,
+                          unit: str,
+                          initial_value: Union[int, str],
+                          off_value: Union[int, str],
                           ardoino_serial: ArdoinoReverseProxy):
     try:
         actuator_object = None
@@ -205,7 +205,7 @@ def choose_actuator_class(name: str,
             actuator_object = DisplayActuator(name=name,
                                    type_name=type_name,
                                    connector=connector,
-                                   connector_types=connector_types, 
+                                   connector_types=connector_types,
                                    min_value=min_value,
                                    max_value=max_value,
                                    datatype=datatype,
@@ -267,7 +267,7 @@ def choose_actuator_class(name: str,
                                    unit=unit,
                                    initial_value=initial_value,
                                    off_value=off_value,
-                                   ardoino_serial=ardoino_serial, 
+                                   ardoino_serial=ardoino_serial,
                                    type_name_ardoino="motor")
         else:
             raise ValueError("Connector_type is not implemented.")
