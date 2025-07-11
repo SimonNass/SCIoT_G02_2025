@@ -118,7 +118,7 @@ def read_config(config_file_name, password: str):
 
     max_cycle_time = read_general_config(config)
 
-    mqtt_name, mqtt_host, mqtt_port, mqtt_username = read_mqtt_config(config)
+    _, mqtt_host, mqtt_port, mqtt_username = read_mqtt_config(config)
     room_info = read_architecture_config(config)
 
     ardoino_serial = read_ardoino_config(config)

@@ -22,6 +22,7 @@ class GatewayNetworkReciever:
             return specified_actuator
         except Exception as e:
             logger.error(f"Can not find actuator with uuid {device_uuid} {e}")
+            raise e
 
     def recv_messages(self, topic, payload):
         try:

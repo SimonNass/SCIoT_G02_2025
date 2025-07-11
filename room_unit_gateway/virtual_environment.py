@@ -33,8 +33,7 @@ class Virtual_environment():
             if actuator.id == actuator_uuid:
                 if isinstance(actuator.last_value, str): 
                     return 1
-                else:
-                    return float(actuator.last_value)
+                return float(actuator.last_value)
         logger.warning('Environment bug check_if_actuators_has_influenc')
         return 0
 
