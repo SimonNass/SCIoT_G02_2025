@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Module specifies the gateway communication to the MQTT brocer in a domain independent way."""
 
 import paho.mqtt.client as mqtt
 from paho.mqtt.properties import Properties

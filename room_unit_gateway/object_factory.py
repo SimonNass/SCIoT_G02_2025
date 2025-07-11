@@ -1,3 +1,5 @@
+"""Module specivies the creation of objects during the config reading process."""
+
 import json
 import logging
 from typing import List, Dict, Union

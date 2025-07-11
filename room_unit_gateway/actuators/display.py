@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Module specifies the text based actuators."""
 
 try:
     import grovepi

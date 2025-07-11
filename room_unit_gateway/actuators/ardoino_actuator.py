@@ -1,3 +1,5 @@
+"""Module specifies the actuators on the arduino."""
+
 import logging
 logger = logging.getLogger(__name__)
 

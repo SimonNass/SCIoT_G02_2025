@@ -1,3 +1,5 @@
+"""Module specifies the discoverys."""
+
 import serial.tools.list_ports
 import httpx
 import socket

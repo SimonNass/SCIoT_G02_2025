@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Module specifies the entry point of the program for the physical pi version.
+It also defines the CLI argument reading."""
 
 import sys
 import logging

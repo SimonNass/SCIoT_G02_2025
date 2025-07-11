@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Module specifies the outgoing gateway communication in a domain specific way."""
 
 from typing import List, Dict
 import json

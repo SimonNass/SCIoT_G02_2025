@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Module specifies the actuators."""
 
 from typing import Union
 try:

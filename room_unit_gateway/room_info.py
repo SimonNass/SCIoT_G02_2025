@@ -1,3 +1,4 @@
+"""Module specifies all infos of the room number and floor."""
 
 class Room_Info():
     def __init__(self, floor_id: int, max_rooms_per_floor: int, room_id: int):

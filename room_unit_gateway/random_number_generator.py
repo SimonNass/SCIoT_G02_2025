@@ -1,3 +1,5 @@
+"""Module spceifies multiple random number generator methods."""
+
 import numpy as np
 
 def constant(last_value: float = 0.5, min_value: float = 0, max_value: float = 1):

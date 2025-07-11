@@ -1,3 +1,5 @@
+"""Module specifies the arduino proxy for communication to the arduino."""
+
 import serial
 import time
 import logging

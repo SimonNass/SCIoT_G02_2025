@@ -1,3 +1,4 @@
+"""Produces 10 INI files."""
 # generate_configs.py
 # ------------------------------------------------------------
 # Produces 10 INI files under ./configs, each with an empty Actuators section.

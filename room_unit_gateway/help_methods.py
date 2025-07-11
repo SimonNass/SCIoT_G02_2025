@@ -1,3 +1,6 @@
+"""Module has al high level methodes to manage the gateway.
+In this file is the execution_cycle methode that runns indefinetely."""
+
 import sys
 import time
 import numpy as np

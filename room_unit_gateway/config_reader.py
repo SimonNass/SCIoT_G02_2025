@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Module reads in the configuration file."""
 
 import configparser
 import logging
