@@ -5,15 +5,10 @@ pyreverse -o pdf -d %mypath%auto_generated ^
  --all-ancestors ^
 %mypath%room_unit_gateway\
 
-pylint --disable=missing-module-docstring ^
- --disable=missing-class-docstring ^
+pylint --disable=missing-class-docstring ^
  --disable=missing-function-docstring ^
  --disable=invalid-name ^
  --disable=line-too-long ^
- --disable=trailing-whitespace ^
- --disable=trailing-newlines ^
- --disable=missing-final-newline ^
- --disable=consider-using-f-string ^
  --disable=logging-fstring-interpolation ^
  --disable=logging-format-interpolation ^
  --disable=logging-not-lazy ^
@@ -25,5 +20,10 @@ pylint --disable=missing-module-docstring ^
  --disable=import-error ^
  --disable=too-many-arguments ^
  --disable=too-many-locals ^
+ --disable=attribute-defined-outside-init ^
+ --disable=undefined-variable ^
+ --disable=not-callable ^
+ --disable=too-many-instance-attributes ^
+ --disable=wildcard-import ^
  %mypath%room_unit_gateway\
  
