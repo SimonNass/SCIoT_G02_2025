@@ -20,7 +20,7 @@ def read_general_config(config):
         return max_cycle_time
     except Exception as e:
         logger.error(f"Reading config file was not succesfully in the General section {e}")
-        raise e
+        return 100
 
 def read_mqtt_config(config):
     try:
@@ -33,7 +33,7 @@ def read_mqtt_config(config):
         return mqtt_name, mqtt_host, mqtt_port, mqtt_username
     except Exception as e:
         logger.error(f"Reading config file was not succesfully in the MQTT section {e}")
-        raise e
+        return 'MQTT', '0.0.0.0', 1884, 'root'
 
 def read_architecture_config(config):
     try:
@@ -48,7 +48,7 @@ def read_architecture_config(config):
         return room_info
     except Exception as e:
         logger.error(f"Reading config file was not succesfully in the Architecture section {e}")
-        raise e
+        return object_factory.configure_room_info(floor_id=0, max_rooms_per_floor=100, room_id=0)
 
 def read_ardoino_config(config):
     try:
@@ -64,7 +64,7 @@ def read_ardoino_config(config):
         return ardoino_serial
     except Exception as e:
         logger.error(f"Reading config file was not succesfully in the Ardoino section {e}")
-        raise e
+        return None
 
 def read_sensors_config(config, ardoino_serial):
     try:
@@ -78,7 +78,7 @@ def read_sensors_config(config, ardoino_serial):
         return sensor_class_list
     except Exception as e:
         logger.error(f"Reading config file was not succesfully in the Sensors section {e}")
-        raise e
+        return []
 
 def read_actuators_config(config, ardoino_serial):
     try:
@@ -92,7 +92,7 @@ def read_actuators_config(config, ardoino_serial):
         return actuator_class_list
     except Exception as e:
         logger.error(f"Reading config file was not succesfully in the Actuators section {e}")
-        raise e
+        return []
 
 def read_virtual_environment_config(config, sensor_class_list, actuator_class_list):
     try:
@@ -106,7 +106,9 @@ def read_virtual_environment_config(config, sensor_class_list, actuator_class_li
         return virtual_environment
     except Exception as e:
         logger.error(f"Reading config file was not succesfully in the VirtualEnfironment section {e}")
-        raise e
+        virtual_environment = object_factory.configure_environment(sensors=[], actuators=[], virtual_enfironment_list=[])
+        print (virtual_environment)
+        return virtual_environment
 
 def read_config(config_file_name, password: str):
     print (f"reading in {config_file_name}", flush=True)
