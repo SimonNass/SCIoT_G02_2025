@@ -2,6 +2,7 @@ from backend.extensions import pddl_service
 import requests
 from flask import current_app, jsonify, request, Blueprint
 import time
+from backend.models import models
 
 pddl_api = Blueprint('pddl_api', __name__)
 
@@ -89,8 +90,6 @@ def planning_test():
 def list_all_plans():
     """Get all PDDL plans"""
     try:
-        from backend import models
-        
         plans = models.PDDLPlan.query.order_by(models.PDDLPlan.created_at.desc()).all()
         
         plans_data = []
@@ -134,8 +133,6 @@ def list_all_plans():
 def list_plans_for_floor(floor_number):
     """Get all PDDL plans for a specific floor by floor number"""
     try:
-        from backend import models
-        
         floor = models.Floor.query.filter_by(floor_number=floor_number).first()
         if not floor:
             return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
@@ -185,8 +182,6 @@ def list_plans_for_floor(floor_number):
 def list_plans_for_room(room_number):
     """Get all PDDL plans for a specific room by room number"""
     try:
-        from backend import models
-        
         room = models.Room.query.filter_by(room_number=room_number).first()
         if not room:
             return jsonify({'error': f'Room {room_number} does not exist'}), 404
@@ -236,8 +231,6 @@ def list_plans_for_room(room_number):
 def get_latest_plan():
     """Get the most recent PDDL plan"""
     try:
-        from backend import models
-        
         plan = models.PDDLPlan.query.order_by(models.PDDLPlan.created_at.desc()).first()
         
         if not plan:
@@ -277,8 +270,6 @@ def get_latest_plan():
 def get_latest_plan_for_floor(floor_number):
     """Get the most recent PDDL plan for a specific floor by floor number"""
     try:
-        from backend import models
-        
         floor = models.Floor.query.filter_by(floor_number=floor_number).first()
         if not floor:
             return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
@@ -326,8 +317,6 @@ def get_latest_plan_for_floor(floor_number):
 def get_latest_plan_for_room(room_number):
     """Get the most recent PDDL plan for a specific room by room number"""
     try:
-        from backend import models
-        
         room = models.Room.query.filter_by(room_number=room_number).first()
         if not room:
             return jsonify({'error': f'Room {room_number} does not exist'}), 404

@@ -15,6 +15,19 @@ def get_or_create_device(app_instance, floor_number, room_number, sensor_type, d
     """
     
     try:
+        # First, get the room object that we'll need for both cached and new devices
+        with app_instance.app_context():
+            floor = models.Floor.query.filter_by(floor_number=floor_number).first()
+            if not floor:
+                logging.error(f"Floor {floor_number} does not exist")
+                return None
+            
+            # Check if room exists
+            room = models.Room.query.filter_by(room_number=room_number, floor_id=floor.id).first()
+            if not room:
+                logging.error(f"Room {room_number} on floor {floor_number} does not exist")
+                return None
+        
         # Check if device already exists in cache
         if device_id in device_cache:
             logging.debug(f"Device {device_id} found in cache")
@@ -28,17 +41,6 @@ def get_or_create_device(app_instance, floor_number, room_number, sensor_type, d
         
         # Device not in cache, check database and create if needed
         with app_instance.app_context():
-            floor = models.Floor.query.filter_by(floor_number=floor_number).first()
-            if not floor:
-                logging.error(f"Floor {floor_number} does not exist")
-                return None
-            
-            # Check if room exists
-            room = models.Room.query.filter_by(room_number=room_number, floor_id=floor.id).first()
-            if not room:
-                logging.error(f"Room {room_number} on floor {floor_number} does not exist")
-                return None
-            
             # Try to get existing device first
             existing_device = models.Device.query.filter_by(device_id=device_id).first()
             
@@ -50,7 +52,7 @@ def get_or_create_device(app_instance, floor_number, room_number, sensor_type, d
                 return _create_new_device(app_instance, device_id, sensor_type, room, floor_number, room_number, payload)
     
     except Exception as e:
-        logging.error(f"Error creating/getting device {device_id}: {str(e)}")
+        logging.error(f"Error creating/getting device {device_id} (Floor: {floor_number}, Room: {room_number}): {str(e)}")
         try:
             db.session.rollback()
         except:
@@ -173,7 +175,7 @@ def _create_new_device(app_instance, device_id, sensor_type, room, floor_number,
             # Fetch the device that was created by another process
             existing_device = models.Device.query.filter_by(device_id=device_id).first()
             if existing_device:
-                return _handle_existing_device(app_instance, existing_device, sensor_type, payload)
+                return _handle_existing_device(app_instance, existing_device, sensor_type, room, payload)
             else:
                 logging.error(f"Failed to retrieve device {device_id} after integrity error")
                 return None
@@ -203,6 +205,8 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
             
             # Process payload if provided
             sensor_data_created = False
+            actuator_data_updated = False
+            
             if payload:
                 parsed_payload = parse_device_payload(payload, sensor_type)
                 if parsed_payload and validate_device_data(parsed_payload, sensor_type):
@@ -229,6 +233,12 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
                             logging.debug(f"Sensor data record created for device {device_id}")
                         except Exception as sd_error:
                             logging.warning(f"Failed to create sensor data for device {device_id}: {sd_error}")
+                    
+                    # Handle actuator data updates
+                    elif sensor_type == 'actuator':
+                        actuator_data_updated = True
+                        logging.debug(f"Actuator data updated for device {device_id}")
+                        
                 else:
                     logging.warning(f"Invalid payload for device {device_id}")
             
@@ -247,6 +257,8 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
             log_msg = f"Device {device_id} status updated"
             if sensor_data_created:
                 log_msg += " with new sensor data"
+            elif actuator_data_updated:
+                log_msg += " with actuator data"
             logging.debug(log_msg)
             
             return True
@@ -294,6 +306,9 @@ def _update_device_from_payload(device_obj, parsed_payload):
             
         if parsed_payload.get('off_value'):
             device_obj.off_value = parsed_payload['off_value']
+            
+        if parsed_payload.get('is_off') is not None:
+            device_obj.is_off = parsed_payload['is_off']
             
         logging.debug(f"Device {device_obj.device_id} updated with payload data")
         

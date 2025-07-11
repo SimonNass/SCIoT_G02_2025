@@ -45,7 +45,7 @@
 
 - [ ] backend
   - [ ] Needed Backend Endpoints
-  - [ ] (Maximilian) provide actuator active/inactive value (need value from frontend)
+  - [x] (Maximilian) provide actuator active/inactive value (need value from frontend)
   - [x] (Maximilian) Set room occupancy endpoint
   - [x] (Maximilian) Get Config values
   - [x] (Maximilian) Set Config values
@@ -53,8 +53,9 @@
   - [x] Endpoint to change any actuator value
   - [x] (Maximilian) Add lastest values as normal and simplified value to list_devices_in_room
   - [ ] (Maximilian) (optional) Endpoint to provide values and simplified values across a certain timespan
-  - [ ] (Maximilian) Endpoint that provides the plan
-  - [ ] convert sensor values to high ok low
+  - [x] (Maximilian) Endpoint that provides the plan
+  - [x] convert sensor values to high ok low
+  - [ ] Add endpoint to manually delete devices last seen more than x-minutes ago
 
 
 - [x] Simulation

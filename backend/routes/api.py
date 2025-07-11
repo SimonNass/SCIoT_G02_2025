@@ -77,9 +77,9 @@ def create_floor_with_rooms():
             }
         }), 201
 
-    except IntegrityError:
+    except IntegrityError as e:
         db.session.rollback()
-        return jsonify({'error': 'Floor number already exists'}), 409
+        return jsonify({'error': f'Floor number already exists: {str(e)}'}), 409
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -395,6 +395,7 @@ def list_devices_in_room(floor_number, room_number):
                'created_at': device.created_at.isoformat(),
                'last_value': device.last_value,
                'last_value_simplified': device.last_value_simplified,
+               'is_off': device.is_off,
            }
            devices.append(device_data)
 
