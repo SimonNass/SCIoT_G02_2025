@@ -21,4 +21,3 @@ class ArdoinoSensor(SensorInterface):
     def read_internal_sensor(self):
         value = self.ardoino_serial.remote_call(self.type_name_ardoino, 0)
         return value
-

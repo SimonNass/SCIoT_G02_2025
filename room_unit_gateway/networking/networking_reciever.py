@@ -47,4 +47,3 @@ class GatewayNetworkReciever:
             print ("Answer failed.")
             #print (e)
             logger.error(f"Answer failed {e}")
-
