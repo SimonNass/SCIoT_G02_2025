@@ -2,10 +2,9 @@
 
 from typing import List, Dict, Union
 import uuid
-
+import logging
 from sensors.sensor import SensorInterface
 from actuators.actuator import ActuatorInterface
-import logging
 logger = logging.getLogger(__name__)
 
 class Virtual_environment():

@@ -1,10 +1,9 @@
 """Module specifies the sensors on the arduino."""
 
+import logging
 from sensors.sensor import SensorInterface
 from enumdef import Connectortype, Notifyinterval
 from networking.ardoino_reverse_proxy import ArdoinoReverseProxy
-
-import logging
 logger = logging.getLogger(__name__)
 
 class ArdoinoSensor(SensorInterface):

@@ -3,13 +3,13 @@ In this file is the execution_cycle methode that runns indefinetely."""
 
 import sys
 import time
-import numpy as np
 from typing import List
+import logging
+import numpy as np
 try:
     import grovepi
 except ImportError:
     grovepi = None
-
 import config_reader
 from networking.networking_domain import GatewayNetwork
 from sensors.sensor import SensorInterface
@@ -17,7 +17,6 @@ from actuators.actuator import ActuatorInterface
 from enumdef import Connectortype
 from virtual_environment import Virtual_environment
 from room_info import Room_Info
-import logging
 logger = logging.getLogger(__name__)
 
 def read_all_sensors(sensors: List[SensorInterface]):

@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 """Module specifies the gateway communication to the MQTT brocer in a domain independent way."""
 
+import logging
 import paho.mqtt.client as mqtt
 from paho.mqtt.properties import Properties
 from paho.mqtt.packettypes import PacketTypes
-
 from networking.networking_reciever import GatewayNetworkReciever
-import logging
 logger = logging.getLogger(__name__)
 
 class MQTTEndpoint:

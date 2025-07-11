@@ -6,14 +6,13 @@ try:
     from grovepi import *
 except ImportError:
     grovepi = None
-import numpy as np
-import uuid
-import time
 from abc import ABC, abstractmethod
-
+import logging
+import time
+import uuid
+import numpy as np
 import random_number_generator as rng
 from enumdef import Connectortype, Notifyinterval
-import logging
 logger = logging.getLogger(__name__)
 
 class SensorInterface(ABC):

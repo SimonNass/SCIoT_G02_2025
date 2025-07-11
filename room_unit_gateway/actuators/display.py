@@ -8,10 +8,9 @@ except ImportError:
     grovepi = None
     grove_rgb_lcd = None
 import time
-
+import logging
 from enumdef import Connectortype
 from actuators.actuator import ActuatorInterface
-import logging
 logger = logging.getLogger(__name__)
 
 class AbstractActuator_textual(ActuatorInterface):

@@ -3,9 +3,8 @@
 
 from typing import List
 import json
-
-from actuators.actuator import ActuatorInterface
 import logging
+from actuators.actuator import ActuatorInterface
 logger = logging.getLogger(__name__)
 
 class GatewayNetworkReciever:

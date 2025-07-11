@@ -2,8 +2,8 @@
 """Module reads in the configuration file."""
 
 import configparser
-import object_factory
 import logging
+import object_factory
 logger = logging.getLogger(__name__)
 
 

@@ -1,10 +1,9 @@
 """Module specifies the arduino proxy for communication to the arduino."""
 
-import serial
-import time
-
-from networking.discovery import find_serial_port
 import logging
+import time
+import serial
+from networking.discovery import find_serial_port
 logger = logging.getLogger(__name__)
 
 class ArdoinoReverseProxy():

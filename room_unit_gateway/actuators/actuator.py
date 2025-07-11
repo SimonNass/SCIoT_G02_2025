@@ -10,9 +10,8 @@ except ImportError:
 import uuid
 import time
 from abc import ABC, abstractmethod
-
-from enumdef import Connectortype
 import logging
+from enumdef import Connectortype
 logger = logging.getLogger(__name__)
 
 class ActuatorInterface(ABC):

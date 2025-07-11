@@ -1,9 +1,9 @@
 """Module specifies the discoverys."""
 
+import logging
+import socket
 import serial.tools.list_ports
 import httpx
-import socket
-import logging
 logger = logging.getLogger(__name__)
 
 def find_serial_port():

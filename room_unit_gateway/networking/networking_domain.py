@@ -3,14 +3,12 @@
 
 from typing import List, Dict
 import json
-
+import logging
 from networking.networking_paho import MQTTEndpoint
 from networking.networking_reciever import GatewayNetworkReciever
 from sensors.sensor import SensorInterface
 from actuators.actuator import ActuatorInterface
-
 from room_info import Room_Info
-import logging
 logger = logging.getLogger(__name__)
 
 class GatewayNetwork:

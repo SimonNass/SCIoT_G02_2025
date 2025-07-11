@@ -2,22 +2,17 @@
 
 import json
 from typing import List, Dict, Union
-
+import logging
 from sensors.sensor import SensorInterface, AnalogSensor, DigitalSensor, DigitalMultipleSensor, VirtualSensor_numerical, VirtualSensor_binary
 from sensors.ardoino_sensor import ArdoinoSensor
-
 from actuators.actuator import ActuatorInterface, AnalogActuator, DigitalActuator, VirtualActuator_numerical
 from actuators.display import DisplayActuator, VirtualActuator_textual
 from actuators.ardoino_actuator import ArdoinoActuator
-
 from virtual_environment import Virtual_environment
-
 from enumdef import Connectortype, Notifyinterval
 from networking.ardoino_reverse_proxy import ArdoinoReverseProxy
 from networking.networking_domain import GatewayNetwork
-
 from room_info import Room_Info
-import logging
 logger = logging.getLogger(__name__)
 
 def configure_network_gateway(host: str,

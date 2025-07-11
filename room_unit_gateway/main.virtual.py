@@ -6,8 +6,8 @@ import time
 import sys
 import os
 import threading
-import help_methods
 import logging
+import help_methods
 logger = logging.getLogger(__name__)
 
 def main():
