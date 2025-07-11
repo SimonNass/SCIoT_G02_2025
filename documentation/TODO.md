@@ -22,6 +22,8 @@
   - [ ] (Simon) update random number generator manual list
   - [ ] (Simon) Toggle button sensor?
   - [ ] (Simon) add ai planing increrase decrease to actuators
+  - [ ] (Simon) add ai planing types to IoT
+  - [ ] (Simon) rename ardoino to arduino
   - [X] (Simon) mapping firtual environment toggle for real sensor actuator paar
   - [X] (Simon) send firtual environment formating
   - [X] bug when broker not connected ?bug no longer apeares
@@ -60,6 +62,7 @@
 
 - [x] Simulation
   - [x] Decide on simulator (needs to provide data via MQTT)
+  - [ ] update config files to newest form
 
 - [] Bugs 
   - [ ] (Simon, Maximilian) Bug: "°C", degree Symbol not being parsed correctly in mqtt incoming message -> May need to be parsed on the frontend -> solvet on gateway?
