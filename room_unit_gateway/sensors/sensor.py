@@ -52,7 +52,7 @@ class SensorInterface(ABC):
         except (Exception, IOError, TypeError) as e:
             print ("read was unsucesful")
             #print (e)
-            logger.error("{}: read was unsucesful {}".format(self.name, e))
+            logger.error(f"{self.name}: read was unsucesful {e}")
             raise e
 
     @abstractmethod
@@ -79,7 +79,7 @@ class DigitalSensor(SensorInterface):
         except  AttributeError as e:
             print ("pinMode was unsucesful")
             #print (e)
-            logger.error("{}: pinMode was unsucesful {}".format(self.name, e))
+            logger.error(f"{self.name}: pinMode was unsucesful {e}")
         _ = self.read_sensor()
 
     def read_internal_sensor(self):
@@ -96,7 +96,7 @@ class DigitalMultipleSensor(SensorInterface):
         except  AttributeError as e:
             print ("pinMode was unsucesful")
             #print (e)
-            logger.error("{}: pinMode was unsucesful {}".format(self.name, e))
+            logger.error(f"{self.name}: pinMode was unsucesful {e}")
         _ = self.read_sensor()
 
     def read_internal_sensor(self):

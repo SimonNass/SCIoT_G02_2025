@@ -23,7 +23,7 @@ class ArdoinoActuator(ActuatorInterface):
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("closing ardoino_serial was unsucesful")
             #print (e)
-            logger.error("closing ardoino_serial was unsucesful {}".format(e))
+            logger.error(f"closing ardoino_serial was unsucesful {e}")
 
     def write_internal_actuator(self, write_value: int):
         self.ardoino_serial.remote_call(self.type_name_ardoino, write_value)

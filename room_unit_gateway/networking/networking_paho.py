@@ -20,10 +20,10 @@ class MQTTEndpoint:
         self.mqtt_client = None
         self.timeout = 600
         self.qos = 2
-        print ("Selected host: {} and port: {}".format(self.host,self.port))
-        print ("Username {} with password length {}".format(self.username,len(self.password)))
-        logger.info("Selected host: {} and port: {}".format(self.host,self.port))
-        logger.info("Username {} with password length {}".format(self.username,len(self.password)))
+        print (f"Selected host: {self.host} and port: {self.port}")
+        print (f"Username {self.username} with password length {len(self.password)}")
+        logger.info(f"Selected host: {self.host} and port: {self.port}")
+        logger.info(f"Username {self.username} with password length {len(self.password)}")
         self.connect()
 
     def __del__(self):
@@ -33,7 +33,7 @@ class MQTTEndpoint:
             logging.info("MQTT client stopped")
 
     def __str__(self):
-        return "For RebitMQ > host:{},port:{},username:{},password length:{}".format(self.host,self.port,self.username,len(self.password))
+        return f"For RebitMQ > host:{self.host},port:{self.port},username:{self.username},password length:{len(self.password)}"
 
     def connect(self):
         try:

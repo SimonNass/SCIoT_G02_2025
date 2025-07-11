@@ -50,7 +50,7 @@ class ActuatorInterface(ABC):
     def write_actuator(self, value: int):
         write_value = max(self.min_value,min(self.max_value,value))
         if not self.is_valid(write_value):
-            text = "value {} is out of the allowed interval [{},{}] for this actuator".format(value,self.min_value,self.max_value)
+            text = f"value {value} is out of the allowed interval [{self.min_value},{self.max_value}] for this actuator"
             raise ValueError(text)
         try:
             _ = self.write_internal_actuator(write_value)
@@ -63,7 +63,7 @@ class ActuatorInterface(ABC):
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("write was unsucesful")
             #print (e)
-            logger.error("{}: write was unsucesful {}".format(self.name, e))
+            logger.error(f"{self.name}: write was unsucesful {e}")
 
     @abstractmethod
     def write_internal_actuator(self, write_value: int):
@@ -71,7 +71,7 @@ class ActuatorInterface(ABC):
 
     def is_valid(self, value: int):
         if (value > self.max_value) or (value < self.min_value):
-            text = "value {} is out of the allowed interval [{},{}] for this actuator".format(value,self.min_value,self.max_value)
+            text = f"value {value} is out of the allowed interval [{self.min_value},{self.max_value}] for this actuator"
             print (text)
             return False
         return True
@@ -89,7 +89,7 @@ class AnalogActuator(ActuatorInterface):
         except  AttributeError as e:
             print ("pinMode was unsucesful")
             #print (e)
-            logger.error("{}: pinMode was unsucesful {}".format(self.name, e))
+            logger.error(f"{self.name}: pinMode was unsucesful {e}")
         self.write_actuator(self.initial_value)
 
     def __del__(self):
@@ -98,7 +98,7 @@ class AnalogActuator(ActuatorInterface):
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("write was unsucesful")
             #print (e)
-            logger.error("{}: write was unsucesful {}".format(self.name, e))
+            logger.error(f"{self.name}: write was unsucesful {e}")
 
     def write_internal_actuator(self, write_value: int):
         return grovepi.analogWrite(self.i2c_connector,write_value)
@@ -113,7 +113,7 @@ class DigitalActuator(ActuatorInterface):
         except  AttributeError as e:
             print ("pinMode was unsucesful")
             #print (e)
-            logger.error("{}: pinMode was unsucesful {}".format(self.name, e))
+            logger.error(f"{self.name}: pinMode was unsucesful {e}")
         self.write_actuator(self.initial_value)
 
     def __del__(self):
@@ -122,7 +122,7 @@ class DigitalActuator(ActuatorInterface):
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("write was unsucesful")
             #print (e)
-            logger.error("{}: write was unsucesful {}".format(self.name, e))
+            logger.error(f"{self.name}: write was unsucesful {e}")
 
     def write_internal_actuator(self, write_value: int):
         return grovepi.digitalWrite(self.i2c_connector,write_value)

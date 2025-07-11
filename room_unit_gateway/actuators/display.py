@@ -48,7 +48,7 @@ class DisplayActuator(AbstractActuator_textual):
         except  (Exception, AttributeError) as e:
             print ("setRGB was unsucesful")
             #print (e)
-            logger.error("{}: setRGB was unsucesful {}".format(self.name, e))
+            logger.error(f"{self.name}: setRGB was unsucesful {e}")
         self.write_actuator(text)
 
     def __del__(self):
@@ -59,7 +59,7 @@ class DisplayActuator(AbstractActuator_textual):
         except  (Exception, AttributeError) as e:
             print ("setRGB or setText was unsucesful")
             #print (e)
-            logger.error("{}: setRGB or setText was unsucesful {}".format(self.name, e))
+            logger.error(f"{self.name}: setRGB or setText was unsucesful {e}")
 
     def write_internal_actuator(self, write_value: str):
         setText(write_value)
