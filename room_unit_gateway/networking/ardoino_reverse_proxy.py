@@ -2,10 +2,10 @@
 
 import serial
 import time
-import logging
-logger = logging.getLogger(__name__)
 
 from networking.discovery import find_serial_port
+import logging
+logger = logging.getLogger(__name__)
 
 class ArdoinoReverseProxy():
     def __init__(self, message_end_signal: str, usb_channel_type: str, usb_channel_data_rate: int):

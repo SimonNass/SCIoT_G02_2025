@@ -2,10 +2,10 @@
 """Module reads in the configuration file."""
 
 import configparser
+import object_factory
 import logging
 logger = logging.getLogger(__name__)
 
-import object_factory
 
 def read_general_config(config):
     try:

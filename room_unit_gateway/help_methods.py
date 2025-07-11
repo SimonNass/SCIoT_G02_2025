@@ -5,8 +5,6 @@ import sys
 import time
 import numpy as np
 from typing import List
-import logging
-logger = logging.getLogger(__name__)
 try:
     import grovepi
 except ImportError:
@@ -19,6 +17,8 @@ from actuators.actuator import ActuatorInterface
 from enumdef import Connectortype
 from virtual_environment import Virtual_environment
 from room_info import Room_Info
+import logging
+logger = logging.getLogger(__name__)
 
 def read_all_sensors(sensors: List[SensorInterface]):
     for sensor in sensors:

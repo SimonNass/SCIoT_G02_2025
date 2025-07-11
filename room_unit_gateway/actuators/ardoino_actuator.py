@@ -1,11 +1,10 @@
 """Module specifies the actuators on the arduino."""
 
-import logging
-logger = logging.getLogger(__name__)
-
 from actuators.actuator import ActuatorInterface
 from enumdef import Connectortype
 from networking.ardoino_reverse_proxy import ArdoinoReverseProxy
+import logging
+logger = logging.getLogger(__name__)
 
 class ArdoinoActuator(ActuatorInterface):
     def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: int, off_value: int, ardoino_serial: ArdoinoReverseProxy, type_name_ardoino: str):

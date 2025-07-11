@@ -10,10 +10,10 @@ except ImportError:
 import uuid
 import time
 from abc import ABC, abstractmethod
-import logging
-logger = logging.getLogger(__name__)
 
 from enumdef import Connectortype
+import logging
+logger = logging.getLogger(__name__)
 
 class ActuatorInterface(ABC):
     def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: Union[int, str], max_value: Union[int, str], datatype: str, unit: str, initial_value: Union[int, str], off_value: Union[int, str]):

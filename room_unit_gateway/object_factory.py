@@ -1,9 +1,7 @@
 """Module specivies the creation of objects during the config reading process."""
 
 import json
-import logging
 from typing import List, Dict, Union
-logger = logging.getLogger(__name__)
 
 from sensors.sensor import SensorInterface, AnalogSensor, DigitalSensor, DigitalMultipleSensor, VirtualSensor_numerical, VirtualSensor_binary
 from sensors.ardoino_sensor import ArdoinoSensor
@@ -19,6 +17,8 @@ from networking.ardoino_reverse_proxy import ArdoinoReverseProxy
 from networking.networking_domain import GatewayNetwork
 
 from room_info import Room_Info
+import logging
+logger = logging.getLogger(__name__)
 
 def configure_network_gateway(host: str,
                               port: int,

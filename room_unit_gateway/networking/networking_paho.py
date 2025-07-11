@@ -4,10 +4,10 @@
 import paho.mqtt.client as mqtt
 from paho.mqtt.properties import Properties
 from paho.mqtt.packettypes import PacketTypes
-import logging
-logger = logging.getLogger(__name__)
 
 from networking.networking_reciever import GatewayNetworkReciever
+import logging
+logger = logging.getLogger(__name__)
 
 class MQTTEndpoint:
     def __init__(self, gateway: GatewayNetworkReciever, host: str, port: int, username: str, password: str, topic_prefix: str):

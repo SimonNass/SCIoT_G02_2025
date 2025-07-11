@@ -4,13 +4,11 @@ It also defines the CLI argument reading."""
 
 import time
 import sys
-import logging
 import os
 import threading
-
-logger = logging.getLogger(__name__)
-
 import help_methods
+import logging
+logger = logging.getLogger(__name__)
 
 def main():
     """

@@ -2,12 +2,11 @@
 
 from typing import List, Dict, Union
 import uuid
-import logging
-logger = logging.getLogger(__name__)
 
 from sensors.sensor import SensorInterface
 from actuators.actuator import ActuatorInterface
-
+import logging
+logger = logging.getLogger(__name__)
 
 class Virtual_environment():
     def __init__(self, sensors: List[SensorInterface], actuators: List[ActuatorInterface], mapping: List[Dict[str,str]]):

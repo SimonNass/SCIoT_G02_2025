@@ -10,11 +10,11 @@ import numpy as np
 import uuid
 import time
 from abc import ABC, abstractmethod
-import logging
-logger = logging.getLogger(__name__)
 
 import random_number_generator as rng
 from enumdef import Connectortype, Notifyinterval
+import logging
+logger = logging.getLogger(__name__)
 
 class SensorInterface(ABC):
     def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):

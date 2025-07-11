@@ -3,10 +3,9 @@
 It also defines the CLI argument reading."""
 
 import sys
+import help_methods
 import logging
 logger = logging.getLogger(__name__)
-
-import help_methods
 
 def main():
     """

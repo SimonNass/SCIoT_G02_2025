@@ -3,10 +3,10 @@
 
 from typing import List
 import json
-import logging
-logger = logging.getLogger(__name__)
 
 from actuators.actuator import ActuatorInterface
+import logging
+logger = logging.getLogger(__name__)
 
 class GatewayNetworkReciever:
     def __init__(self, actuators: List[ActuatorInterface]):
