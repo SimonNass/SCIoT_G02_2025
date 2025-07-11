@@ -27,7 +27,12 @@ def create_initial_state_room_topology(room_is_part_of_floor, is_next_to, is_cle
             next_room_room_mapping = is_next_to(next_room, current_room)
             initial_state.append(next_room_room_mapping)
 
-    for elevator in uid_to_pddl_variable_elevators.values():
+    return initial_state
+
+def create_initial_state_elevator_topology(room_is_part_of_floor, is_next_to, is_cleaned, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_elevators: Dict, uid_to_pddl_variable_room_positions: Dict, checked_all_activitys, fulfilled_activitys):
+    initial_state = []
+
+    for i, elevator in enumerate(uid_to_pddl_variable_elevators.values()):
         for floor in floor_uids:
             # connect the elevators to all floors
             next_elevator_floor_mapping = room_is_part_of_floor(elevator,uid_to_pddl_variable_floor[floor])
@@ -44,6 +49,13 @@ def create_initial_state_room_topology(room_is_part_of_floor, is_next_to, is_cle
         # elevators do not have to be cleaned
         next_elevator_is_clean = is_cleaned(elevator)
         initial_state.append(next_elevator_is_clean)
+
+        for position in uid_to_pddl_variable_room_positions.values():
+            # exclude elevators from activity search
+            next_elevator_checked = checked_all_activitys(elevator, position)
+            initial_state.append(next_elevator_checked)
+            next_elevator_fulfilled = fulfilled_activitys(elevator, position)
+            initial_state.append(next_elevator_fulfilled)
 
     return initial_state
 

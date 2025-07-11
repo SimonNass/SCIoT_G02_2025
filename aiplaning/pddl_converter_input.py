@@ -6,8 +6,9 @@ def query_input():
     problem_name = 'test'
 
     floor_uids = ['f0','f1']
-    room_uids_per_floor = {'f0':['r0','r1'],'f1':['r2']}
-    room_occupied_actuator_initial_values = {'r0':False, 'r1': True, 'r2':False}
+    room_uids_per_floor = {'f0':['r0','r1','r3'],'f1':['r2']}
+    # TODO what if sensor with room is not part of anny floor?
+    room_occupied_actuator_initial_values = {'r0':False, 'r1': True, 'r2':False, 'r3': True}
     #floor_list = db.list_all_floors()
     #floor_uids = [floor['id'] for floor in floor_list]
     #room_uids_per_floor = {floor['id']:floor['rooms'] for floor in floor_list}
@@ -16,9 +17,10 @@ def query_input():
 
     elevator_uids = ['e0','e1']
     cleaning_team_uids = ['cleaning_team_1','cleaning_team_2']
-    names_room_positions = ['overall_room', 'bed', 'closet', 'window']
+    names_room_positions = ['overall_room']
+    #['overall_room', 'bed', 'closet', 'window']
 
-    sensor_room_mapping = {'r0':['s1'], 'r2':['s2']}
+    sensor_room_mapping = {'r0':['s1'], 'r2':['s2'], 'r3':['s3']}
     actuator_room_mapping = {'r0':['a1'], 'r2':['a2']}
     #for floor in floor_uids:
     #    for room in room_uids_per_floor[floor]:
@@ -33,14 +35,13 @@ def query_input():
     #        sensor_room_mapping.update({room:sensor_uids})
     #        actuator_room_mapping.update({room:actuator_uids})
 
-
-
+    sensor_types = {'s1':'light_s', 's2':'humidity_s', 's3':'temperature_s'}
 
     # TODO get info from db
     actuator_increases_sensor_mapping_matrix = {'a1':['s1','s2'], 'a2':['s2']}
     actuator_decreases_sensor_mapping_matrix = {'a1':['s1']}
 
-    sensor_initial_values = {'s1': -1, 's2':1}
+    sensor_initial_values = {'s1': -1, 's2':1, 's3':-1}
     sensor_goal_values = {'s1': -1, 's2':1}
     actuator_initial_values = {'a1': True, 'a2':False}
     #for floor in floor_uids:
@@ -52,6 +53,18 @@ def query_input():
     #            curent_value = db.request_current_value_hierarchical(floor,room,device)
     #            sensor_initial_values.update({device:curent_value})
 
+    # TODO add list of locked sensors
+
+    sensor_goal_state_mapping = {'temperature_s':'is_ok', 
+                                 'light_s':'is_high', 
+                                 'sound_s':'is_ok'
+                                 }
+    
+    # TODO fine tune sensor ideal position for the activitys
+    activity_mapping = {'bath':{'temperature_s':'is_ok'},
+                        'read':{'temperature_s':'is_ok', 'light_s':'is_high', 'sound_s':'is_ok'},
+                        'sleep':{'light_s':'is_low', 'sound_s':'is_low'},
+                        }
 
 
     return {'domain_name':domain_name,
@@ -69,6 +82,8 @@ def query_input():
             'sensor_room_mapping':sensor_room_mapping,
             'actuator_room_mapping':actuator_room_mapping,
 
+            'sensor_types':sensor_types,
+
             'actuator_increases_sensor_mapping_matrix':actuator_increases_sensor_mapping_matrix,
             'actuator_decreases_sensor_mapping_matrix':actuator_decreases_sensor_mapping_matrix,
 
@@ -77,4 +92,7 @@ def query_input():
             'actuator_initial_values':actuator_initial_values,
 
             'room_occupied_actuator_initial_values':room_occupied_actuator_initial_values,
+
+            'activity_mapping':activity_mapping,
+            'sensor_goal_state_mapping':sensor_goal_state_mapping,
             }

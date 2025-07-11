@@ -4,21 +4,39 @@
 # pip install pddl==0.4.3
 from pddl.logic import variables
 
+def create_type_variable_by_name(name: str, amount):
+    names = "".join(f"{name}{i}_type " for i in range(amount))
+    pddl_variables =  variables(names, types=[f"{name}_type"])
+    #print (var)
+    return pddl_variables
+
 def create_type_variables():
     # set up variables
-    floor_type, floor2_type = variables("floor_type floor2_type", types=["floor_type"])
-    room_type, room2_type, room3_type = variables("room_type room2_type room3_type", types=["room_type"])
-    room_position_type = variables("room_position_type", types=["room_position_type"])[0]
-    iot_type = variables("iot_type", types=["iot_type"])[0]
-    cleaning_team_type = variables("cleaning_team_type", types=["cleaning_team_type"])[0]
+    type_names = {"floor": 2,
+                  "room": 3,
+                  "room_position": 1,
+                  "iot": 1,
+                  "cleaning_team": 1,
+                  "sensor": 2,
+                  "actuator": 2,
+                  "binary_s": 1,
+                  "numerical_s": 1,
+                  "textual_s": 1,
+                  "binary_a": 1,
+                  "numerical_a": 1,
+                  "textual_a": 1,
+                  "temperature_s": 1,
+                  "humidity_s": 1,
+                  "light_s": 1,
+                  "sound_s": 1,
+                  "rotation_s": 1,
+                  }
 
-    sensor_type, sensor2_type = variables("sensor_type sensor2_type", types=["sensor_type"])
-    actuator_type, actuator2_type = variables("actuator_type actuator2_type", types=["actuator_type"])
+    pddl_variables = {}
+    for name, amount in type_names.items():
+        pddl_variables.update({name:create_type_variable_by_name(name, amount)})
 
-    binary_s_type, numerical_s_type, textual_s_type = variables("binary_s_type numerical_s_type textual_s_type", types=["sensor_type"])
-    binary_a_type, numerical_a_type, textual_a_type = variables("binary_a_type numerical_a_type textual_a_type", types=["actuator_type"])
-
-    return floor_type, floor2_type, room_type, room2_type, room3_type, room_position_type, iot_type, cleaning_team_type, sensor_type, sensor2_type, actuator_type, actuator2_type, binary_s_type, numerical_s_type, textual_s_type, binary_a_type, numerical_a_type, textual_a_type
+    return pddl_variables
 
 def create_type_dict():
     # set up types
