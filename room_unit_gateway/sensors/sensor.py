@@ -106,9 +106,9 @@ class DigitalMultipleSensor(SensorInterface):
                 break
         return return_value
 
-class VirtualSensor(SensorInterface):
+class VirtualSensor_numerical(SensorInterface):
     def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
-        if connector_types != Connectortype.Virtual:
+        if connector_types != Connectortype.Virtual_numerical:
             raise ValueError("connector_type is not Digital.")
         super().__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
         self.rng_selector = 5
@@ -137,5 +137,16 @@ class VirtualSensor(SensorInterface):
         else:
             # defoult
             value = rng.random_value(last_value=self.last_value, min_value=self.min_value, max_value=self.max_value, precision= self.notify_change_precision, alpha=0.5)
+        return value
+
+class VirtualSensor_binary(SensorInterface):
+    def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
+        if connector_types != Connectortype.Virtual_binary:
+            raise ValueError("connector_type is not Digital.")
+        super().__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=0, max_value=1, datatype=bool, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=1)
+        _ = self.read_sensor()
+
+    def read_internal_sensor(self):
+        value = rng.binary_random()
         return value
     

@@ -43,6 +43,9 @@ def send_actuators(actuators: List[ActuatorInterface], network_connection: Gatew
     for actuator in actuators:
         network_connection.send_all_data_actuator(actuator)
 
+def send_actuator_sensor_mapping(virtual_environment: Virtual_environment, network_connection: GatewayNetwork):
+    network_connection.send_actuator_sensor_mapping(virtual_environment.__dict__())
+
 def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface], cycle: int, network_connection: GatewayNetwork):
     for sensor in sensors:
         if cycle % sensor.read_interval== 0:
@@ -64,6 +67,7 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
     print ("", flush=True)
     send_sensors(sensors,network_connection)
     send_actuators(actuators,network_connection)
+    send_actuator_sensor_mapping(virtual_environment,network_connection)
     cycle = 0
     want_to_exit = False
     while not want_to_exit:
@@ -82,6 +86,7 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
                 cycle = 0
                 send_sensors(sensors,network_connection)
                 send_actuators(actuators,network_connection)
+                send_actuator_sensor_mapping(virtual_environment,network_connection)
 
             # Increment
             virtual_environment.performe_environment_step()

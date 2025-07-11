@@ -1,13 +1,13 @@
 import json
 import logging
-from typing import List, Dict
+from typing import List, Dict, Union
 logger = logging.getLogger(__name__)
 
-from sensors.sensor import SensorInterface, AnalogSensor, DigitalSensor, DigitalMultipleSensor, VirtualSensor
+from sensors.sensor import SensorInterface, AnalogSensor, DigitalSensor, DigitalMultipleSensor, VirtualSensor_numerical, VirtualSensor_binary
 from sensors.ardoino_sensor import ArdoinoSensor
 
-from actuators.actuator import ActuatorInterface, AnalogActuator, DigitalActuator, VirtualActuator
-from actuators.display import DisplayActuator
+from actuators.actuator import ActuatorInterface, AnalogActuator, DigitalActuator, VirtualActuator_numerical
+from actuators.display import DisplayActuator, VirtualActuator_textual
 from actuators.ardoino_actuator import ArdoinoActuator
 
 from virtual_environment import Virtual_environment
@@ -54,7 +54,7 @@ def configure_environment(sensors: List[SensorInterface], actuators: List[Actuat
         logger.error(f"virtual_environment not initialised. {e}")
     return virtual_environment
 
-def configure_room_inof(floor_id: int, max_rooms_per_floor: int, room_id: int):  
+def configure_room_info(floor_id: int, max_rooms_per_floor: int, room_id: int):  
     return Room_Info(floor_id, max_rooms_per_floor, room_id)
 
 def configure_ardoino_connection(message_end_signal: str, usb_channel_type: str, usb_channel_data_rate: int):  
@@ -116,8 +116,10 @@ def choose_sensor_class(name: str, type_name: str, connector: int, connector_typ
             sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=0)
         elif connector_types == Connectortype.Digital_multiple_1:
             sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=1)
-        elif connector_types == Connectortype.Virtual:
-            sensor_object = VirtualSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+        elif connector_types == Connectortype.Virtual_numerical:
+            sensor_object = VirtualSensor_numerical(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+        elif connector_types == Connectortype.Virtual_binary:
+            sensor_object = VirtualSensor_binary(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
         elif connector_types == Connectortype.Ardoino_temperature:
             sensor_object = ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="temperature")
         elif connector_types == Connectortype.Ardoino_humidity:
@@ -188,12 +190,12 @@ def choose_actuator_class(name: str,
                           type_name: str, 
                           connector: int, 
                           connector_types: Connectortype, 
-                          min_value: int, 
-                          max_value: int, 
+                          min_value: Union[int, str], 
+                          max_value: Union[int, str], 
                           datatype: str, 
                           unit: str, 
-                          initial_value: int, 
-                          off_value: int, 
+                          initial_value: Union[int, str], 
+                          off_value: Union[int, str], 
                           ardoino_serial: ArdoinoReverseProxy):
     try:
         actuator_object = None
@@ -230,8 +232,19 @@ def choose_actuator_class(name: str,
                                    unit=unit,
                                    initial_value=initial_value,
                                    off_value=off_value)
-        elif connector_types == Connectortype.Virtual:
-            actuator_object = VirtualActuator(name=name,
+        elif connector_types == Connectortype.Virtual_numerical:
+            actuator_object = VirtualActuator_numerical(name=name,
+                                   type_name=type_name,
+                                   connector=connector,
+                                   connector_types=connector_types,
+                                   min_value=min_value,
+                                   max_value=max_value,
+                                   datatype=datatype,
+                                   unit=unit,
+                                   initial_value=initial_value,
+                                   off_value=off_value)
+        elif connector_types == Connectortype.Virtual_textual:
+            actuator_object = VirtualActuator_textual(name=name,
                                    type_name=type_name,
                                    connector=connector,
                                    connector_types=connector_types,
@@ -271,7 +284,7 @@ def configure_actuator_types(json_list: json):
         connector_types = getattr(Connectortype, str(t['connector_types']))
         datatype = str(t['datatype'])
         unit = str(t['unit'])
-        if connector_types == Connectortype.I2C_display:
+        if connector_types in [Connectortype.I2C_display, Connectortype.Virtual_textual]:
             min_value = str(t['min'])
             max_value = str(t['max'])
             initial_value = str(t['initial_value'])

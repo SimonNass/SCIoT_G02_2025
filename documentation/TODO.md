@@ -17,9 +17,13 @@
 - [ ] Gateway
   - [X] (Simon) sensor dictionary send in utf 8
   - [X] (Simon) send bool actuator is off or on in gateway info
-  - [ ] (Simon) send after actuator change
-  - [ ] (Simon) disable sensors ?
+  - [ ] (Simon) test send after actuator change
+  - [X] (Simon) disable sensors ? > not needed just ignore them
   - [ ] (Simon) update random number generator manual list
+  - [ ] (Simon) Toggle button sensor?
+  - [ ] (Simon) add ai planing increrase decrease to actuators
+  - [X] (Simon) mapping firtual environment toggle for real sensor actuator paar
+  - [X] (Simon) send firtual environment formating
   - [X] bug when broker not connected ?bug no longer apeares
   - [X] ardoino sensor return prefix needs to be removed
   - [X] send ardoino values not 0 to mqtt broker
@@ -27,7 +31,7 @@
 - [ ] AI Planning
   - [x] Overarching Goals
   - [ ] (Simon) Conversion of DB values to context to inital state
-  - [ ] (Simon) Activity recognition
+  - [ ] (Simon) Activity recognition in ai planer or in context generation
   - [x] First attempts at lecture implementation
   - [X] (Simon) plan cleaning and do not plan cleaning toggle
   - [ ] (Simon) mapping in pddl a -> s
