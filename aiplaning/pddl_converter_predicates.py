@@ -86,6 +86,8 @@ def create_predicates_variables(floor_type, room_type, room2_type, room_position
     # actuators
     is_activated = Predicate("is_activated", actuator_type)
     predicates_dict.update({"is_activated":is_activated})
+    is_changed = Predicate("is_changed", actuator_type)
+    predicates_dict.update({"is_changed":is_changed})
 
 
     return predicates_dict, activity_names, is_doing_activitys_at, checked_activity_x, fulfilled_activity_x
