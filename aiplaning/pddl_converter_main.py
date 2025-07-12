@@ -51,26 +51,6 @@ def create():
 
     predicates_dict = pddl_converter_predicates.create_predicates_variables(pddl_variable_types, activity_mapping.keys())
 
-    room_is_part_of_floor = predicates_dict["room_is_part_of_floor"]
-    sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
-    actuator_is_part_of_room = predicates_dict["actuator_is_part_of_room"]
-    positioned_at = predicates_dict["positioned_at"]
-    actuator_increases_sensor = predicates_dict["actuator_increases_sensor"]
-    actuator_decreases_sensor = predicates_dict["actuator_decreases_sensor"]
-    is_next_to = predicates_dict["is_next_to"]
-    is_at = predicates_dict["is_at"]
-    is_occupied = predicates_dict["is_occupied"]
-    will_become_occupied = predicates_dict["will_become_occupied"]
-    is_cleaned = predicates_dict["is_cleaned"]
-    is_sensing = predicates_dict["is_sensing"]
-    is_low = predicates_dict["is_low"]
-    is_ok = predicates_dict["is_ok"]
-    is_high = predicates_dict["is_high"]
-    is_activated = predicates_dict["is_activated"]
-    is_locked = predicates_dict["is_locked"]
-    checked_all_activitys = predicates_dict["checked_all_activitys"]
-    fulfilled_activitys = predicates_dict["fulfilled_activitys"]
-
     domain = create_domain(input_dictionary['domain_name'], predicates_dict, pddl_variable_types, activity_mapping)
 
     floor_uids = input_dictionary['floor_uids']
@@ -103,7 +83,9 @@ def create():
 
     initial_state = initial_state + pddl_converter_initial_state.create_cleaning_teams_starting_position(predicates_dict, uid_to_pddl_variable_cleaning_teams, uid_to_pddl_variable_elevators)
 
+    sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
     initial_state = initial_state + pddl_converter_initial_state.create_iot_room_mapping(floor_uids, room_uids_per_floor, uid_to_pddl_variable_sensors, uid_to_pddl_variable_rooms, sensor_room_mapping, sensor_is_part_of_room)
+    actuator_is_part_of_room = predicates_dict["actuator_is_part_of_room"]
     initial_state = initial_state + pddl_converter_initial_state.create_iot_room_mapping(floor_uids, room_uids_per_floor, uid_to_pddl_variable_actuators, uid_to_pddl_variable_rooms, actuator_room_mapping, actuator_is_part_of_room)
 
     initial_state = initial_state + pddl_converter_initial_state.create_iot_position_mapping(predicates_dict, uid_to_pddl_variable_room_positions, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators)
