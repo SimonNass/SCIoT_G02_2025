@@ -239,40 +239,38 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
             )
             actions_list.append(numerical_sensor_actuator_change)
 
-    for distance in range(1,len(sensor_buckets_sortet)):
-        for i in range(len(sensor_buckets_sortet) - distance):
-            curent_state = predicates_dict[sensor_buckets_sortet[i]]
-            next_state = predicates_dict[sensor_buckets_sortet[i + distance]]
-            for increase, change_a in [(True,True),(False,True),(True,False),(False,False)]:
-                action_name = ("increase" if increase ^ (not change_a) else "decrease")
-                action_name = action_name + f"_{distance}_times"
-                action_name = action_name + "_s_numerical_by"
-                action_name = action_name + ("_change" if change_a else "_reverse_change")
-                pre = base.And(works_together(numerical_s_type, room_position_type, room_type), is_activated(actuator_type))
-                if increase:
-                    pre = base.And(pre, actuator_increases_sensor(actuator_type, numerical_s_type))
-                else:
-                    pre = base.And(pre, actuator_decreases_sensor(actuator_type, numerical_s_type))
-                if increase ^ (not change_a):
-                    pre = base.And(pre, curent_state(numerical_s_type))
-                    eff = base.And(~curent_state(numerical_s_type), next_state(numerical_s_type))
-                else:
-                    pre = base.And(pre, next_state(numerical_s_type))
-                    eff = base.And(~next_state(numerical_s_type), curent_state(numerical_s_type))
-                if change_a:
-                    pre = base.And(pre, ~is_changed(actuator_type))
-                    eff = base.And(eff, is_changed(actuator_type))
-                else:
-                    pre = base.And(pre, is_changed(actuator_type))
-                    eff = base.And(eff, ~is_changed(actuator_type))
+    for i in range(len(sensor_buckets_sortet) - 1):
+        curent_state = predicates_dict[sensor_buckets_sortet[i]]
+        next_state = predicates_dict[sensor_buckets_sortet[i + 1]]
+        for increase, change_a in [(True,True),(False,True),(True,False),(False,False)]:
+            action_name = ("increase" if increase ^ (not change_a) else "decrease")
+            action_name = action_name + "_s_numerical_by"
+            action_name = action_name + ("_change" if change_a else "_reverse_change")
+            pre = base.And(works_together(numerical_s_type, room_position_type, room_type), is_activated(actuator_type))
+            if increase:
+                pre = base.And(pre, actuator_increases_sensor(actuator_type, numerical_s_type))
+            else:
+                pre = base.And(pre, actuator_decreases_sensor(actuator_type, numerical_s_type))
+            if increase ^ (not change_a):
+                pre = base.And(pre, curent_state(numerical_s_type))
+                eff = base.And(~curent_state(numerical_s_type), next_state(numerical_s_type))
+            else:
+                pre = base.And(pre, next_state(numerical_s_type))
+                eff = base.And(~next_state(numerical_s_type), curent_state(numerical_s_type))
+            if change_a:
+                pre = base.And(pre, ~is_changed(actuator_type))
+                eff = base.And(eff, is_changed(actuator_type))
+            else:
+                pre = base.And(pre, is_changed(actuator_type))
+                eff = base.And(eff, ~is_changed(actuator_type))
 
-                numerical_sensor_actuator_change = Action(
-                    action_name,
-                    parameters=params_numerical,
-                    precondition=pre,
-                    effect=eff
-                )
-                actions_list.append(numerical_sensor_actuator_change)
+            numerical_sensor_actuator_change = Action(
+                action_name,
+                parameters=params_numerical,
+                precondition=pre,
+                effect=eff
+            )
+            actions_list.append(numerical_sensor_actuator_change)
 
     return actions_list
 
