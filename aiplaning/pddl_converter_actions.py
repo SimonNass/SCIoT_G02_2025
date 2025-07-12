@@ -231,7 +231,8 @@ def create_actuator_actions_numerical_sensors(predicates_dict: Dict[str,variable
         next_state = predicates_dict[sensor_buckets_sortet[i + 1]]
         for increase, activated_a in [(True,True),(False,True),(True,False),(False,False)]:
             action_name = ("increase" if increase ^ (not activated_a) else "decrease")
-            action_name = action_name + "_s_numerical_by"
+            action_name = action_name + "_s_numerical"
+            action_name = action_name + f"_{sensor_buckets_sortet[i]}_to_{sensor_buckets_sortet[i + 1]}"
             action_name = action_name + ("_activating" if activated_a else "_deactivating")
             pre = base.And(works_together(numerical_s_type, room_position_type, room_type), ~is_changed(actuator_type))
             if increase:
@@ -264,7 +265,8 @@ def create_actuator_actions_numerical_sensors(predicates_dict: Dict[str,variable
         next_state = predicates_dict[sensor_buckets_sortet[i + 1]]
         for increase, change_a in [(True,True),(False,True),(True,False),(False,False)]:
             action_name = ("increase" if increase ^ (not change_a) else "decrease")
-            action_name = action_name + "_s_numerical_by"
+            action_name = action_name + "_s_numerical"
+            action_name = action_name + f"_{sensor_buckets_sortet[i]}_to_{sensor_buckets_sortet[i + 1]}"
             action_name = action_name + ("_change" if change_a else "_reverse_change")
             pre = base.And(works_together(numerical_s_type, room_position_type, room_type), is_activated(actuator_type))
             if increase:
