@@ -545,3 +545,16 @@ def create_energy_saving_actions(predicates_dict: Dict[str,variables], pddl_vari
     actions_list.append(save_energy)
 
     return actions_list
+
+def create_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_mapping: Dict[str,Dict[str,str]]):
+    actions_list = []
+
+    actions_list = actions_list + create_cleaning_actions(predicates_dict, pddl_variable_types)
+    actions_list = actions_list + create_assign_actions(predicates_dict, pddl_variable_types)
+    actions_list = actions_list + create_actuator_actions_binary_sensors(predicates_dict, pddl_variable_types)
+    actions_list = actions_list + create_actuator_actions_numerical_sensors(predicates_dict, pddl_variable_types)
+    actions_list = actions_list + create_activity_detection_actions(predicates_dict, pddl_variable_types)
+    actions_list = actions_list + create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, activity_mapping)
+    actions_list = actions_list + create_energy_saving_actions(predicates_dict, pddl_variable_types)
+
+    return actions_list

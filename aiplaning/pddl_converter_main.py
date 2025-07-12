@@ -22,14 +22,7 @@ def create_domain(domain_name: str, predicates_dict: Dict[str,variables], pddl_v
     type_dict = pddl_converter_types.create_type_dict()
 
     # define actions
-    actions_list = []
-    actions_list = actions_list + pddl_converter_actions.create_cleaning_actions(predicates_dict, pddl_variable_types)
-    actions_list = actions_list + pddl_converter_actions.create_assign_actions(predicates_dict, pddl_variable_types)
-    actions_list = actions_list + pddl_converter_actions.create_actuator_actions_binary_sensors(predicates_dict, pddl_variable_types)
-    actions_list = actions_list + pddl_converter_actions.create_actuator_actions_numerical_sensors(predicates_dict, pddl_variable_types)
-    actions_list = actions_list + pddl_converter_actions.create_activity_detection_actions(predicates_dict, pddl_variable_types)
-    actions_list = actions_list + pddl_converter_actions.create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, activity_mapping)
-    actions_list = actions_list + pddl_converter_actions.create_energy_saving_actions(predicates_dict, pddl_variable_types)
+    actions_list = pddl_converter_actions.create_actions(predicates_dict, pddl_variable_types, activity_mapping)
 
     # define the domain object.
     requirements = [Requirements.STRIPS, Requirements.TYPING, Requirements.ADL]
