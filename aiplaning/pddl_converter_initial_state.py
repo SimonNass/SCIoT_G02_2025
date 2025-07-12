@@ -2,7 +2,7 @@
 """Module specifies the initial state of a pddl problem file."""
 
 # pip install pddl==0.4.3
-from typing import Dict, List
+from typing import Any, Dict, List
 from pddl.logic import variables, constants, base
 import pddl_converter_help
 
@@ -206,5 +206,53 @@ def create_room_occupied_values(predicates_dict: Dict[str,variables], room_occup
         else:
             state = base.Not(is_occupied(uid_to_pddl_variable_rooms[room]))
         initial_state.append(state)
+
+    return initial_state
+
+def create_initial_state(predicates_dict: Dict[str,variables], input_dictionary: Dict, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_sensors,uid_to_pddl_variable_actuators, uid_to_pddl_variable_elevators, uid_to_pddl_variable_cleaning_teams, uid_to_pddl_variable_room_positions):
+    initial_state = []
+
+    floor_uids = input_dictionary['floor_uids']
+    room_uids_per_floor = input_dictionary['room_uids_per_floor']
+    elevator_uids = input_dictionary['elevator_uids']
+    assert 1 <= len(elevator_uids)
+
+    sensor_room_mapping = input_dictionary['sensor_room_mapping']
+    actuator_room_mapping = input_dictionary['actuator_room_mapping']
+
+    actuator_increases_sensor_mapping_matrix = input_dictionary['actuator_increases_sensor_mapping_matrix']
+    actuator_decreases_sensor_mapping_matrix = input_dictionary['actuator_decreases_sensor_mapping_matrix']
+
+    sensor_initial_values = input_dictionary['sensor_initial_values']
+    # TODO
+    sensor_initial_locked = input_dictionary['sensor_initial_locked']
+    actuator_initial_values = input_dictionary['actuator_initial_values']
+    room_occupied_actuator_initial_values = input_dictionary['room_occupied_actuator_initial_values']
+    
+    initial_state = initial_state + create_initial_state_room_topology(predicates_dict, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms)
+    initial_state = initial_state + create_initial_state_elevator_topology(predicates_dict, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_elevators, uid_to_pddl_variable_room_positions)
+
+    initial_state = initial_state + create_cleaning_teams_starting_position(predicates_dict, uid_to_pddl_variable_cleaning_teams, uid_to_pddl_variable_elevators)
+
+    sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
+    initial_state = initial_state + create_iot_room_mapping(floor_uids, room_uids_per_floor, uid_to_pddl_variable_sensors, uid_to_pddl_variable_rooms, sensor_room_mapping, sensor_is_part_of_room)
+    actuator_is_part_of_room = predicates_dict["actuator_is_part_of_room"]
+    initial_state = initial_state + create_iot_room_mapping(floor_uids, room_uids_per_floor, uid_to_pddl_variable_actuators, uid_to_pddl_variable_rooms, actuator_room_mapping, actuator_is_part_of_room)
+
+    initial_state = initial_state + create_iot_position_mapping(predicates_dict, uid_to_pddl_variable_room_positions, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators)
+
+    initial_state = initial_state + create_iot_influences_iot_mapping(predicates_dict, actuator_increases_sensor_mapping_matrix, actuator_decreases_sensor_mapping_matrix, uid_to_pddl_variable_actuators, uid_to_pddl_variable_sensors)
+    
+    assert len(sensor_initial_values) <= len(uid_to_pddl_variable_sensors)
+    assert len(actuator_initial_values) <= len(uid_to_pddl_variable_actuators)
+    
+    initial_state = initial_state + create_sensor_values(predicates_dict, floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_initial_values)
+    initial_state = initial_state + create_sensor_locks(predicates_dict, sensor_initial_locked, uid_to_pddl_variable_sensors)
+
+    initial_state = initial_state + create_actuator_values(predicates_dict, floor_uids, room_uids_per_floor, actuator_room_mapping, uid_to_pddl_variable_actuators, actuator_initial_values)
+
+    # context room occupied
+    assert len(room_occupied_actuator_initial_values) <= len(uid_to_pddl_variable_rooms)
+    initial_state = initial_state + create_room_occupied_values(predicates_dict, room_occupied_actuator_initial_values, floor_uids, room_uids_per_floor, uid_to_pddl_variable_rooms)
 
     return initial_state

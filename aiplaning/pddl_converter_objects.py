@@ -50,10 +50,18 @@ def create_sensors_and_actuators(floor_uids, room_uids_per_floor, sensor_room_ma
         uid_to_pddl_variable_actuators.update({actuator_room_mapping[room][i]:new_actuators[i] for i in range(len(new_actuators))})
     return sensors, actuators, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators
 
-def create_all_obbjects(floor_uids, room_uids_per_floor, elevator_uids, sensor_room_mapping, actuator_room_mapping, cleaning_team_uids, room_positions_uids, sensor_types):
-            # create objects / constants
+def create_all_obbjects(input_dictionary: Dict):
+    # create objects / constants
     all_objects = []
 
+    floor_uids = input_dictionary['floor_uids']
+    room_uids_per_floor = input_dictionary['room_uids_per_floor']
+    elevator_uids = input_dictionary['elevator_uids']
+    sensor_room_mapping = input_dictionary['sensor_room_mapping']
+    actuator_room_mapping = input_dictionary['actuator_room_mapping']
+    cleaning_team_uids = input_dictionary['cleaning_team_uids']
+    room_positions_uids = input_dictionary['names_room_positions']
+    sensor_types = input_dictionary['sensor_types']
     assert 1 <= len(elevator_uids)
 
     floors, rooms, elevators, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_elevators = create_objects_room_topology(floor_uids, room_uids_per_floor, elevator_uids)
