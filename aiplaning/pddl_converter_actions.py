@@ -137,62 +137,47 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
     is_activated = predicates_dict["is_activated"]
     is_locked = predicates_dict["is_locked"]
 
+    params=[sensor_type, actuator_type, room_type, room_position_type]
     # construct compound predicates
-    works_together = lambda s1, p1, r1 : positioned_at(s1, p1) & sensor_is_part_of_room(s1, r1)
+    works_together = lambda s1, p1, r1 : positioned_at(s1, p1) & sensor_is_part_of_room(s1, r1) & ~is_locked(s1)
 
-    turn_on = Action(
-        "turn_on",
-        parameters=[sensor_type, actuator_type, room_type, room_position_type],
-        precondition=~is_locked(sensor_type)
-                    & works_together(sensor_type, room_position_type, room_type)
-                    & actuator_increases_sensor(actuator_type, sensor_type)
-                    & ~is_sensing(sensor_type)
-                    & ~is_activated(actuator_type),
-        effect=is_sensing(sensor_type) & is_activated(actuator_type)
-    )
-    actions_list.append(turn_on)
+    # for binary sensors
+    for turn_to_on, increase in [(True,True),(False,True),(True,False),(False,False)]:
+        action_name = "turn_new"
+        action_name = action_name + ("_on" if turn_to_on else "_off")
+        action_name = action_name + ("_normal" if increase else "_inverted")
+        pre = works_together(sensor_type, room_position_type, room_type)
+        if increase:
+            pre = base.And(pre, actuator_increases_sensor(actuator_type, sensor_type))
+        else:
+            pre = base.And(pre, actuator_decreases_sensor(actuator_type, sensor_type))
+        
+        if turn_to_on:
+            pre = base.And(pre, ~is_sensing(sensor_type))
+            eff = base.And(is_sensing(sensor_type))
+        else:
+            pre = base.And(pre, is_sensing(sensor_type))
+            eff = base.And(~is_sensing(sensor_type))
+        
+        if turn_to_on ^ (not increase):
+            pre = base.And(pre, ~is_activated(actuator_type))
+            eff = base.And(eff, is_activated(actuator_type))
+        else:
+            pre = base.And(pre, is_activated(actuator_type))
+            eff = base.And(eff, ~is_activated(actuator_type))
 
-    turn_off = Action(
-        "turn_off",
-        parameters=[sensor_type, actuator_type, room_type, room_position_type],
-        precondition=~is_locked(sensor_type)
-                    & works_together(sensor_type, room_position_type, room_type)
-                    & actuator_increases_sensor(actuator_type, sensor_type)
-                    & is_sensing(sensor_type)
-                    & is_activated(actuator_type),
-        effect=~is_sensing(sensor_type) & ~is_activated(actuator_type)
-    )
-    actions_list.append(turn_off)
-
-    turn_on_inverted = Action(
-        "turn_on_inverted",
-        parameters=[sensor_type, actuator_type, room_type, room_position_type],
-        precondition=~is_locked(sensor_type)
-                    & works_together(sensor_type, room_position_type, room_type)
-                    & actuator_decreases_sensor(actuator_type, sensor_type)
-                    & ~is_sensing(sensor_type)
-                    & is_activated(actuator_type),
-        effect=is_sensing(sensor_type) & ~is_activated(actuator_type)
-    )
-    actions_list.append(turn_on_inverted)
-
-    turn_off_inverted = Action(
-        "turn_off_inverted",
-        parameters=[sensor_type, actuator_type, room_type, room_position_type],
-        precondition=~is_locked(sensor_type)
-                    & works_together(sensor_type, room_position_type, room_type)
-                    & actuator_decreases_sensor(actuator_type, sensor_type)
-                    & is_sensing(sensor_type)
-                    & ~is_activated(actuator_type),
-        effect=~is_sensing(sensor_type) & is_activated(actuator_type)
-    )
-    actions_list.append(turn_off_inverted)
+        binary_sensor_actuator_change = Action(
+            action_name,
+            parameters=params,
+            precondition=pre,
+            effect=eff
+        )
+        actions_list.append(binary_sensor_actuator_change)
 
     increase_s_by_a_in_r = Action(
         "increase_s_by_a_in_r",
-        parameters=[sensor_type, actuator_type, room_type, room_position_type],
-        precondition=~is_locked(sensor_type)
-                    & works_together(sensor_type, room_position_type, room_type)
+        parameters=params,
+        precondition=works_together(sensor_type, room_position_type, room_type)
                     & actuator_increases_sensor(actuator_type, sensor_type)
                     & is_low(sensor_type)
                     & ~is_activated(actuator_type),
@@ -202,9 +187,8 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
 
     increase_s_by_na_in_r = Action(
         "increase_s_by_na_in_r",
-        parameters=[sensor_type, actuator_type, room_type, room_position_type],
-        precondition=~is_locked(sensor_type)
-                    & works_together(sensor_type, room_position_type, room_type)
+        parameters=params,
+        precondition=works_together(sensor_type, room_position_type, room_type)
                     & actuator_decreases_sensor(actuator_type, sensor_type)
                     & is_low(sensor_type)
                     & is_activated(actuator_type),
@@ -214,9 +198,8 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
 
     decrease_s_by_a_in_r = Action(
         "decrease_s_by_a_in_r",
-        parameters=[sensor_type, actuator_type, room_type, room_position_type],
-        precondition=~is_locked(sensor_type)
-                    & works_together(sensor_type, room_position_type, room_type)
+        parameters=params,
+        precondition=works_together(sensor_type, room_position_type, room_type)
                     & actuator_decreases_sensor(actuator_type, sensor_type)
                     & is_high(sensor_type)
                     & ~is_activated(actuator_type),
@@ -226,9 +209,8 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
 
     decrease_s_by_na_in_r = Action(
         "decrease_s_by_na_in_r",
-        parameters=[sensor_type, actuator_type, room_type, room_position_type],
-        precondition=~is_locked(sensor_type)
-                    & works_together(sensor_type, room_position_type, room_type)
+        parameters=params,
+        precondition=works_together(sensor_type, room_position_type, room_type)
                     & actuator_increases_sensor(actuator_type, sensor_type)
                     & is_high(sensor_type)
                     & is_activated(actuator_type),
