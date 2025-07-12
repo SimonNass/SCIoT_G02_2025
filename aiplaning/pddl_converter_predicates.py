@@ -5,8 +5,7 @@
 from typing import List, Dict
 from pddl.logic import Predicate, variables
 
-def create_predicates_variables(pddl_variable_types: Dict[str,List[variables]], activity_names: List[str]):
-    # define predicates
+def create_predicates_variables_topology(pddl_variable_types: Dict[str,List[variables]]):
     predicates_dict = {}
 
     floor_type = pddl_variable_types["floor"][0]
@@ -14,10 +13,8 @@ def create_predicates_variables(pddl_variable_types: Dict[str,List[variables]], 
     room2_type = pddl_variable_types["room"][1]
     room_position_type = pddl_variable_types["room_position"][0]
     iot_type = pddl_variable_types["iot"][0]
-    cleaning_team_type = pddl_variable_types["cleaning_team"][0]
     sensor_type = pddl_variable_types["sensor"][0]
     actuator_type = pddl_variable_types["actuator"][0]
-    numerical_s_type = pddl_variable_types["numerical_s"][0]
 
     # topology
     room_is_part_of_floor = Predicate("room_is_part_of_floor", room_type, floor_type)
@@ -39,10 +36,16 @@ def create_predicates_variables(pddl_variable_types: Dict[str,List[variables]], 
     is_next_to = Predicate("is_next_to", room_type, room2_type)
     predicates_dict.update({"is_next_to":is_next_to})
 
+    return predicates_dict
+
+def create_predicates_variables_meta_context(pddl_variable_types: Dict[str,List[variables]]):
+    predicates_dict = {}
+
+    room_type = pddl_variable_types["room"][0]
+    cleaning_team_type = pddl_variable_types["cleaning_team"][0]
+
     is_at = Predicate("is_at", cleaning_team_type, room_type)
     predicates_dict.update({"is_at":is_at})
-
-    # meta context
 
     is_occupied = Predicate("is_occupied", room_type)
     predicates_dict.update({"is_occupied":is_occupied})
@@ -53,7 +56,14 @@ def create_predicates_variables(pddl_variable_types: Dict[str,List[variables]], 
     is_cleaned = Predicate("is_cleaned", room_type)
     predicates_dict.update({"is_cleaned":is_cleaned})
 
-    # activity
+    return predicates_dict
+
+def create_predicates_variables_activitys(pddl_variable_types: Dict[str,List[variables]], activity_names: List[str]):
+    predicates_dict = {}
+
+    room_type = pddl_variable_types["room"][0]
+    room_position_type = pddl_variable_types["room_position"][0]
+
     for activity in activity_names:
         is_doing_a_at = Predicate(f"is_doing_{activity}_at", room_type, room_position_type)
         predicates_dict.update({f"is_doing_{activity}_at":is_doing_a_at})
@@ -73,7 +83,14 @@ def create_predicates_variables(pddl_variable_types: Dict[str,List[variables]], 
     fulfilled_activitys = Predicate("fulfilled_activitys", room_type, room_position_type)
     predicates_dict.update({"fulfilled_activitys":fulfilled_activitys})
 
-    # sensors
+    return predicates_dict
+
+def create_predicates_variables_sensors(pddl_variable_types: Dict[str,List[variables]]):
+    predicates_dict = {}
+
+    sensor_type = pddl_variable_types["sensor"][0]
+    numerical_s_type = pddl_variable_types["numerical_s"][0]
+
     is_locked = Predicate("is_locked", sensor_type)
     predicates_dict.update({"is_locked":is_locked})
 
@@ -87,11 +104,28 @@ def create_predicates_variables(pddl_variable_types: Dict[str,List[variables]], 
     is_high = Predicate("is_high", numerical_s_type)
     predicates_dict.update({"is_high":is_high})
 
-    # actuators
+    return predicates_dict
+
+def create_predicates_variables_actuators(pddl_variable_types: Dict[str,List[variables]]):
+    predicates_dict = {}
+
+    actuator_type = pddl_variable_types["actuator"][0]
+
     is_activated = Predicate("is_activated", actuator_type)
     predicates_dict.update({"is_activated":is_activated})
     is_changed = Predicate("is_changed", actuator_type)
     predicates_dict.update({"is_changed":is_changed})
 
+    return predicates_dict
+
+def create_predicates_variables(pddl_variable_types: Dict[str,List[variables]], activity_names: List[str]):
+    # define predicates
+    predicates_dict = {}
+
+    predicates_dict.update(create_predicates_variables_topology(pddl_variable_types))
+    predicates_dict.update(create_predicates_variables_meta_context(pddl_variable_types))
+    predicates_dict.update(create_predicates_variables_activitys(pddl_variable_types, activity_names))
+    predicates_dict.update(create_predicates_variables_sensors(pddl_variable_types))
+    predicates_dict.update(create_predicates_variables_actuators(pddl_variable_types))
 
     return predicates_dict
