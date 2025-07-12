@@ -118,13 +118,12 @@ def create_assign_actions(predicates_dict: Dict[str,variables], pddl_variable_ty
 
     return actions_list
 
-def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
+def create_actuator_actions_binary_sensors(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
     actions_list = []
 
     room_type = pddl_variable_types["room"][0]
     room_position_type = pddl_variable_types["room_position"][0]
     binary_s_type = pddl_variable_types["binary_s"][0]
-    numerical_s_type = pddl_variable_types["numerical_s"][0]
     actuator_type = pddl_variable_types["actuator"][0]
 
     sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
@@ -202,6 +201,27 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
         )
         actions_list.append(binary_sensor_actuator_change)
 
+    return actions_list
+
+def create_actuator_actions_numerical_sensors(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
+    actions_list = []
+
+    room_type = pddl_variable_types["room"][0]
+    room_position_type = pddl_variable_types["room_position"][0]
+    numerical_s_type = pddl_variable_types["numerical_s"][0]
+    actuator_type = pddl_variable_types["actuator"][0]
+
+    sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
+    positioned_at = predicates_dict["positioned_at"]
+    actuator_increases_sensor = predicates_dict["actuator_increases_sensor"]
+    actuator_decreases_sensor = predicates_dict["actuator_decreases_sensor"]
+    is_activated = predicates_dict["is_activated"]
+    is_changed = predicates_dict["is_changed"]
+    is_locked = predicates_dict["is_locked"]
+
+    # construct compound predicates
+    works_together = lambda s1, p1, r1 : positioned_at(s1, p1) & sensor_is_part_of_room(s1, r1) & ~is_locked(s1)
+
     # for numerical sensors
     params_numerical=[numerical_s_type, actuator_type, room_type, room_position_type]
     sensor_buckets_sortet = ['is_low','is_ok','is_high']
@@ -271,6 +291,14 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
                 effect=eff
             )
             actions_list.append(numerical_sensor_actuator_change)
+
+    remove_actuator_change_flag = Action(
+        "remove_actuator_change_flag",
+        parameters=[actuator_type],
+        precondition=is_changed(actuator_type),
+        effect=base.Not(is_changed(actuator_type))
+    )
+    actions_list.append(remove_actuator_change_flag)
 
     return actions_list
 
