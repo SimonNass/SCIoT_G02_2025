@@ -3,11 +3,14 @@
 
 # pip install pddl==0.4.3
 from typing import Dict, List
-from pddl.logic import constants, base
+from pddl.logic import variables, constants, base
 import pddl_converter_help
 
-def create_initial_state_room_topology(room_is_part_of_floor, is_next_to, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms):
+def create_initial_state_room_topology(predicates_dict: Dict[str,variables], floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms):
     initial_state = []
+
+    room_is_part_of_floor = predicates_dict["room_is_part_of_floor"]
+    is_next_to = predicates_dict["is_next_to"]
 
     # assigns each rooms to one floor they are a part of
     for floor in floor_uids:
@@ -29,8 +32,14 @@ def create_initial_state_room_topology(room_is_part_of_floor, is_next_to, floor_
 
     return initial_state
 
-def create_initial_state_elevator_topology(room_is_part_of_floor, is_next_to, is_cleaned, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_elevators: Dict, uid_to_pddl_variable_room_positions: Dict, checked_all_activitys, fulfilled_activitys):
+def create_initial_state_elevator_topology(predicates_dict: Dict[str,variables], floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_elevators: Dict, uid_to_pddl_variable_room_positions: Dict):
     initial_state = []
+
+    room_is_part_of_floor = predicates_dict["room_is_part_of_floor"]
+    is_next_to = predicates_dict["is_next_to"]
+    is_cleaned = predicates_dict["is_cleaned"]
+    checked_all_activitys = predicates_dict["checked_all_activitys"]
+    fulfilled_activitys = predicates_dict["fulfilled_activitys"]
 
     for i, elevator in enumerate(uid_to_pddl_variable_elevators.values()):
         for floor in floor_uids:
@@ -59,8 +68,10 @@ def create_initial_state_elevator_topology(room_is_part_of_floor, is_next_to, is
 
     return initial_state
 
-def create_cleaning_teams_starting_position(uid_to_pddl_variable_cleaning_teams: Dict, uid_to_pddl_variable_elevators: Dict, is_at):
+def create_cleaning_teams_starting_position(predicates_dict: Dict[str,variables], uid_to_pddl_variable_cleaning_teams: Dict, uid_to_pddl_variable_elevators: Dict):
     initial_state = []
+
+    is_at = predicates_dict["is_at"]
 
     cleaning_teams = list(uid_to_pddl_variable_cleaning_teams.values())
     elevators = list(uid_to_pddl_variable_elevators.values())
@@ -84,10 +95,12 @@ def create_iot_room_mapping(floor_uids: List[str], room_uids_per_floor:Dict[str,
 
     return initial_state
 
-def create_iot_position_mapping(uid_to_pddl_variable_room_positions, uid_to_pddl_variable_sensors: Dict, uid_to_pddl_variable_actuators: Dict, positioned_at):
+def create_iot_position_mapping(predicates_dict: Dict[str,variables], uid_to_pddl_variable_room_positions, uid_to_pddl_variable_sensors: Dict, uid_to_pddl_variable_actuators: Dict):
     initial_state = []
 
-    # TODO
+    positioned_at = predicates_dict["positioned_at"]
+
+    # TODO map input positions
     room_positions_default = list(uid_to_pddl_variable_room_positions.values())[0]
     for sensor_object in uid_to_pddl_variable_sensors.values():
         next_pos = positioned_at(sensor_object, room_positions_default)
@@ -99,8 +112,11 @@ def create_iot_position_mapping(uid_to_pddl_variable_room_positions, uid_to_pddl
 
     return initial_state
 
-def create_iot_influences_iot_mapping(actuator_increases_sensor_mapping_matrix, actuator_decreases_sensor_mapping_matrix, uid_to_pddl_variable_actuators, uid_to_pddl_variable_sensors, actuator_increases_sensor, actuator_decreases_sensor):
+def create_iot_influences_iot_mapping(predicates_dict: Dict[str,variables], actuator_increases_sensor_mapping_matrix, actuator_decreases_sensor_mapping_matrix, uid_to_pddl_variable_actuators, uid_to_pddl_variable_sensors):
     initial_state = []
+
+    actuator_increases_sensor = predicates_dict["actuator_increases_sensor"]
+    actuator_decreases_sensor = predicates_dict["actuator_decreases_sensor"]
 
     assert len(actuator_increases_sensor_mapping_matrix.keys()) <= len(uid_to_pddl_variable_actuators)
     for _, sensor_list_mapping in actuator_increases_sensor_mapping_matrix.items():
@@ -120,8 +136,12 @@ def create_iot_influences_iot_mapping(actuator_increases_sensor_mapping_matrix, 
 
     return initial_state
 
-def create_sensor_values(is_high, is_ok, is_low, floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], sensor_room_mapping:Dict[str,List[str]], uid_to_pddl_variable_sensors: Dict[str,constants], sensor_initial_values: List[int]):
+def create_sensor_values(predicates_dict: Dict[str,variables], floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], sensor_room_mapping:Dict[str,List[str]], uid_to_pddl_variable_sensors: Dict[str,constants], sensor_initial_values: List[int]):
     state_list = []
+
+    is_low = predicates_dict["is_low"]
+    is_ok = predicates_dict["is_ok"]
+    is_high = predicates_dict["is_high"]
 
     for room in pddl_converter_help.iterator_ofer_dict_list_elements(floor_uids,room_uids_per_floor):
         if room not in sensor_room_mapping:
@@ -142,8 +162,10 @@ def create_sensor_values(is_high, is_ok, is_low, floor_uids: List[str], room_uid
 
     return state_list
 
-def create_sensor_locks(sensor_initial_locked: List[str], is_locked, uid_to_pddl_variable_sensors: Dict[str,constants]):
+def create_sensor_locks(predicates_dict: Dict[str,variables], sensor_initial_locked: List[str], uid_to_pddl_variable_sensors: Dict[str,constants]):
     state_list = []
+
+    is_locked = predicates_dict["is_locked"]
 
     for s in sensor_initial_locked:
         sensor_object = uid_to_pddl_variable_sensors[s]
@@ -152,8 +174,10 @@ def create_sensor_locks(sensor_initial_locked: List[str], is_locked, uid_to_pddl
 
     return state_list
 
-def create_actuator_values(is_activated, floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], actuator_room_mapping:Dict[str,List[str]], uid_to_pddl_variable_actuators: Dict[str,constants], actuator_initial_values: List[int]):
+def create_actuator_values(predicates_dict: Dict[str,variables], floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], actuator_room_mapping:Dict[str,List[str]], uid_to_pddl_variable_actuators: Dict[str,constants], actuator_initial_values: List[int]):
     initial_state = []
+
+    is_activated = predicates_dict["is_activated"]
 
     for room in pddl_converter_help.iterator_ofer_dict_list_elements(floor_uids,room_uids_per_floor):
         if room not in actuator_room_mapping:
@@ -170,8 +194,10 @@ def create_actuator_values(is_activated, floor_uids: List[str], room_uids_per_fl
 
     return initial_state
 
-def create_room_occupied_values(is_occupied, room_occupied_actuator_initial_values, floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], uid_to_pddl_variable_rooms):
+def create_room_occupied_values(predicates_dict: Dict[str,variables], room_occupied_actuator_initial_values, floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], uid_to_pddl_variable_rooms):
     initial_state = []
+
+    is_occupied = predicates_dict["is_occupied"]
 
     for room in pddl_converter_help.iterator_ofer_dict_list_elements(floor_uids,room_uids_per_floor):
         object_state = room_occupied_actuator_initial_values[room]
