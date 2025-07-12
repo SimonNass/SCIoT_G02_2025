@@ -415,16 +415,16 @@ def create_activity_fulfilled_action_x(predicates_dict: Dict[str,variables], pdd
     is_locked: variables = predicates_dict["is_locked"]
     checked_all_activitys: variables = predicates_dict["checked_all_activitys"]
 
-    precondition_to_fulfill_activity = lambda s1, r1, p1 : (base.And(positioned_at(s1, p1),
-                                                                     sensor_is_part_of_room(s1, r1)))
-
     param = [room_type, room_position_type]
     for sensor_type_x in sensor_type_x_dict.keys():
         param.append(pddl_variable_types[sensor_type_x][0])
 
     pre = base.And(checked_all_activitys(room_type, room_position_type), predicates_dict[f"is_doing_{activity_name}_at"](room_type, room_position_type), base.Not(predicates_dict[f"fulfilled_activity_{activity_name}"](room_type, room_position_type)))
     for sensor_type_x, expected_value in sensor_type_x_dict.items():
-        pre = base.And(pre, precondition_to_fulfill_activity(pddl_variable_types[sensor_type_x][0], room_type, room_position_type), predicates_dict[expected_value](pddl_variable_types[sensor_type_x][0]))
+        sensor_object_type = pddl_variable_types[sensor_type_x][0]
+        pre = base.And(pre, positioned_at(sensor_object_type, room_position_type))
+        pre = base.And(pre, sensor_is_part_of_room(sensor_object_type, room_type))
+        pre = base.And(pre, predicates_dict[expected_value](sensor_object_type))
 
     eff = predicates_dict[f"fulfilled_activity_{activity_name}"](room_type, room_position_type)
     for sensor_type_x in sensor_type_x_dict.keys():
