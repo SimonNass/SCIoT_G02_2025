@@ -2,11 +2,22 @@
 """Module specifies the predicates of a pddl domain file."""
 
 # pip install pddl==0.4.3
-from pddl.logic import Predicate
+from typing import List, Dict
+from pddl.logic import Predicate, variables
 
-def create_predicates_variables(floor_type, room_type, room2_type, room_position_type, cleaning_team_type, iot_type, sensor_type, actuator_type, numerical_s_type):
+def create_predicates_variables(pddl_variable_types: Dict[str,List[variables]], activity_names: List[str]):
     # define predicates
     predicates_dict = {}
+
+    floor_type = pddl_variable_types["floor"][0]
+    room_type = pddl_variable_types["room"][0]
+    room2_type = pddl_variable_types["room"][1]
+    room_position_type = pddl_variable_types["room_position"][0]
+    iot_type = pddl_variable_types["iot"][0]
+    cleaning_team_type = pddl_variable_types["cleaning_team"][0]
+    sensor_type = pddl_variable_types["sensor"][0]
+    actuator_type = pddl_variable_types["actuator"][0]
+    numerical_s_type = pddl_variable_types["numerical_s"][0]
 
     # topology
     room_is_part_of_floor = Predicate("room_is_part_of_floor", room_type, floor_type)
@@ -43,24 +54,17 @@ def create_predicates_variables(floor_type, room_type, room2_type, room_position
     predicates_dict.update({"is_cleaned":is_cleaned})
 
     # activity
-    activity_names = ['read','sleep','bath']
-    is_doing_activitys_at = {}
     for activity in activity_names:
         is_doing_a_at = Predicate(f"is_doing_{activity}_at", room_type, room_position_type)
-        is_doing_activitys_at.update({f"{activity}":is_doing_a_at})
         predicates_dict.update({f"is_doing_{activity}_at":is_doing_a_at})
 
     # force checks predicate
-    checked_activity_x = {}
     for activity in activity_names:
         checked_a = Predicate(f"checked_activity_{activity}", room_type, room_position_type)
-        checked_activity_x.update({f"{activity}":checked_a})
         predicates_dict.update({f"checked_activity_{activity}":checked_a})
 
-    fulfilled_activity_x = {}
     for activity in activity_names:
         fulfilled_a = Predicate(f"fulfilled_activity_{activity}", room_type, room_position_type)
-        fulfilled_activity_x.update({f"{activity}":fulfilled_a})
         predicates_dict.update({f"fulfilled_activity_{activity}":fulfilled_a})
 
     checked_all_activitys = Predicate("checked_activitys", room_type, room_position_type)
@@ -90,4 +94,4 @@ def create_predicates_variables(floor_type, room_type, room2_type, room_position
     predicates_dict.update({"is_changed":is_changed})
 
 
-    return predicates_dict, activity_names, is_doing_activitys_at, checked_activity_x, fulfilled_activity_x
+    return predicates_dict

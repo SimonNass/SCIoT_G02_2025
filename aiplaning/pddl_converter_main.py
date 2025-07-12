@@ -46,17 +46,10 @@ def create():
 
     # set up variables and constants
     pddl_variable_types = pddl_converter_types.create_type_variables()
-    floor_type = pddl_variable_types["floor"][0]
-    room_type = pddl_variable_types["room"][0]
-    room2_type = pddl_variable_types["room"][1]
-    room_position_type = pddl_variable_types["room_position"][0]
-    iot_type = pddl_variable_types["iot"][0]
-    cleaning_team_type = pddl_variable_types["cleaning_team"][0]
-    sensor_type = pddl_variable_types["sensor"][0]
-    actuator_type = pddl_variable_types["actuator"][0]
-    numerical_s_type = pddl_variable_types["numerical_s"][0]
 
-    predicates_dict, activity_names, is_doing_activitys_at, checked_activity_x, fulfilled_activity_x = pddl_converter_predicates.create_predicates_variables(floor_type, room_type, room2_type, room_position_type, cleaning_team_type, iot_type, sensor_type, actuator_type, numerical_s_type)
+    activity_mapping: Dict[str,Dict[str,str]] = input_dictionary['activity_mapping']
+
+    predicates_dict = pddl_converter_predicates.create_predicates_variables(pddl_variable_types, activity_mapping.keys())
 
     room_is_part_of_floor = predicates_dict["room_is_part_of_floor"]
     sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
@@ -78,7 +71,7 @@ def create():
     checked_all_activitys = predicates_dict["checked_all_activitys"]
     fulfilled_activitys = predicates_dict["fulfilled_activitys"]
 
-    domain = create_domain(input_dictionary['domain_name'], predicates_dict, pddl_variable_types, input_dictionary['activity_mapping'])
+    domain = create_domain(input_dictionary['domain_name'], predicates_dict, pddl_variable_types, activity_mapping)
 
     floor_uids = input_dictionary['floor_uids']
     room_uids_per_floor = input_dictionary['room_uids_per_floor']
