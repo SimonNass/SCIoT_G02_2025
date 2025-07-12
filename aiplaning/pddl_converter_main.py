@@ -96,6 +96,7 @@ def create():
     sensor_initial_values = input_dictionary['sensor_initial_values']
     # TODO
     sensor_goal_values = input_dictionary['sensor_goal_values']
+    sensor_initial_locked = input_dictionary['sensor_initial_locked']
     actuator_initial_values = input_dictionary['actuator_initial_values']
     room_occupied_actuator_initial_values = input_dictionary['room_occupied_actuator_initial_values']
 
@@ -123,6 +124,7 @@ def create():
     assert len(actuator_initial_values) <= len(uid_to_pddl_variable_actuators)
 
     initial_state = initial_state + pddl_converter_initial_state.create_sensor_values(is_high, is_ok, is_low, floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_initial_values)
+    initial_state = initial_state + pddl_converter_initial_state.create_sensor_locks(sensor_initial_locked, is_locked, uid_to_pddl_variable_sensors)
     individual_sensor_goals = pddl_converter_initial_state.create_sensor_values(is_high, is_ok, is_low, floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_goal_values)
     initial_state = initial_state + pddl_converter_initial_state.create_actuator_values(is_activated, floor_uids, room_uids_per_floor, actuator_room_mapping, uid_to_pddl_variable_actuators, actuator_initial_values)
 

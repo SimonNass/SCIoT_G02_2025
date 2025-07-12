@@ -142,6 +142,16 @@ def create_sensor_values(is_high, is_ok, is_low, floor_uids: List[str], room_uid
 
     return state_list
 
+def create_sensor_locks(sensor_initial_locked: List[str], is_locked, uid_to_pddl_variable_sensors: Dict[str,constants]):
+    state_list = []
+
+    for s in sensor_initial_locked:
+        sensor_object = uid_to_pddl_variable_sensors[s]
+        state = is_locked(sensor_object)
+        state_list.append(state)
+
+    return state_list
+
 def create_actuator_values(is_activated, floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], actuator_room_mapping:Dict[str,List[str]], uid_to_pddl_variable_actuators: Dict[str,constants], actuator_initial_values: List[int]):
     initial_state = []
 

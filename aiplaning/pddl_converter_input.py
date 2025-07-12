@@ -20,7 +20,7 @@ def query_input():
     names_room_positions = ['overall_room']
     #['overall_room', 'bed', 'closet', 'window']
 
-    sensor_room_mapping = {'r0':['s1'], 'r2':['s2'], 'r3':['s3']}
+    sensor_room_mapping = {'r0':['s1'], 'r2':['s2'], 'r3':['s3', 's4']}
     actuator_room_mapping = {'r0':['a1'], 'r2':['a2']}
     #for floor in floor_uids:
     #    for room in room_uids_per_floor[floor]:
@@ -35,7 +35,7 @@ def query_input():
     #        sensor_room_mapping.update({room:sensor_uids})
     #        actuator_room_mapping.update({room:actuator_uids})
 
-    sensor_types = {'s1':'light_s', 's2':'humidity_s', 's3':'temperature_s'}
+    sensor_types = {'s1':'light_s', 's2':'humidity_s', 's3':'temperature_s', 's4':'temperature_s'}
 
     # TODO get info from db
     actuator_increases_sensor_mapping_matrix = {'a1':['s1','s2'], 'a2':['s2']}
@@ -53,13 +53,16 @@ def query_input():
     #            curent_value = db.request_current_value_hierarchical(floor,room,device)
     #            sensor_initial_values.update({device:curent_value})
 
-    # TODO add list of locked sensors
+    sensor_initial_locked = ['s4']
 
     sensor_goal_state_mapping = {'temperature_s':'is_ok', 
+                                 'humidity_s':'is_ok', 
+                                 'window_rotation_s':'is_low', 
                                  'light_s':'is_high', 
                                  'sound_s':'is_ok'
                                  }
     
+    # TODO make 'requests_service':{'button_s':'is_sensing' -> request text displayed
     # TODO fine tune sensor ideal position for the activitys
     activity_mapping = {'bath':{'temperature_s':'is_ok'},
                         'read':{'temperature_s':'is_ok', 'light_s':'is_high', 'sound_s':'is_ok'},
@@ -88,6 +91,7 @@ def query_input():
             'actuator_decreases_sensor_mapping_matrix':actuator_decreases_sensor_mapping_matrix,
 
             'sensor_initial_values':sensor_initial_values,
+            'sensor_initial_locked':sensor_initial_locked,
             'sensor_goal_values':sensor_goal_values,
             'actuator_initial_values':actuator_initial_values,
 
