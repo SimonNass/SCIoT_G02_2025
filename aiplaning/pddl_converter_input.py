@@ -55,13 +55,13 @@ def query_input():
 
     sensor_initial_locked = ['s4']
 
-    sensor_goal_state_mapping = {'temperature_s':'is_ok', 
-                                 'humidity_s':'is_ok', 
-                                 'window_rotation_s':'is_low', 
-                                 'light_s':'is_high', 
+    sensor_goal_state_mapping = {'temperature_s':'is_ok',
+                                 'humidity_s':'is_ok',
+                                 'window_rotation_s':'is_low',
+                                 'light_s':'is_high',
                                  'sound_s':'is_ok'
                                  }
-    
+
     # TODO make 'requests_service':{'button_s':'is_sensing' -> request text displayed
     # TODO fine tune sensor ideal position for the activitys
     activity_mapping = {'bath':{'temperature_s':'is_ok'},

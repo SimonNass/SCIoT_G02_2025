@@ -62,7 +62,7 @@ def create_predicates_variables(floor_type, room_type, room2_type, room_position
         fulfilled_a = Predicate(f"fulfilled_activity_{activity}", room_type, room_position_type)
         fulfilled_activity_x.update({f"{activity}":fulfilled_a})
         predicates_dict.update({f"fulfilled_activity_{activity}":fulfilled_a})
-    
+
     checked_all_activitys = Predicate("checked_activitys", room_type, room_position_type)
     predicates_dict.update({"checked_all_activitys":checked_all_activitys})
 

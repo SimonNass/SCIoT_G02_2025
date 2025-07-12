@@ -90,7 +90,7 @@ def create():
 
     actuator_increases_sensor_mapping_matrix = input_dictionary['actuator_increases_sensor_mapping_matrix']
     actuator_decreases_sensor_mapping_matrix = input_dictionary['actuator_decreases_sensor_mapping_matrix']
-    
+
     sensor_types = input_dictionary['sensor_types']
 
     sensor_initial_values = input_dictionary['sensor_initial_values']
@@ -105,7 +105,7 @@ def create():
     # create initial state
     initial_state = []
 
-    initial_state = initial_state + pddl_converter_initial_state.create_initial_state_room_topology(room_is_part_of_floor, is_next_to, is_cleaned, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_elevators)
+    initial_state = initial_state + pddl_converter_initial_state.create_initial_state_room_topology(room_is_part_of_floor, is_next_to, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms)
     initial_state = initial_state + pddl_converter_initial_state.create_initial_state_elevator_topology(room_is_part_of_floor, is_next_to, is_cleaned, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_elevators, uid_to_pddl_variable_room_positions, checked_all_activitys, fulfilled_activitys)
 
     initial_state = initial_state + pddl_converter_initial_state.create_cleaning_teams_starting_position(uid_to_pddl_variable_cleaning_teams, uid_to_pddl_variable_elevators, is_at)

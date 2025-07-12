@@ -6,7 +6,7 @@ from typing import Dict, List
 from pddl.logic import constants, base
 import pddl_converter_help
 
-def create_initial_state_room_topology(room_is_part_of_floor, is_next_to, is_cleaned, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_elevators: Dict):
+def create_initial_state_room_topology(room_is_part_of_floor, is_next_to, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms):
     initial_state = []
 
     # assigns each rooms to one floor they are a part of

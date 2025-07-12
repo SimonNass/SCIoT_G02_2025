@@ -201,7 +201,7 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
             effect=eff
         )
         actions_list.append(binary_sensor_actuator_change)
-        
+
     # for numerical sensors
     params_numerical=[numerical_s_type, actuator_type, room_type, room_position_type]
     sensor_buckets_sortet = ['is_low','is_ok','is_high']
@@ -305,7 +305,7 @@ def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl
         "detect_activity_sleep",
         parameters=[binary_s_type, room_type, room_position_type],
         precondition=is_sensing(binary_s_type)
-                    & positioned_at(binary_s_type, room_position_type) 
+                    & positioned_at(binary_s_type, room_position_type)
                     & sensor_is_part_of_room(binary_s_type, room_type)
                     & ~checked_activity_sleep(room_type, room_position_type),
         effect=checked_activity_sleep(room_type, room_position_type) & is_doing_sleep_at(room_type, room_position_type) & ~fulfilled_activity_sleep(room_type, room_position_type)
@@ -316,7 +316,7 @@ def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl
         "detect_no_activity_sleep",
         parameters=[binary_s_type, room_type, room_position_type],
         precondition=~is_sensing(binary_s_type)
-                    & positioned_at(binary_s_type, room_position_type) 
+                    & positioned_at(binary_s_type, room_position_type)
                     & sensor_is_part_of_room(binary_s_type, room_type)
                     & ~checked_activity_sleep(room_type, room_position_type),
         effect=checked_activity_sleep(room_type, room_position_type) & ~is_doing_sleep_at(room_type, room_position_type) & ~fulfilled_activity_sleep(room_type, room_position_type)
@@ -326,7 +326,7 @@ def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl
     detect_no_possible_activity_sleep = Action(
         "detect_no_possible_activity_sleep",
         parameters=[room_type, room_position_type],
-        precondition=base.Not(base.ExistsCondition(positioned_at(binary_s_type, room_position_type) 
+        precondition=base.Not(base.ExistsCondition(positioned_at(binary_s_type, room_position_type)
                                                     & sensor_is_part_of_room(binary_s_type, room_type), [binary_s_type]))
                     & ~checked_activity_sleep(room_type, room_position_type),
         effect=checked_activity_sleep(room_type, room_position_type) & ~is_doing_sleep_at(room_type, room_position_type) & ~fulfilled_activity_sleep(room_type, room_position_type)
@@ -337,7 +337,7 @@ def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl
         "detect_activity_read",
         parameters=[binary_s_type, room_type, room_position_type],
         precondition=is_sensing(binary_s_type)
-                    & positioned_at(binary_s_type, room_position_type) 
+                    & positioned_at(binary_s_type, room_position_type)
                     & sensor_is_part_of_room(binary_s_type, room_type)
                     & ~checked_activity_read(room_type, room_position_type),
         effect=checked_activity_read(room_type, room_position_type) & is_doing_read_at(room_type, room_position_type) & ~fulfilled_activity_read(room_type, room_position_type)
@@ -348,7 +348,7 @@ def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl
         "detect_no_activity_read",
         parameters=[binary_s_type, room_type, room_position_type],
         precondition=~is_sensing(binary_s_type)
-                    & positioned_at(binary_s_type, room_position_type) 
+                    & positioned_at(binary_s_type, room_position_type)
                     & sensor_is_part_of_room(binary_s_type, room_type)
                     & ~checked_activity_read(room_type, room_position_type),
         effect=checked_activity_read(room_type, room_position_type) & ~is_doing_read_at(room_type, room_position_type) & ~fulfilled_activity_read(room_type, room_position_type)
@@ -358,7 +358,7 @@ def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl
     detect_no_possible_activity_read = Action(
         "detect_no_possible_activity_read",
         parameters=[room_type, room_position_type],
-        precondition=base.Not(base.ExistsCondition(positioned_at(binary_s_type, room_position_type) 
+        precondition=base.Not(base.ExistsCondition(positioned_at(binary_s_type, room_position_type)
                                                     & sensor_is_part_of_room(binary_s_type, room_type), [binary_s_type]))
                     & ~checked_activity_read(room_type, room_position_type),
         effect=checked_activity_read(room_type, room_position_type) & ~is_doing_read_at(room_type, room_position_type) & ~fulfilled_activity_read(room_type, room_position_type)
@@ -387,7 +387,7 @@ def create_activity_fulfilled_action_x(predicates_dict: Dict[str,variables], pdd
     is_locked: variables = predicates_dict["is_locked"]
     checked_all_activitys: variables = predicates_dict["checked_all_activitys"]
 
-    precondition_to_fulfill_activity = lambda s1, r1, p1 : (base.And(positioned_at(s1, p1), 
+    precondition_to_fulfill_activity = lambda s1, r1, p1 : (base.And(positioned_at(s1, p1),
                                                                      sensor_is_part_of_room(s1, r1)))
 
     param = [room_type, room_position_type]
@@ -397,7 +397,7 @@ def create_activity_fulfilled_action_x(predicates_dict: Dict[str,variables], pdd
     pre = base.And(checked_all_activitys(room_type, room_position_type), predicates_dict[f"is_doing_{activity_name}_at"](room_type, room_position_type), base.Not(predicates_dict[f"fulfilled_activity_{activity_name}"](room_type, room_position_type)))
     for sensor_type_x, expected_value in sensor_type_x_dict.items():
         pre = base.And(pre, precondition_to_fulfill_activity(pddl_variable_types[sensor_type_x][0], room_type, room_position_type), predicates_dict[expected_value](pddl_variable_types[sensor_type_x][0]))
-    
+
     eff = predicates_dict[f"fulfilled_activity_{activity_name}"](room_type, room_position_type)
     for sensor_type_x in sensor_type_x_dict.keys():
         eff = base.And(eff, is_locked(pddl_variable_types[sensor_type_x][0]))

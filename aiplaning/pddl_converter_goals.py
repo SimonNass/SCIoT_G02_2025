@@ -2,8 +2,8 @@
 """Module specifies the goal state of a pddl problem file."""
 
 # pip install pddl==0.4.3
-from pddl.logic import base, variables
 from typing import List, Dict
+from pddl.logic import base, variables
 
 def create_goal(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], sensor_goal_state_mapping: Dict[str,str], plan_cleaning: bool = True):
 
@@ -16,7 +16,7 @@ def create_goal(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[
     is_occupied = predicates_dict["is_occupied"]
     sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
     actuator_is_part_of_room = predicates_dict["actuator_is_part_of_room"]
-    
+
     is_locked = predicates_dict["is_locked"]
     checked_all_activitys = predicates_dict["checked_all_activitys"]
     fulfilled_activitys = predicates_dict["fulfilled_activitys"]
