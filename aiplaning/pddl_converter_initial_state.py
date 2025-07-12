@@ -2,7 +2,7 @@
 """Module specifies the initial state of a pddl problem file."""
 
 # pip install pddl==0.4.3
-from typing import Any, Dict, List
+from typing import Dict, List
 from pddl.logic import variables, constants, base
 import pddl_converter_help
 
@@ -228,7 +228,7 @@ def create_initial_state(predicates_dict: Dict[str,variables], input_dictionary:
     sensor_initial_locked = input_dictionary['sensor_initial_locked']
     actuator_initial_values = input_dictionary['actuator_initial_values']
     room_occupied_actuator_initial_values = input_dictionary['room_occupied_actuator_initial_values']
-    
+
     initial_state = initial_state + create_initial_state_room_topology(predicates_dict, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms)
     initial_state = initial_state + create_initial_state_elevator_topology(predicates_dict, floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_elevators, uid_to_pddl_variable_room_positions)
 
@@ -242,10 +242,10 @@ def create_initial_state(predicates_dict: Dict[str,variables], input_dictionary:
     initial_state = initial_state + create_iot_position_mapping(predicates_dict, uid_to_pddl_variable_room_positions, uid_to_pddl_variable_sensors, uid_to_pddl_variable_actuators)
 
     initial_state = initial_state + create_iot_influences_iot_mapping(predicates_dict, actuator_increases_sensor_mapping_matrix, actuator_decreases_sensor_mapping_matrix, uid_to_pddl_variable_actuators, uid_to_pddl_variable_sensors)
-    
+
     assert len(sensor_initial_values) <= len(uid_to_pddl_variable_sensors)
     assert len(actuator_initial_values) <= len(uid_to_pddl_variable_actuators)
-    
+
     initial_state = initial_state + create_sensor_values(predicates_dict, floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_initial_values)
     initial_state = initial_state + create_sensor_locks(predicates_dict, sensor_initial_locked, uid_to_pddl_variable_sensors)
 
