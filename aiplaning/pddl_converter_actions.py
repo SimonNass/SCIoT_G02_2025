@@ -132,9 +132,6 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
     actuator_increases_sensor = predicates_dict["actuator_increases_sensor"]
     actuator_decreases_sensor = predicates_dict["actuator_decreases_sensor"]
     is_sensing = predicates_dict["is_sensing"]
-    is_low = predicates_dict["is_low"]
-    is_ok = predicates_dict["is_ok"]
-    is_high = predicates_dict["is_high"]
     is_activated = predicates_dict["is_activated"]
     is_changed = predicates_dict["is_changed"]
     is_locked = predicates_dict["is_locked"]
@@ -207,9 +204,11 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
         
     # for numerical sensors
     params_numerical=[numerical_s_type, actuator_type, room_type, room_position_type]
-    state_paar = {is_low:is_ok, is_ok:is_high}
+    sensor_buckets_sortet = ['is_low','is_ok','is_high']
 
-    for curent_state, next_state in state_paar.items():
+    for i in range(len(sensor_buckets_sortet) - 1):
+        curent_state = predicates_dict[sensor_buckets_sortet[i]]
+        next_state = predicates_dict[sensor_buckets_sortet[i + 1]]
         for increase, activated_a in [(True,True),(False,True),(True,False),(False,False)]:
             action_name = ("increase" if increase ^ (not activated_a) else "decrease")
             action_name = action_name + "_s_numerical_by"
@@ -240,36 +239,40 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
             )
             actions_list.append(numerical_sensor_actuator_change)
 
-    for curent_state, next_state in state_paar.items():
-        for increase, change_a in [(True,True),(False,True),(True,False),(False,False)]:
-            action_name = ("increase" if increase ^ (not change_a) else "decrease")
-            action_name = action_name + "_s_numerical_by"
-            action_name = action_name + ("_change" if change_a else "_reverse_change")
-            pre = base.And(works_together(numerical_s_type, room_position_type, room_type), is_activated(actuator_type))
-            if increase:
-                pre = base.And(pre, actuator_increases_sensor(actuator_type, numerical_s_type))
-            else:
-                pre = base.And(pre, actuator_decreases_sensor(actuator_type, numerical_s_type))
-            if increase ^ (not change_a):
-                pre = base.And(pre, curent_state(numerical_s_type))
-                eff = base.And(~curent_state(numerical_s_type), next_state(numerical_s_type))
-            else:
-                pre = base.And(pre, next_state(numerical_s_type))
-                eff = base.And(~next_state(numerical_s_type), curent_state(numerical_s_type))
-            if change_a:
-                pre = base.And(pre, ~is_changed(actuator_type))
-                eff = base.And(eff, is_changed(actuator_type))
-            else:
-                pre = base.And(pre, is_changed(actuator_type))
-                eff = base.And(eff, ~is_changed(actuator_type))
+    for distance in range(1,len(sensor_buckets_sortet)):
+        for i in range(len(sensor_buckets_sortet) - distance):
+            curent_state = predicates_dict[sensor_buckets_sortet[i]]
+            next_state = predicates_dict[sensor_buckets_sortet[i + distance]]
+            for increase, change_a in [(True,True),(False,True),(True,False),(False,False)]:
+                action_name = ("increase" if increase ^ (not change_a) else "decrease")
+                action_name = action_name + f"_{distance}_times"
+                action_name = action_name + "_s_numerical_by"
+                action_name = action_name + ("_change" if change_a else "_reverse_change")
+                pre = base.And(works_together(numerical_s_type, room_position_type, room_type), is_activated(actuator_type))
+                if increase:
+                    pre = base.And(pre, actuator_increases_sensor(actuator_type, numerical_s_type))
+                else:
+                    pre = base.And(pre, actuator_decreases_sensor(actuator_type, numerical_s_type))
+                if increase ^ (not change_a):
+                    pre = base.And(pre, curent_state(numerical_s_type))
+                    eff = base.And(~curent_state(numerical_s_type), next_state(numerical_s_type))
+                else:
+                    pre = base.And(pre, next_state(numerical_s_type))
+                    eff = base.And(~next_state(numerical_s_type), curent_state(numerical_s_type))
+                if change_a:
+                    pre = base.And(pre, ~is_changed(actuator_type))
+                    eff = base.And(eff, is_changed(actuator_type))
+                else:
+                    pre = base.And(pre, is_changed(actuator_type))
+                    eff = base.And(eff, ~is_changed(actuator_type))
 
-            numerical_sensor_actuator_change = Action(
-                action_name,
-                parameters=params_numerical,
-                precondition=pre,
-                effect=eff
-            )
-            actions_list.append(numerical_sensor_actuator_change)
+                numerical_sensor_actuator_change = Action(
+                    action_name,
+                    parameters=params_numerical,
+                    precondition=pre,
+                    effect=eff
+                )
+                actions_list.append(numerical_sensor_actuator_change)
 
     return actions_list
 
@@ -468,18 +471,39 @@ def create_energy_saving_actions(predicates_dict: Dict[str,variables], pddl_vari
     is_occupied = predicates_dict["is_occupied"]
     will_become_occupied = predicates_dict["will_become_occupied"]
     is_activated = predicates_dict["is_activated"]
+    is_changed = predicates_dict["is_changed"]
 
+    # TODO these will never trigger since it makes the kost optimisation worse without a benefit the planer can see
     cancel_out_actuator = Action(
-        "cancel_out_actuator",
+        "cancel_out_actuator_off",
         parameters=[sensor_type, actuator_type, actuator2_type, room_type],
         precondition= base.Not(EqualTo(actuator_type, actuator2_type))
                         & sensor_is_part_of_room(sensor_type, room_type)
                         & actuator_increases_sensor(actuator_type, sensor_type)
                         & actuator_decreases_sensor(actuator2_type, sensor_type)
                         & is_activated(actuator_type)
-                        & is_activated(actuator2_type),
-        effect= is_activated(actuator_type)
-                & is_activated(actuator2_type)
+                        & is_activated(actuator2_type)
+                        & ~is_changed(actuator_type)
+                        & ~is_changed(actuator2_type),
+        effect= ~is_activated(actuator_type)
+                & ~is_activated(actuator2_type)
+    )
+    actions_list.append(cancel_out_actuator)
+
+    # TODO these will never trigger since it makes the kost optimisation worse without a benefit the planer can see
+    cancel_out_actuator = Action(
+        "cancel_out_actuator_changed",
+        parameters=[sensor_type, actuator_type, actuator2_type, room_type],
+        precondition= base.Not(EqualTo(actuator_type, actuator2_type))
+                        & sensor_is_part_of_room(sensor_type, room_type)
+                        & actuator_increases_sensor(actuator_type, sensor_type)
+                        & actuator_decreases_sensor(actuator2_type, sensor_type)
+                        & is_activated(actuator_type)
+                        & is_activated(actuator2_type)
+                        & is_changed(actuator_type)
+                        & is_changed(actuator2_type),
+        effect= ~is_changed(actuator_type)
+                & ~is_changed(actuator2_type)
     )
     actions_list.append(cancel_out_actuator)
 
