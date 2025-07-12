@@ -178,7 +178,7 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
     for increase, change_a in [(True,True),(False,True),(True,False),(False,False)]:
         action_name = ("increase" if increase ^ (not change_a) else "decrease")
         action_name = action_name + "_s_binary_by"
-        action_name = action_name + ("_change" if activated_a else "_reverse_change")
+        action_name = action_name + ("_change" if change_a else "_reverse_change")
         pre = base.And(works_together(binary_s_type, room_position_type, room_type), is_activated(actuator_type))
         if increase:
             pre = base.And(pre, actuator_increases_sensor(actuator_type, binary_s_type))
@@ -244,7 +244,7 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
         for increase, change_a in [(True,True),(False,True),(True,False),(False,False)]:
             action_name = ("increase" if increase ^ (not change_a) else "decrease")
             action_name = action_name + "_s_numerical_by"
-            action_name = action_name + ("_change" if activated_a else "_reverse_change")
+            action_name = action_name + ("_change" if change_a else "_reverse_change")
             pre = base.And(works_together(numerical_s_type, room_position_type, room_type), is_activated(actuator_type))
             if increase:
                 pre = base.And(pre, actuator_increases_sensor(actuator_type, numerical_s_type))
