@@ -143,25 +143,24 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
     works_together = lambda s1, p1, r1 : positioned_at(s1, p1) & sensor_is_part_of_room(s1, r1) & ~is_locked(s1)
 
     # for binary sensors
-    params_binary=[binary_s_type, actuator_type, room_type, room_position_type]
-    for increase, a_not_inverted in [(True,True),(False,True),(True,False),(False,False)]:
-        action_name = ("increase" if increase else "decrease")
-        action_name = action_name + "_s_binary_by_activating_a_in_r"
-        action_name = action_name + ("_normal" if a_not_inverted else "_inverted")
-        pre = base.And(works_together(numerical_s_type, room_position_type, room_type), ~is_changed(actuator_type))
-        if a_not_inverted:
+    params_numerical=[binary_s_type, actuator_type, room_type, room_position_type]
+
+    for increase, activated_a in [(True,True),(False,True),(True,False),(False,False)]:
+        action_name = ("increase" if increase ^ (not activated_a) else "decrease")
+        action_name = action_name + "_s_binary_by"
+        action_name = action_name + ("_activating" if activated_a else "_deactivating")
+        pre = base.And(works_together(binary_s_type, room_position_type, room_type), ~is_changed(actuator_type))
+        if increase:
             pre = base.And(pre, actuator_increases_sensor(actuator_type, binary_s_type))
         else:
             pre = base.And(pre, actuator_decreases_sensor(actuator_type, binary_s_type))
-        
-        if increase:
+        if increase ^ (not activated_a):
             pre = base.And(pre, ~is_sensing(binary_s_type))
             eff = base.And(is_sensing(binary_s_type))
         else:
             pre = base.And(pre, is_sensing(binary_s_type))
             eff = base.And(~is_sensing(binary_s_type))
-        
-        if increase ^ (not a_not_inverted):
+        if activated_a:
             pre = base.And(pre, ~is_activated(actuator_type))
             eff = base.And(eff, is_activated(actuator_type))
         else:
@@ -170,32 +169,37 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
 
         binary_sensor_actuator_change = Action(
             action_name,
-            parameters=params_binary,
+            parameters=params_numerical,
             precondition=pre,
             effect=eff
         )
         actions_list.append(binary_sensor_actuator_change)
 
-    for increase, a_not_inverted in [(True,True),(False,True),(True,False),(False,False)]:
-        action_name = ("increase" if increase else "decrease")
-        action_name = action_name + "_s_binary_by_changing_a_in_r"
-        action_name = action_name + ("_normal" if a_not_inverted else "_inverted")
-        pre = base.And(works_together(numerical_s_type, room_position_type, room_type), is_activated(actuator_type))
-        if increase ^ (not a_not_inverted):
+    for increase, change_a in [(True,True),(False,True),(True,False),(False,False)]:
+        action_name = ("increase" if increase ^ (not change_a) else "decrease")
+        action_name = action_name + "_s_binary_by"
+        action_name = action_name + ("_change" if activated_a else "_reverse_change")
+        pre = base.And(works_together(binary_s_type, room_position_type, room_type), is_activated(actuator_type))
+        if increase:
             pre = base.And(pre, actuator_increases_sensor(actuator_type, binary_s_type))
         else:
             pre = base.And(pre, actuator_decreases_sensor(actuator_type, binary_s_type))
-        
-        if increase:
+        if increase ^ (not change_a):
             pre = base.And(pre, ~is_sensing(binary_s_type))
-            eff = base.And(is_sensing(binary_s_type), is_changed(actuator_type))
+            eff = base.And(is_sensing(binary_s_type))
         else:
             pre = base.And(pre, is_sensing(binary_s_type))
-            eff = base.And(~is_sensing(binary_s_type), is_changed(actuator_type))
+            eff = base.And(~is_sensing(binary_s_type))
+        if change_a:
+            pre = base.And(pre, ~is_changed(actuator_type))
+            eff = base.And(eff, is_changed(actuator_type))
+        else:
+            pre = base.And(pre, is_changed(actuator_type))
+            eff = base.And(eff, ~is_changed(actuator_type))
 
         binary_sensor_actuator_change = Action(
             action_name,
-            parameters=params_binary,
+            parameters=params_numerical,
             precondition=pre,
             effect=eff
         )
@@ -206,63 +210,66 @@ def create_actuator_actions(predicates_dict: Dict[str,variables], pddl_variable_
     state_paar = {is_low:is_ok, is_ok:is_high}
 
     for curent_state, next_state in state_paar.items():
-        for increase, a_not_inverted in [(True,True),(False,True),(True,False),(False,False)]:
-            action_name = ("increase" if increase else "decrease")
-            action_name = action_name + "_s_numerical_by_activating_a_in_r"
-            action_name = action_name + ("_normal" if a_not_inverted else "_inverted")
+        for increase, activated_a in [(True,True),(False,True),(True,False),(False,False)]:
+            action_name = ("increase" if increase ^ (not activated_a) else "decrease")
+            action_name = action_name + "_s_numerical_by"
+            action_name = action_name + ("_activating" if activated_a else "_deactivating")
             pre = base.And(works_together(numerical_s_type, room_position_type, room_type), ~is_changed(actuator_type))
-            if a_not_inverted:
+            if increase:
                 pre = base.And(pre, actuator_increases_sensor(actuator_type, numerical_s_type))
             else:
                 pre = base.And(pre, actuator_decreases_sensor(actuator_type, numerical_s_type))
-            
-            if increase:
+            if increase ^ (not activated_a):
                 pre = base.And(pre, curent_state(numerical_s_type))
                 eff = base.And(~curent_state(numerical_s_type), next_state(numerical_s_type))
             else:
                 pre = base.And(pre, next_state(numerical_s_type))
                 eff = base.And(~next_state(numerical_s_type), curent_state(numerical_s_type))
-            
-            if increase ^ (not a_not_inverted):
+            if activated_a:
                 pre = base.And(pre, ~is_activated(actuator_type))
                 eff = base.And(eff, is_activated(actuator_type))
             else:
                 pre = base.And(pre, is_activated(actuator_type))
                 eff = base.And(eff, ~is_activated(actuator_type))
 
-            binary_sensor_actuator_change = Action(
+            numerical_sensor_actuator_change = Action(
                 action_name,
                 parameters=params_numerical,
                 precondition=pre,
                 effect=eff
             )
-            actions_list.append(binary_sensor_actuator_change)
+            actions_list.append(numerical_sensor_actuator_change)
 
     for curent_state, next_state in state_paar.items():
-        for increase, a_not_inverted in [(True,True),(False,True),(True,False),(False,False)]:
-            action_name = ("increase" if increase else "decrease")
-            action_name = action_name + "_s_numerical_by_changing_a_in_r"
-            action_name = action_name + ("_normal" if a_not_inverted else "_inverted")
+        for increase, change_a in [(True,True),(False,True),(True,False),(False,False)]:
+            action_name = ("increase" if increase ^ (not change_a) else "decrease")
+            action_name = action_name + "_s_numerical_by"
+            action_name = action_name + ("_change" if activated_a else "_reverse_change")
             pre = base.And(works_together(numerical_s_type, room_position_type, room_type), is_activated(actuator_type))
-            if increase ^ (not a_not_inverted):
+            if increase:
                 pre = base.And(pre, actuator_increases_sensor(actuator_type, numerical_s_type))
             else:
                 pre = base.And(pre, actuator_decreases_sensor(actuator_type, numerical_s_type))
-            
-            if increase:
+            if increase ^ (not change_a):
                 pre = base.And(pre, curent_state(numerical_s_type))
-                eff = base.And(~curent_state(numerical_s_type), next_state(numerical_s_type), is_changed(actuator_type))
+                eff = base.And(~curent_state(numerical_s_type), next_state(numerical_s_type))
             else:
                 pre = base.And(pre, next_state(numerical_s_type))
-                eff = base.And(~next_state(numerical_s_type), curent_state(numerical_s_type), is_changed(actuator_type))
+                eff = base.And(~next_state(numerical_s_type), curent_state(numerical_s_type))
+            if change_a:
+                pre = base.And(pre, ~is_changed(actuator_type))
+                eff = base.And(eff, is_changed(actuator_type))
+            else:
+                pre = base.And(pre, is_changed(actuator_type))
+                eff = base.And(eff, ~is_changed(actuator_type))
 
-            binary_sensor_actuator_change = Action(
+            numerical_sensor_actuator_change = Action(
                 action_name,
                 parameters=params_numerical,
                 precondition=pre,
                 effect=eff
             )
-            actions_list.append(binary_sensor_actuator_change)
+            actions_list.append(numerical_sensor_actuator_change)
 
     return actions_list
 
