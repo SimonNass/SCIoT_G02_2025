@@ -2,6 +2,7 @@
 """Module generates pddl domain and problem files."""
 
 # pip install pddl==0.4.3
+import sys
 from typing import List, Dict
 from pddl.logic import variables
 from pddl.core import Domain, Problem
@@ -35,8 +36,7 @@ def create_domain(domain_name: str, predicates_dict: Dict[str,variables], pddl_v
     #print(domain)
     return domain
 
-def create():
-    input_dictionary = pddl_converter_input.query_input()
+def create(input_dictionary):
 
     # set up variables and constants
     pddl_variable_types = pddl_converter_types.create_type_variables()
@@ -79,12 +79,21 @@ def create():
 def main():
     pddl_converter_help.check_lib_versions()
 
-    # output_path is relative to working directory
-    output_path = "auto_generated/"
-    domaine_file_name = 'test_domain'
-    problem_file_name = 'test_problem'
+    over_config_file = False
+    config_file_name = ''
+    if len(sys.argv) > 2:
+        print ("Chosen system arguments: " + str(sys.argv))
+        over_config_file = sys.argv[1]
+        config_file_name = sys.argv[2]
 
-    d, p = create()
+    input_dictionary = pddl_converter_input.query_input(over_config_file,config_file_name)
+
+    # output_path is relative to working directory
+    output_path = input_dictionary['output_path']
+    domaine_file_name = input_dictionary['domaine_file_name']
+    problem_file_name = input_dictionary['problem_file_name']
+
+    d, p = create(input_dictionary)
 
     pddl_converter_help.write_out_pddl(output_path, domaine_file_name + ".pddl", d)
     pddl_converter_help.write_out_pddl(output_path, problem_file_name + ".pddl", p)

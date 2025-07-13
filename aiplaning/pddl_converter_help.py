@@ -33,5 +33,5 @@ def reading_in_pddl():
 
 def check_lib_versions():
     version_pddl = pddl.__version__
-    print(version_pddl)
+    print(f"You have PDDL Parser version {version_pddl} and you need at least version 0.4.3.")
     # make sure that it is above 0.4.2

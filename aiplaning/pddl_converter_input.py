@@ -8,6 +8,9 @@ import configparser
 def query_input_over_db():
     domain_name = "test_SCIoT_G02_2025"
     problem_name = 'test'
+    output_path = 'auto_generated/'
+    domaine_file_name = 'test_domain'
+    problem_file_name = 'test_problem'
 
     floor_uids = ['f0','f1']
     room_uids_per_floor = {'f0':['r0','r1','r3'],'f1':['r2']}
@@ -76,6 +79,9 @@ def query_input_over_db():
 
     return {'domain_name':domain_name,
             'problem_name':problem_name,
+            'output_path':output_path,
+            'domaine_file_name':domaine_file_name,
+            'problem_file_name':problem_file_name,
 
             'plan_cleaning':False,
 
@@ -105,9 +111,8 @@ def query_input_over_db():
             'sensor_goal_state_mapping':sensor_goal_state_mapping,
             }
 
-def query_input_over_config_file():
+def query_input_over_config_file(config_file_name: os.path = "aiplaning/config/ai_planer_test_example.ini"):
 
-    config_file_name: os.path = "aiplaning/config/ai_planer_test_example.ini"
     print (f"reading in {config_file_name}", flush=True)
     try:
         config = configparser.ConfigParser(interpolation=None)
@@ -119,6 +124,9 @@ def query_input_over_config_file():
     _ = config.get('General', 'version', fallback=0)
     domain_name = config.get('General', 'domain_name', fallback="test_SCIoT_G02_2025")
     problem_name = config.get('General', 'problem_name', fallback="test")
+    output_path = config.get('General', 'output_path', fallback="auto_generated/")
+    domaine_file_name = config.get('General', 'domaine_file_name', fallback="test_domain")
+    problem_file_name = config.get('General', 'problem_file_name', fallback="test_problem")
     plan_cleaning = config.get('General', 'plan_cleaning', fallback=False)
 
     # Topology
@@ -149,6 +157,9 @@ def query_input_over_config_file():
 
     input_dictionary =  {'domain_name':domain_name,
             'problem_name':problem_name,
+            'output_path':output_path,
+            'domaine_file_name':domaine_file_name,
+            'problem_file_name':problem_file_name,
 
             'plan_cleaning':plan_cleaning,
 
@@ -177,12 +188,12 @@ def query_input_over_config_file():
             'activity_mapping':activity_mapping,
             'sensor_goal_state_mapping':sensor_goal_state_mapping,
             }
-    print (input_dictionary)
+    #print (input_dictionary)
     return input_dictionary
 
-def query_input(over_config_file: bool = False):
+def query_input(over_config_file: bool = False, config_file_name: os.path = ''):
     if over_config_file:
-        input_dictionary = query_input_over_config_file()
+        input_dictionary = query_input_over_config_file(config_file_name)
     else:
         input_dictionary = query_input_over_db()
     return input_dictionary
@@ -190,6 +201,9 @@ def query_input(over_config_file: bool = False):
 # input_dictionary desctiption
 #   {'domain_name':domain_name, > str
 #   'problem_name':problem_name, > str
+#   'output_path':output_path, > str
+#   'domaine_file_name':domaine_file_name, > str
+#   'problem_file_name':problem_file_name, > str
 #   'plan_cleaning':False, > bool
 #   'floor_uids':floor_uids, > List[uuid as str]
 #   'room_uids_per_floor':room_uids_per_floor, > Dict[uuid as str, List[uuid as str]]
