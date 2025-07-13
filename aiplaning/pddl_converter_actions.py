@@ -307,93 +307,61 @@ def create_actuator_actions_numerical_sensors(predicates_dict: Dict[str,variable
 def create_activity_detection_actions_x(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_mapping: Dict[str,Dict[str,str]], activity_name: str):
     actions_list = []
 
+    #activity_mapping_detection = activity_mapping[activity_name]
+    # TODO fine tune sensor detection for the activitys
+    activity_name = "read"
+    activity_x_mapping_detection = {"read":{"binary_s":"is_sensing"}}[activity_name]
+    # TODO check if all of them are not locked jet and present
+    activity_x_mapping_fulfillment = {"bath":{"temperature_s":"is_ok"},
+                    "read":{"temperature_s":"is_ok", "light_s":"is_high", "sound_s":"is_ok"},
+                    "sleep":{"light_s":"is_low", "sound_s":"is_low"}}[activity_name]
+
     room_type = pddl_variable_types["room"][0]
     room_position_type = pddl_variable_types["room_position"][0]
-    binary_s_type = pddl_variable_types["binary_s"][0]
 
-    sensor_is_part_of_room = predicates_dict["sensor_is_part_of_room"]
-    positioned_at = predicates_dict["positioned_at"]
-    is_sensing = predicates_dict["is_sensing"]
-    is_low = predicates_dict["is_low"]
-    is_ok = predicates_dict["is_ok"]
-    is_high = predicates_dict["is_high"]
-    is_activated = predicates_dict["is_activated"]
-    is_locked = predicates_dict["is_locked"]
-    checked_all_activitys = predicates_dict["checked_all_activitys"]
+    sensor_is_applicable = lambda s1, r1, p1: (base.And(predicates_dict["positioned_at"](s1, p1), predicates_dict["sensor_is_part_of_room"](s1, r1)))
 
-    fulfilled_activity_sleep = predicates_dict["fulfilled_activity_sleep"]
-    fulfilled_activity_read = predicates_dict["fulfilled_activity_read"]
+    is_doing_x_at = predicates_dict[f"is_doing_{activity_name}_at"](room_type, room_position_type)
+    fulfilled_activity_x = predicates_dict[f"fulfilled_activity_{activity_name}"](room_type, room_position_type)
+    checked_activity_x = predicates_dict[f"checked_activity_{activity_name}"](room_type, room_position_type)
+    
+    param_base = [room_type, room_position_type]
+    param_added = [pddl_variable_types[i][0] for i in activity_x_mapping_detection.keys()]
+    param = param_base + param_added
 
-    is_doing_read_at = predicates_dict["is_doing_read_at"]
-    is_doing_sleep_at = predicates_dict["is_doing_sleep_at"]
+    pre_base = base.Not(checked_activity_x)
+    pre_exists = base.And()
+    for key in activity_x_mapping_detection.keys():
+        pre_exists = base.And(pre_exists, sensor_is_applicable(pddl_variable_types[key][0], room_type, room_position_type))
+    pre_senses = base.And()
+    for key, value in activity_x_mapping_detection.items():
+        pre_senses = base.And(pre_senses, predicates_dict[value](pddl_variable_types[key][0]))
 
-    checked_activity_sleep = predicates_dict["checked_activity_sleep"]
-    checked_activity_read = predicates_dict["checked_activity_read"]
+    eff = base.And(checked_activity_x, base.Not(fulfilled_activity_x))
 
-    # TODO fine tune sensor detection for the activitys
-    detect_activity_sleep = Action(
-        "detect_activity_sleep",
-        parameters=[binary_s_type, room_type, room_position_type],
-        precondition=is_sensing(binary_s_type)
-                    & positioned_at(binary_s_type, room_position_type)
-                    & sensor_is_part_of_room(binary_s_type, room_type)
-                    & ~checked_activity_sleep(room_type, room_position_type),
-        effect=checked_activity_sleep(room_type, room_position_type) & is_doing_sleep_at(room_type, room_position_type) & ~fulfilled_activity_sleep(room_type, room_position_type)
+    detect_activity_x = Action(
+        f"detect_activity_{activity_name}",
+        parameters=param,
+        precondition=base.And(pre_base, pre_exists, pre_senses),
+        effect=base.And(eff, is_doing_x_at)
     )
-    actions_list.append(detect_activity_sleep)
+    actions_list.append(detect_activity_x)
 
-    detect_no_activity_sleep = Action(
-        "detect_no_activity_sleep",
-        parameters=[binary_s_type, room_type, room_position_type],
-        precondition=~is_sensing(binary_s_type)
-                    & positioned_at(binary_s_type, room_position_type)
-                    & sensor_is_part_of_room(binary_s_type, room_type)
-                    & ~checked_activity_sleep(room_type, room_position_type),
-        effect=checked_activity_sleep(room_type, room_position_type) & ~is_doing_sleep_at(room_type, room_position_type) & ~fulfilled_activity_sleep(room_type, room_position_type)
+    detect_no_activity_x = Action(
+        f"detect_no_activity_{activity_name}",
+        parameters=param,
+        precondition=base.And(pre_base, pre_exists, base.Not(pre_senses)),
+        effect=base.And(eff, base.Not(is_doing_x_at))
     )
-    actions_list.append(detect_no_activity_sleep)
+    actions_list.append(detect_no_activity_x)
 
-    detect_no_possible_activity_sleep = Action(
-        "detect_no_possible_activity_sleep",
-        parameters=[room_type, room_position_type],
-        precondition=base.Not(base.ExistsCondition(positioned_at(binary_s_type, room_position_type)
-                                                    & sensor_is_part_of_room(binary_s_type, room_type), [binary_s_type]))
-                    & ~checked_activity_sleep(room_type, room_position_type),
-        effect=checked_activity_sleep(room_type, room_position_type) & ~is_doing_sleep_at(room_type, room_position_type) & ~fulfilled_activity_sleep(room_type, room_position_type)
+    detect_no_possible_activity_x = Action(
+        f"detect_no_possible_activity_{activity_name}",
+        parameters=param_base,
+        precondition=base.And(pre_base, base.Not(base.ExistsCondition(pre_exists, param_added))),
+        effect=base.And(eff, base.Not(is_doing_x_at))
     )
-    actions_list.append(detect_no_possible_activity_sleep)
-
-    detect_activity_read = Action(
-        "detect_activity_read",
-        parameters=[binary_s_type, room_type, room_position_type],
-        precondition=is_sensing(binary_s_type)
-                    & positioned_at(binary_s_type, room_position_type)
-                    & sensor_is_part_of_room(binary_s_type, room_type)
-                    & ~checked_activity_read(room_type, room_position_type),
-        effect=checked_activity_read(room_type, room_position_type) & is_doing_read_at(room_type, room_position_type) & ~fulfilled_activity_read(room_type, room_position_type)
-    )
-    actions_list.append(detect_activity_read)
-
-    detect_no_activity_read = Action(
-        "detect_no_activity_read",
-        parameters=[binary_s_type, room_type, room_position_type],
-        precondition=~is_sensing(binary_s_type)
-                    & positioned_at(binary_s_type, room_position_type)
-                    & sensor_is_part_of_room(binary_s_type, room_type)
-                    & ~checked_activity_read(room_type, room_position_type),
-        effect=checked_activity_read(room_type, room_position_type) & ~is_doing_read_at(room_type, room_position_type) & ~fulfilled_activity_read(room_type, room_position_type)
-    )
-    actions_list.append(detect_no_activity_read)
-
-    detect_no_possible_activity_read = Action(
-        "detect_no_possible_activity_read",
-        parameters=[room_type, room_position_type],
-        precondition=base.Not(base.ExistsCondition(positioned_at(binary_s_type, room_position_type)
-                                                    & sensor_is_part_of_room(binary_s_type, room_type), [binary_s_type]))
-                    & ~checked_activity_read(room_type, room_position_type),
-        effect=checked_activity_read(room_type, room_position_type) & ~is_doing_read_at(room_type, room_position_type) & ~fulfilled_activity_read(room_type, room_position_type)
-    )
-    actions_list.append(detect_no_possible_activity_read)
+    actions_list.append(detect_no_possible_activity_x)
 
     return actions_list
 
@@ -407,12 +375,11 @@ def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl
 
     for activity_name in activity_mapping.keys():
         detection_activity_x = create_activity_detection_actions_x(predicates_dict, pddl_variable_types, activity_mapping, activity_name)
-        actions_list.append(detection_activity_x)
-
+        actions_list = actions_list + detection_activity_x
 
     detect_all_activitys_pre = base.And(~checked_all_activitys(room_type, room_position_type))
     for activity in activity_mapping.keys():
-        detect_all_activitys_pre = base.And(predicates_dict[f"checked_activity_{activity}"](room_type, room_position_type))
+        detect_all_activitys_pre = base.And(detect_all_activitys_pre ,predicates_dict[f"checked_activity_{activity}"](room_type, room_position_type))
     detect_all_activitys = Action(
         "detect_all_activitys",
         parameters=[room_type, room_position_type],
@@ -571,7 +538,7 @@ def create_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Di
     actions_list = actions_list + create_assign_actions(predicates_dict, pddl_variable_types)
     actions_list = actions_list + create_actuator_actions_binary_sensors(predicates_dict, pddl_variable_types)
     actions_list = actions_list + create_actuator_actions_numerical_sensors(predicates_dict, pddl_variable_types)
-    actions_list = actions_list + create_activity_detection_actions(predicates_dict, pddl_variable_types)
+    actions_list = actions_list + create_activity_detection_actions(predicates_dict, pddl_variable_types, activity_mapping)
     actions_list = actions_list + create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, activity_mapping)
     actions_list = actions_list + create_energy_saving_actions(predicates_dict, pddl_variable_types)
 
