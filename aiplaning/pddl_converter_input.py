@@ -22,11 +22,6 @@ def query_input_over_db():
     #for floor in floor_list:
     #    room_occupied_initial_values = {room['id']:room['is_occupied'] for room in room_uids_per_floor[floor]}
 
-    elevator_uids = ['e0','e1']
-    cleaning_team_uids = ['cleaning_team_1','cleaning_team_2']
-    names_room_positions = ['overall_room']
-    #['overall_room', 'bed', 'closet', 'window']
-
     sensor_room_mapping = {'r0':['s1'], 'r2':['s2'], 'r3':['s3', 's4']}
     actuator_room_mapping = {'r0':['a1'], 'r2':['a2']}
     #for floor in floor_uids:
@@ -60,7 +55,14 @@ def query_input_over_db():
     #            curent_value = db.request_current_value_hierarchical(floor,room,device)
     #            sensor_initial_values.update({device:curent_value})
 
+    # potential to make stuff unchangable for the ai as long as the room is occupied
     sensor_initial_locked = ['s4']
+
+    # below this not set by db use these hardcoded ones for now
+    elevator_uids = ['e0','e1']
+    cleaning_team_uids = ['cleaning_team_1','cleaning_team_2']
+    names_room_positions = ['overall_room']
+    #['overall_room', 'bed', 'closet', 'window']
 
     sensor_goal_state_mapping = {'temperature_s':'is_ok',
                                  'humidity_s':'is_ok',
