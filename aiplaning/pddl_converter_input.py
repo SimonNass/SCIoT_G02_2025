@@ -125,19 +125,19 @@ def query_input_over_config_file(config_file_name: os.path = "aiplaning/config/a
         print(e)
 
     # General
-    _ = config.get('General', 'version', fallback=0)
-    domain_name = config.get('General', 'domain_name', fallback="test_SCIoT_G02_2025")
-    problem_name = config.get('General', 'problem_name', fallback="test")
-    output_path = config.get('General', 'output_path', fallback="auto_generated/")
-    domaine_file_name = config.get('General', 'domaine_file_name', fallback="test_domain")
-    problem_file_name = config.get('General', 'problem_file_name', fallback="test_problem")
-    plan_cleaning = config.get('General', 'plan_cleaning', fallback=False)
+    _ = int(config.get('General', 'version', fallback=0))
+    domain_name = str(config.get('General', 'domain_name', fallback="test_SCIoT_G02_2025"))
+    problem_name = str(config.get('General', 'problem_name', fallback="test"))
+    output_path = str(config.get('General', 'output_path', fallback="auto_generated/"))
+    domaine_file_name = str(config.get('General', 'domaine_file_name', fallback="test_domain"))
+    problem_file_name = str(config.get('General', 'problem_file_name', fallback="test_problem"))
+    plan_cleaning = bool(config.get('General', 'plan_cleaning', fallback=False) in [True, 'True'])
 
     # Topology
     floor_uids = json.loads(config.get('Topology', 'floor_uids', fallback='[]'))
     room_uids_per_floor = json.loads(config.get('Topology', 'room_uids_per_floor', fallback='{}'))
     # TODO what if sensor with room is not part of anny floor?
-    room_occupied_initial_values = json.loads(config.get('Topology', 'room_occupied_initial_values', fallback='{}'))
+    room_occupied_initial_values = {key:bool(value in [True, 'True']) for key,value in json.loads(config.get('Topology', 'room_occupied_initial_values', fallback='{}')).items()}
     elevator_uids = json.loads(config.get('Topology', 'elevator_uids', fallback='[]'))
     names_room_positions = json.loads(config.get('Topology', 'names_room_positions', fallback='[]'))
     sensor_room_mapping = json.loads(config.get('Topology', 'sensor_room_mapping', fallback='{}'))
@@ -148,9 +148,9 @@ def query_input_over_config_file(config_file_name: os.path = "aiplaning/config/a
     sensor_types = json.loads(config.get('IoT', 'sensor_types', fallback='{}'))
     actuator_increases_sensor_mapping_matrix = json.loads(config.get('IoT', 'actuator_increases_sensor_mapping_matrix', fallback='{}'))
     actuator_decreases_sensor_mapping_matrix = json.loads(config.get('IoT', 'actuator_decreases_sensor_mapping_matrix', fallback='{}'))
-    sensor_initial_values = json.loads(config.get('IoT', 'sensor_initial_values', fallback='{}'))
-    sensor_goal_values = json.loads(config.get('IoT', 'sensor_goal_values', fallback='{}'))
-    actuator_initial_values = json.loads(config.get('IoT', 'actuator_initial_values', fallback='{}'))
+    sensor_initial_values = {key:int(value) for key,value in json.loads(config.get('IoT', 'sensor_initial_values', fallback='{}')).items()}
+    sensor_goal_values = {key:int(value) for key,value in json.loads(config.get('IoT', 'sensor_goal_values', fallback='{}')).items()}
+    actuator_initial_values = {key:bool(value in [True, 'True']) for key,value in json.loads(config.get('IoT', 'actuator_initial_values', fallback='{}')).items()}
     sensor_initial_locked = json.loads(config.get('IoT', 'sensor_initial_locked', fallback='[]'))
     sensor_goal_state_mapping = json.loads(config.get('IoT', 'sensor_goal_state_mapping', fallback='{}'))
 
@@ -194,7 +194,7 @@ def query_input_over_config_file(config_file_name: os.path = "aiplaning/config/a
             'activity_fulfill_mapping':activity_fulfill_mapping,
             'sensor_goal_state_mapping':sensor_goal_state_mapping,
             }
-    #print (input_dictionary)
+    print (input_dictionary)
     return input_dictionary
 
 def query_input(over_config_file: bool = False, config_file_name: os.path = ''):
