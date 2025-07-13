@@ -73,7 +73,8 @@ def query_input_over_db():
 
     # TODO make 'requests_service':{'button_s':'is_sensing' -> request text displayed
     # TODO fine tune sensor ideal position for the activitys
-    activity_mapping = {'bath':{'temperature_s':'is_ok'},
+    activity_detect_mapping = {"read":{"binary_s":"is_sensing"}}
+    activity_fulfill_mapping = {'bath':{'temperature_s':'is_ok'},
                         'read':{'temperature_s':'is_ok', 'light_s':'is_high', 'sound_s':'is_ok'},
                         'sleep':{'light_s':'is_low', 'sound_s':'is_low'},
                         }
@@ -109,7 +110,8 @@ def query_input_over_db():
 
             'room_occupied_initial_values':room_occupied_initial_values,
 
-            'activity_mapping':activity_mapping,
+            'activity_detect_mapping':activity_detect_mapping,
+            'activity_fulfill_mapping':activity_fulfill_mapping,
             'sensor_goal_state_mapping':sensor_goal_state_mapping,
             }
 
@@ -155,7 +157,8 @@ def query_input_over_config_file(config_file_name: os.path = "aiplaning/config/a
     # Activity
     # TODO make 'requests_service':{'button_s':'is_sensing' -> request text displayed
     # TODO fine tune sensor ideal position for the activitys
-    activity_mapping = json.loads(config.get('Activity', 'activity_mapping', fallback='{}'))
+    activity_detect_mapping = json.loads(config.get('Activity', 'activity_detect_mapping', fallback='{}'))
+    activity_fulfill_mapping = json.loads(config.get('Activity', 'activity_fulfill_mapping', fallback='{}'))
 
     input_dictionary =  {'domain_name':domain_name,
             'problem_name':problem_name,
@@ -187,7 +190,8 @@ def query_input_over_config_file(config_file_name: os.path = "aiplaning/config/a
 
             'room_occupied_initial_values':room_occupied_initial_values,
 
-            'activity_mapping':activity_mapping,
+            'activity_detect_mapping':activity_detect_mapping,
+            'activity_fulfill_mapping':activity_fulfill_mapping,
             'sensor_goal_state_mapping':sensor_goal_state_mapping,
             }
     #print (input_dictionary)
@@ -222,6 +226,7 @@ def query_input(over_config_file: bool = False, config_file_name: os.path = ''):
 #   'sensor_goal_values':sensor_goal_values, > Dict[uuid as str, simplified value]
 #   'actuator_initial_values':actuator_initial_values, > Dict[uuid as str, bool]
 #   'room_occupied_initial_values':room_occupied_initial_values, > Dict[uuid as str, bool]
-#   'activity_mapping':activity_mapping, > Dict[str, Dict[str,str]]
+#   'activity_detect_mapping':activity_detect_mapping, > Dict[str, Dict[str,str]]
+#   'activity_fulfill_mapping':activity_fulfill_mapping, > Dict[str, Dict[str,str]]
 #   'sensor_goal_state_mapping':sensor_goal_state_mapping, > Dict[str, str]
 #   }

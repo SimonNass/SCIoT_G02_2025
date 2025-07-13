@@ -304,17 +304,16 @@ def create_actuator_actions_numerical_sensors(predicates_dict: Dict[str,variable
 
     return actions_list
 
-def create_activity_detection_actions_x(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_mapping: Dict[str,Dict[str,str]], activity_name: str):
+def create_activity_detection_actions_x(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_name: str, detect_sensor_type_x_dict: Dict[str, str], fulfill_sensor_type_x_dict: Dict[str, str]):
     actions_list = []
 
-    #activity_mapping_detection = activity_mapping[activity_name]
     # TODO fine tune sensor detection for the activitys
-    activity_name = "read"
-    activity_x_mapping_detection = {"read":{"binary_s":"is_sensing"}}[activity_name]
-    # TODO check if all of them are not locked jet and present
-    activity_x_mapping_fulfillment = {"bath":{"temperature_s":"is_ok"},
-                    "read":{"temperature_s":"is_ok", "light_s":"is_high", "sound_s":"is_ok"},
-                    "sleep":{"light_s":"is_low", "sound_s":"is_low"}}[activity_name]
+    #activity_name = "read"
+    #activity_x_mapping_detection = {"read":{"binary_s":"is_sensing"}}[activity_name]
+    # TODO check if all of them are not locked jet and present fulfill_sensor_type_x_dict
+    #activity_x_mapping_fulfillment = {"bath":{"temperature_s":"is_ok"},
+    #                "read":{"temperature_s":"is_ok", "light_s":"is_high", "sound_s":"is_ok"},
+    #                "sleep":{"light_s":"is_low", "sound_s":"is_low"}}[activity_name]
 
     room_type = pddl_variable_types["room"][0]
     room_position_type = pddl_variable_types["room_position"][0]
@@ -326,15 +325,15 @@ def create_activity_detection_actions_x(predicates_dict: Dict[str,variables], pd
     checked_activity_x = predicates_dict[f"checked_activity_{activity_name}"](room_type, room_position_type)
     
     param_base = [room_type, room_position_type]
-    param_added = [pddl_variable_types[i][0] for i in activity_x_mapping_detection.keys()]
+    param_added = [pddl_variable_types[i][0] for i in detect_sensor_type_x_dict.keys()]
     param = param_base + param_added
 
     pre_base = base.Not(checked_activity_x)
     pre_exists = base.And()
-    for key in activity_x_mapping_detection.keys():
+    for key in detect_sensor_type_x_dict.keys():
         pre_exists = base.And(pre_exists, sensor_is_applicable(pddl_variable_types[key][0], room_type, room_position_type))
     pre_senses = base.And()
-    for key, value in activity_x_mapping_detection.items():
+    for key, value in detect_sensor_type_x_dict.items():
         pre_senses = base.And(pre_senses, predicates_dict[value](pddl_variable_types[key][0]))
 
     eff = base.And(checked_activity_x, base.Not(fulfilled_activity_x))
@@ -365,7 +364,7 @@ def create_activity_detection_actions_x(predicates_dict: Dict[str,variables], pd
 
     return actions_list
 
-def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_mapping: Dict[str,Dict[str,str]]):
+def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_detect_mapping: Dict[str,Dict[str,str]], activity_fulfill_mapping: Dict[str,Dict[str,str]]):
     actions_list = []
 
     room_type = pddl_variable_types["room"][0]
@@ -373,12 +372,12 @@ def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl
 
     checked_all_activitys = predicates_dict["checked_all_activitys"]
 
-    for activity_name in activity_mapping.keys():
-        detection_activity_x = create_activity_detection_actions_x(predicates_dict, pddl_variable_types, activity_mapping, activity_name)
+    for activity_name in activity_detect_mapping.keys():
+        detection_activity_x = create_activity_detection_actions_x(predicates_dict, pddl_variable_types, activity_name, activity_detect_mapping[activity_name], activity_fulfill_mapping[activity_name])
         actions_list = actions_list + detection_activity_x
 
     detect_all_activitys_pre = base.And(~checked_all_activitys(room_type, room_position_type))
-    for activity in activity_mapping.keys():
+    for activity in activity_detect_mapping.keys():
         detect_all_activitys_pre = base.And(detect_all_activitys_pre ,predicates_dict[f"checked_activity_{activity}"](room_type, room_position_type))
     detect_all_activitys = Action(
         "detect_all_activitys",
@@ -424,7 +423,7 @@ def create_activity_fulfilled_action_x(predicates_dict: Dict[str,variables], pdd
 
     return fulfill_activity_x
 
-def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, activity_mapping: Dict[str,Dict[str,str]]):
+def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, activity_fulfill_mapping: Dict[str,Dict[str,str]]):
     actions_list = []
 
     room_type = pddl_variable_types["room"][0]
@@ -439,11 +438,11 @@ def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, acti
     # TODO add or for sensor state
     # TODO check activitc colisions
 
-    for activity_name, sensor_type_x_dict in activity_mapping.items():
+    for activity_name, sensor_type_x_dict in activity_fulfill_mapping.items():
         fulfill_activity_x = create_activity_fulfilled_action_x(predicates_dict, pddl_variable_types, activity_name, sensor_type_x_dict)
         actions_list.append(fulfill_activity_x)
 
-    for activity in activity_mapping.keys():
+    for activity in activity_fulfill_mapping.keys():
         fulfill_activity_no_x = Action(
             f"fulfill_activity_no_{activity}",
             parameters=[room_type, room_position_type],
@@ -531,15 +530,15 @@ def create_energy_saving_actions(predicates_dict: Dict[str,variables], pddl_vari
 
     return actions_list
 
-def create_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_mapping: Dict[str,Dict[str,str]]):
+def create_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_detect_mapping: Dict[str,Dict[str,str]], activity_fulfill_mapping: Dict[str,Dict[str,str]]):
     actions_list = []
 
     actions_list = actions_list + create_cleaning_actions(predicates_dict, pddl_variable_types)
     actions_list = actions_list + create_assign_actions(predicates_dict, pddl_variable_types)
     actions_list = actions_list + create_actuator_actions_binary_sensors(predicates_dict, pddl_variable_types)
     actions_list = actions_list + create_actuator_actions_numerical_sensors(predicates_dict, pddl_variable_types)
-    actions_list = actions_list + create_activity_detection_actions(predicates_dict, pddl_variable_types, activity_mapping)
-    actions_list = actions_list + create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, activity_mapping)
+    actions_list = actions_list + create_activity_detection_actions(predicates_dict, pddl_variable_types, activity_detect_mapping, activity_fulfill_mapping)
+    actions_list = actions_list + create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, activity_fulfill_mapping)
     actions_list = actions_list + create_energy_saving_actions(predicates_dict, pddl_variable_types)
 
     return actions_list

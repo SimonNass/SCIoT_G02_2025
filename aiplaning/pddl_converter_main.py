@@ -18,12 +18,12 @@ import pddl_converter_initial_state
 import pddl_converter_help
 
 
-def create_domain(domain_name: str, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_mapping):
+def create_domain(domain_name: str, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_detect_mapping: Dict[str,Dict[str,str]], activity_fulfill_mapping: Dict[str,Dict[str,str]]):
     # set up types
     type_dict = pddl_converter_types.create_type_dict()
 
     # define actions
-    actions_list = pddl_converter_actions.create_actions(predicates_dict, pddl_variable_types, activity_mapping)
+    actions_list = pddl_converter_actions.create_actions(predicates_dict, pddl_variable_types, activity_detect_mapping, activity_fulfill_mapping)
 
     # define the domain object.
     requirements = [Requirements.STRIPS, Requirements.TYPING, Requirements.ADL]
@@ -41,11 +41,12 @@ def create(input_dictionary):
     # set up variables and constants
     pddl_variable_types = pddl_converter_types.create_type_variables()
 
-    activity_mapping: Dict[str,Dict[str,str]] = input_dictionary['activity_mapping']
+    activity_detect_mapping: Dict[str,Dict[str,str]] = input_dictionary['activity_detect_mapping']
+    activity_fulfill_mapping: Dict[str,Dict[str,str]] = input_dictionary['activity_fulfill_mapping']
 
-    predicates_dict = pddl_converter_predicates.create_predicates_variables(pddl_variable_types, activity_mapping.keys())
+    predicates_dict = pddl_converter_predicates.create_predicates_variables(pddl_variable_types, activity_fulfill_mapping.keys())
 
-    domain = create_domain(input_dictionary['domain_name'], predicates_dict, pddl_variable_types, activity_mapping)
+    domain = create_domain(input_dictionary['domain_name'], predicates_dict, pddl_variable_types, activity_detect_mapping, activity_fulfill_mapping)
 
     all_objects, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_sensors,uid_to_pddl_variable_actuators, uid_to_pddl_variable_elevators, uid_to_pddl_variable_cleaning_teams, uid_to_pddl_variable_room_positions = pddl_converter_objects.create_all_obbjects(input_dictionary)
 
