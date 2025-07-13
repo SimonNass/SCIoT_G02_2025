@@ -19,7 +19,7 @@ class Virtual_environment():
         return str(self.__dict__())
 
     def __dict__(self):
-        return [{"uuid_actuator":str(a),"uuid_sensor":str(s), "impact_factor":value['impact_factor'], "only_physical":value['only_physical'], "active_influences":value['active_influences']} for (a,s),value in self.mapping.items()]
+        return [{"uuid_actuator":str(a),"uuid_sensor":str(s), "impact_factor":value['impact_factor'],'actuator_can_increases_sensor':value['actuator_can_increases_sensor'],'actuator_can_decreases_sensor':value['actuator_can_decreases_sensor'], "only_physical":value['only_physical'], "active_influences":value['active_influences']} for (a,s),value in self.mapping.items()]
 
     def check_if_actuators_has_influenc(self, actuator_uuid: uuid):
         for actuator in self.actuators:
@@ -43,7 +43,7 @@ class Virtual_environment():
             next_impact = 0
             if self.check_if_actuators_has_influenc(actuator) and not value['only_physical']:
                 next_impact = value['impact_factor'] * self.calculate_actuators_impact(actuator)
-            self.mapping.update({key:{'impact_factor':value['impact_factor'],'only_physical':value['only_physical'],'active_influences':next_impact}})
+            self.mapping.update({key:{'impact_factor':value['impact_factor'],'actuator_can_increases_sensor':value['actuator_can_increases_sensor'],'actuator_can_decreases_sensor':value['actuator_can_decreases_sensor'],'only_physical':value['only_physical'],'active_influences':next_impact}})
 
     def aggregate_impact_per_sensor(self):
         sensor_dict: Dict[SensorInterface, int] = {}
@@ -78,6 +78,8 @@ class Virtual_environment():
                 actuator_name = str(dictionary_map['actuator_name'])
                 sensor_name = str(dictionary_map['sensor_name'])
                 impact_factor = float(dictionary_map['impact_factor'])
+                actuator_can_increases_sensor = bool(dictionary_map['actuator_can_increases_sensor'] in ['True'])
+                actuator_can_decreases_sensor = bool(dictionary_map['actuator_can_decreases_sensor'] in ['True'])
                 only_physical = bool(dictionary_map['only_physical'] in ['True'])
             except Exception as e:
                 print (e, flush=True)
@@ -86,7 +88,7 @@ class Virtual_environment():
             actuator_uuid = self.find_uuid(actuator_name, self.actuators)
             sensor_uuid = self.find_uuid(sensor_name, self.sensors)
             key_pair = (actuator_uuid,sensor_uuid)
-            self.mapping.update({key_pair:{'impact_factor':impact_factor,'only_physical':only_physical, 'active_influences':0}})
+            self.mapping.update({key_pair:{'impact_factor':impact_factor,'actuator_can_increases_sensor':actuator_can_increases_sensor,'actuator_can_decreases_sensor':actuator_can_decreases_sensor,'only_physical':only_physical, 'active_influences':0}})
 
     def find_uuid(self, name: str, object_list: List[Union[SensorInterface,ActuatorInterface]]):
         for element in object_list:

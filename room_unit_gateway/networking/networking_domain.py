@@ -26,16 +26,16 @@ class GatewayNetwork:
         topic = f'sensor/{str(sensor.id)}/all'
         text = json.dumps(read_dict, ensure_ascii=False).encode('utf8')
         #print(text)
-        self.publisher.send(topic,text)
+        #self.publisher.send(topic,text)
 
     def send_all_data_actuator(self, actuator: ActuatorInterface):
         topic = f'actuator/{str(actuator.id)}/all'
         text = json.dumps(actuator.__dict__(), ensure_ascii=False).encode('utf8')
         #print(text)
-        self.publisher.send(topic,text)
+        #self.publisher.send(topic,text)
 
     def send_actuator_sensor_mapping(self, mapping: List[Dict[str,str]]):
         topic = 'mapping/all'
         text = json.dumps(mapping, ensure_ascii=False).encode('utf8')
-        #print(text)
-        self.publisher.send(topic,text)
+        print(text)
+        #self.publisher.send(topic,text)
