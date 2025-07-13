@@ -308,12 +308,7 @@ def create_activity_detection_actions_x(predicates_dict: Dict[str,variables], pd
     actions_list = []
 
     # TODO fine tune sensor detection for the activitys
-    #activity_name = "read"
-    #activity_x_mapping_detection = {"read":{"binary_s":"is_sensing"}}[activity_name]
     # TODO check if all of them are not locked jet and present fulfill_sensor_type_x_dict
-    #activity_x_mapping_fulfillment = {"bath":{"temperature_s":"is_ok"},
-    #                "read":{"temperature_s":"is_ok", "light_s":"is_high", "sound_s":"is_ok"},
-    #                "sleep":{"light_s":"is_low", "sound_s":"is_low"}}[activity_name]
 
     room_type = pddl_variable_types["room"][0]
     room_position_type = pddl_variable_types["room_position"][0]
