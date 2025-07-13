@@ -304,7 +304,7 @@ def create_actuator_actions_numerical_sensors(predicates_dict: Dict[str,variable
 
     return actions_list
 
-def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
+def create_activity_detection_actions_x(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_mapping: Dict[str,Dict[str,str]], activity_name: str):
     actions_list = []
 
     room_type = pddl_variable_types["room"][0]
@@ -395,12 +395,28 @@ def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl
     )
     actions_list.append(detect_no_possible_activity_read)
 
+    return actions_list
+
+def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_mapping: Dict[str,Dict[str,str]]):
+    actions_list = []
+
+    room_type = pddl_variable_types["room"][0]
+    room_position_type = pddl_variable_types["room_position"][0]
+
+    checked_all_activitys = predicates_dict["checked_all_activitys"]
+
+    for activity_name in activity_mapping.keys():
+        detection_activity_x = create_activity_detection_actions_x(predicates_dict, pddl_variable_types, activity_mapping, activity_name)
+        actions_list.append(detection_activity_x)
+
+
+    detect_all_activitys_pre = base.And(~checked_all_activitys(room_type, room_position_type))
+    for activity in activity_mapping.keys():
+        detect_all_activitys_pre = base.And(predicates_dict[f"checked_activity_{activity}"](room_type, room_position_type))
     detect_all_activitys = Action(
         "detect_all_activitys",
         parameters=[room_type, room_position_type],
-        precondition=base.And(checked_activity_sleep(room_type, room_position_type),
-                              checked_activity_read(room_type, room_position_type),
-                              ~checked_all_activitys(room_type, room_position_type)),
+        precondition=detect_all_activitys_pre,
         effect=checked_all_activitys(room_type, room_position_type)
     )
     actions_list.append(detect_all_activitys)
@@ -457,8 +473,8 @@ def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, acti
     # TODO check activitc colisions
 
     for activity_name, sensor_type_x_dict in activity_mapping.items():
-        fulfill_activity_sleep = create_activity_fulfilled_action_x(predicates_dict, pddl_variable_types, activity_name, sensor_type_x_dict)
-        actions_list.append(fulfill_activity_sleep)
+        fulfill_activity_x = create_activity_fulfilled_action_x(predicates_dict, pddl_variable_types, activity_name, sensor_type_x_dict)
+        actions_list.append(fulfill_activity_x)
 
     for activity in activity_mapping.keys():
         fulfill_activity_no_x = Action(
