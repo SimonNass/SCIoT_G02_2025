@@ -32,11 +32,10 @@
 
 - [ ] AI Planning
   - [x] Overarching Goals
-  - [ ] (Simon) Conversion of DB values to context to inital state
-  - [ ] (Simon) Activity recognition in ai planer or in context generation
+  - [X] (Simon) Activity recognition in ai planer or in context generation
   - [x] First attempts at lecture implementation
   - [X] (Simon) plan cleaning and do not plan cleaning toggle
-  - [ ] (Simon) mapping in pddl a -> s
+  - [X] (Simon) mapping in pddl a -> s
   - [ ] (Simon) individual sensor goals
   - [ ] (Simon) room positiones
   - [ ] (Maximilian, Simon) Sensor aggregation
@@ -47,6 +46,8 @@
 
 - [ ] backend
   - [ ] Needed Backend Endpoints
+  - [ ] (Maximilian) Conversion of DB values to context to inital state
+  - [ ] (Maximilian) mapping ifrom db to pddl a -> s
   - [x] (Maximilian) provide actuator active/inactive value (need value from frontend)
   - [x] (Maximilian) Set room occupancy endpoint
   - [x] (Maximilian) Get Config values
