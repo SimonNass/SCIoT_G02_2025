@@ -194,7 +194,7 @@ def query_input_over_config_file(config_file_name: os.path = "aiplaning/config/a
             'activity_fulfill_mapping':activity_fulfill_mapping,
             'sensor_goal_state_mapping':sensor_goal_state_mapping,
             }
-    print (input_dictionary)
+    #print (input_dictionary)
     return input_dictionary
 
 def query_input(over_config_file: bool = False, config_file_name: os.path = ''):
