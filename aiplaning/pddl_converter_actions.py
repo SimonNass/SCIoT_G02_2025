@@ -178,7 +178,14 @@ def create_actuator_actions_binary_sensors(execution_mapper: pddl_actions_to_exe
             effect=eff
         )
         actions_list.append(binary_sensor_actuator_change)
-        execution_mapper.add_action(action_name, params_binary, [PlanerTag.Change_Sensor_Intent]) # TODO
+        planer_tags = [PlanerTag.Change_Sensor_Intent]
+        if not activated_a:
+            planer_tags.append(PlanerTag.Actuator_Off)
+        elif increase:
+            planer_tags.append(PlanerTag.Actuator_Increse)
+        else:
+            planer_tags.append(PlanerTag.Actuator_Decrese)
+        execution_mapper.add_action(action_name, params_binary, planer_tags)
 
     for increase, change_a in [(True,True),(False,True),(True,False),(False,False)]:
         action_name = ("increase" if increase ^ (not change_a) else "decrease")
@@ -209,7 +216,14 @@ def create_actuator_actions_binary_sensors(execution_mapper: pddl_actions_to_exe
             effect=eff
         )
         actions_list.append(binary_sensor_actuator_change)
-        execution_mapper.add_action(action_name, params_binary, [PlanerTag.Change_Sensor_Intent]) # TODO
+        planer_tags = [PlanerTag.Change_Sensor_Intent]
+        if not activated_a:
+            planer_tags.append(PlanerTag.Actuator_Off)
+        elif increase:
+            planer_tags.append(PlanerTag.Actuator_Increse)
+        else:
+            planer_tags.append(PlanerTag.Actuator_Decrese)
+        execution_mapper.add_action(action_name, params_binary, planer_tags)
 
     return actions_list
 
@@ -269,7 +283,14 @@ def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_
                 effect=eff
             )
             actions_list.append(numerical_sensor_actuator_change)
-            execution_mapper.add_action(action_name, params_numerical, [PlanerTag.Change_Sensor_Intent]) # TODO
+            planer_tags = [PlanerTag.Change_Sensor_Intent]
+            if not activated_a:
+                planer_tags.append(PlanerTag.Actuator_Off)
+            elif increase:
+                planer_tags.append(PlanerTag.Actuator_Increse)
+            else:
+                planer_tags.append(PlanerTag.Actuator_Decrese)
+            execution_mapper.add_action(action_name, params_numerical, planer_tags)
 
     for i in range(len(sensor_buckets_sortet) - 1):
         curent_state = predicates_dict[sensor_buckets_sortet[i]]
@@ -304,7 +325,14 @@ def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_
                 effect=eff
             )
             actions_list.append(numerical_sensor_actuator_change)
-            execution_mapper.add_action(action_name, params_numerical, [PlanerTag.Change_Sensor_Intent]) # TODO
+            planer_tags = [PlanerTag.Change_Sensor_Intent]
+            if not activated_a:
+                planer_tags.append(PlanerTag.Actuator_Off)
+            elif increase:
+                planer_tags.append(PlanerTag.Actuator_Increse)
+            else:
+                planer_tags.append(PlanerTag.Actuator_Decrese)
+            execution_mapper.add_action(action_name, params_numerical, planer_tags)
 
     remove_actuator_change_flag = Action(
         "remove_actuator_change_flag",
