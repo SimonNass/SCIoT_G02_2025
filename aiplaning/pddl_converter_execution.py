@@ -60,24 +60,30 @@ class pddl_actions_to_execution_mapper():
         # remove timestamps
         filtered_plan = [planed_action.split(':')[1] for planed_action in plan]
         # remove whitespace borders, (, and )
-        filtered_plan = [planed_action.strip().replace('(','').replace(')','').lower() for planed_action in plan]
+        filtered_plan = [planed_action.strip().replace('(','').replace(')','').lower() for planed_action in filtered_plan]
         # split action name and parameters into a list
         filtered_plan = [planed_action.split(' ') for planed_action in filtered_plan]
+
+        get_tags = lambda planed_action : self.pddl_actions_to_execution_map[planed_action[0]][1]
+        filter_plans_positive = lambda filtered_plan, filter : [planed_action for planed_action in filtered_plan if filter in get_tags(planed_action)]
+        filter_plans_negative = lambda filtered_plan, filter : [planed_action for planed_action in filtered_plan if filter not in get_tags(planed_action)]
         
         # remove all helper methodes
-        filtered_plan = filter(lambda planed_action : PlanerTag.Helper not in self.pddl_actions_to_execution_map[planed_action[0]][1], filtered_plan)
+        filtered_plan = filter_plans_negative(filtered_plan, PlanerTag.Helper)
+        #print (list(filtered_plan))
 
         # make a list of all cleaning actions without other actions in between
-        cleaning_plan = filter(lambda planed_action : PlanerTag.Clean_Intent in self.pddl_actions_to_execution_map[planed_action[0]][1], filtered_plan)
+        cleaning_plan = filter_plans_positive(filtered_plan, PlanerTag.Clean_Intent)
 
         # make a list of all one actuator actions without other actions in between
-        one_actuators_involved_actioin_plans = filter(lambda planed_action : PlanerTag.Actuator_Cancle_Out not in self.pddl_actions_to_execution_map[planed_action[0]][1], filtered_plan)
-        turn_off_actuator_plans = filter(lambda planed_action : PlanerTag.Actuator_Off in self.pddl_actions_to_execution_map[planed_action[0]][1], one_actuators_involved_actioin_plans)
-        increse_actuator_plans = filter(lambda planed_action : PlanerTag.Actuator_Increse in self.pddl_actions_to_execution_map[planed_action[0]][1], one_actuators_involved_actioin_plans)
-        decrese_actuator_plans = filter(lambda planed_action : PlanerTag.Actuator_Decrese in self.pddl_actions_to_execution_map[planed_action[0]][1], one_actuators_involved_actioin_plans)
+        one_actuators_involved_actioin_plans = filter_plans_negative(filtered_plan, PlanerTag.Actuator_Cancle_Out)
+        #print (list(one_actuators_involved_actioin_plans))
+        turn_off_actuator_plans = filter_plans_positive(one_actuators_involved_actioin_plans, PlanerTag.Actuator_Off)
+        increse_actuator_plans = filter_plans_positive(one_actuators_involved_actioin_plans, PlanerTag.Actuator_Increse)
+        decrese_actuator_plans = filter_plans_positive(one_actuators_involved_actioin_plans, PlanerTag.Actuator_Decrese)
         
         # make a list of all two actuator actions without other actions in between
-        two_actuators_involved_actioin_plans = filter(lambda planed_action : PlanerTag.Actuator_Cancle_Out in self.pddl_actions_to_execution_map[planed_action[0]][1], filtered_plan)
+        two_actuators_involved_actioin_plans = filter_plans_positive(filtered_plan, PlanerTag.Actuator_Cancle_Out)
         
         print (list(cleaning_plan))
         print (list(turn_off_actuator_plans))
