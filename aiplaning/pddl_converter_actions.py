@@ -383,7 +383,7 @@ def create_activity_detection_actions(execution_mapper: pddl_actions_to_executio
     checked_all_activitys = predicates_dict["checked_all_activitys"]
 
     for activity_name in activity_detect_mapping.keys():
-        detection_activity_x = create_activity_detection_actions_x(predicates_dict, pddl_variable_types, activity_name, activity_detect_mapping[activity_name], activity_fulfill_mapping[activity_name])
+        detection_activity_x = create_activity_detection_actions_x(execution_mapper, predicates_dict, pddl_variable_types, activity_name, activity_detect_mapping[activity_name], activity_fulfill_mapping[activity_name])
         actions_list = actions_list + detection_activity_x
 
     detect_all_activitys_pre = base.And(~checked_all_activitys(room_type, room_position_type))
@@ -559,4 +559,4 @@ def create_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Di
     actions_list = actions_list + create_activity_fulfilled_actions(execution_mapper, predicates_dict, pddl_variable_types, activity_fulfill_mapping)
     actions_list = actions_list + create_energy_saving_actions(execution_mapper, predicates_dict, pddl_variable_types)
 
-    return actions_list
+    return actions_list, execution_mapper

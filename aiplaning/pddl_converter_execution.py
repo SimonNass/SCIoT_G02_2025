@@ -25,5 +25,46 @@ class pddl_actions_to_execution_mapper():
     def __init__(self):
         self.pddl_actions_to_execution_map = {}
 
+    def __str__(self):
+        return str(self.pddl_actions_to_execution_map)
+
     def add_action(self, name: str, parametertypes: List[str], planertags: List[PlanerTag]):
-        self.pddl_actions_to_execution_map.update({name:(parametertypes, planertags)})
+        self.pddl_actions_to_execution_map.update({name.lower():(parametertypes, planertags)})
+
+    def filter_plan(self, plan: List[str]):
+        # test example
+        plan = ["0.00000: (ASSIGN_LOCK_FOR_SENSOR TEMPERATURE_S_S3)",
+                "0.00100: (SAVE_ENERGY ACTUATOR_A1 ROOM_R0)",
+                "0.00200: (DETECT_NO_POSSIBLE_ACTIVITY_READ ROOM_R0 ROOM_POSITION_OVERALL_ROOM)",
+                "0.00300: (DETECT_ALL_ACTIVITYS ROOM_R0 ROOM_POSITION_OVERALL_ROOM)",
+                "0.00400: (DETECT_NO_POSSIBLE_ACTIVITY_READ ROOM_R2 ROOM_POSITION_OVERALL_ROOM)",
+                "0.00500: (DETECT_ALL_ACTIVITYS ROOM_R2 ROOM_POSITION_OVERALL_ROOM)",
+                "0.00600: (DETECT_NO_POSSIBLE_ACTIVITY_READ ROOM_R3 ROOM_POSITION_OVERALL_ROOM)",
+                "0.00700: (DETECT_ALL_ACTIVITYS ROOM_R3 ROOM_POSITION_OVERALL_ROOM)",
+                "0.00800: (DETECT_NO_POSSIBLE_ACTIVITY_READ ROOM_R1 ROOM_POSITION_OVERALL_ROOM)",
+                "0.00900: (DETECT_ALL_ACTIVITYS ROOM_R1 ROOM_POSITION_OVERALL_ROOM)",
+                "0.01000: (FULFILL_ACTIVITY_NO_SLEEP ROOM_R3 ROOM_POSITION_OVERALL_ROOM)",
+                "0.01100: (FULFILL_ACTIVITY_NO_READ ROOM_R3 ROOM_POSITION_OVERALL_ROOM)",
+                "0.01200: (FULFILL_ALL_ACTIVITYS ROOM_R3 ROOM_POSITION_OVERALL_ROOM)",
+                "0.01300: (FULFILL_ACTIVITY_NO_SLEEP ROOM_R2 ROOM_POSITION_OVERALL_ROOM)",
+                "0.01400: (FULFILL_ACTIVITY_NO_READ ROOM_R2 ROOM_POSITION_OVERALL_ROOM)",
+                "0.01500: (FULFILL_ALL_ACTIVITYS ROOM_R2 ROOM_POSITION_OVERALL_ROOM)",
+                "0.01600: (FULFILL_ACTIVITY_NO_SLEEP ROOM_R1 ROOM_POSITION_OVERALL_ROOM)",
+                "0.01700: (FULFILL_ACTIVITY_NO_READ ROOM_R1 ROOM_POSITION_OVERALL_ROOM)",
+                "0.01800: (FULFILL_ALL_ACTIVITYS ROOM_R1 ROOM_POSITION_OVERALL_ROOM)",
+                "0.01900: (FULFILL_ACTIVITY_NO_SLEEP ROOM_R0 ROOM_POSITION_OVERALL_ROOM)",
+                "0.02000: (FULFILL_ACTIVITY_NO_READ ROOM_R0 ROOM_POSITION_OVERALL_ROOM)",
+                "0.02100: (FULFILL_ALL_ACTIVITYS ROOM_R0 ROOM_POSITION_OVERALL_ROOM)"]
+
+        # transform to workable substructure instead of just a streing
+        # remove timestamps
+        filtered_plan = [planed_action.split(':')[1] for planed_action in plan]
+        # remove whitespace borders, (, and )
+        filtered_plan = [planed_action.strip().replace('(','').replace(')','').lower() for planed_action in plan]
+        # split action name and parameters into a list
+        filtered_plan = [planed_action.split(' ') for planed_action in filtered_plan]
+        
+        # remove all helper methodes
+        filtered_plan = filter(lambda planed_action : PlanerTag.Helper not in self.pddl_actions_to_execution_map[planed_action[0]][1], filtered_plan)
+        print (list(filtered_plan))
+        return list(filtered_plan)
