@@ -99,7 +99,7 @@ def parse_mapping_payload(payload):
 
 def create_or_update_sensor_actuator_mappings(app, mappings):
     """
-    Create or update sensor-actuator mappings in the database.
+    Create or update sensor-actuator mappings in the database with proper race condition handling.
     
     Args:
         app: Flask application instance
@@ -114,33 +114,31 @@ def create_or_update_sensor_actuator_mappings(app, mappings):
             updated_count = 0
             failed_count = 0
             
-            for mapping in mappings:
+            for i, mapping in enumerate(mappings):
+                logging.debug(f"Processing mapping {i+1}/{len(mappings)}: {mapping['uuid_actuator']} -> {mapping['uuid_sensor']}")
+                
                 try:
-                    # Check if mapping already exists
-                    existing_mapping = models.SensorActuatorMapping.query.filter_by(
-                        uuid_actuator=mapping['uuid_actuator'],
-                        uuid_sensor=mapping['uuid_sensor']
-                    ).first()
-                    
-                    if existing_mapping:
-                        # Update existing mapping
-                        _update_mapping_from_data(existing_mapping, mapping)
-                        updated_count += 1
-                        logging.debug(f"Updated mapping: {mapping['uuid_actuator']} -> {mapping['uuid_sensor']}")
-                    else:
-                        # Create new mapping
-                        new_mapping = _create_mapping_from_data(mapping)
-                        db.session.add(new_mapping)
+                    # Process each mapping in its own transaction to handle race conditions
+                    success = _process_single_mapping(mapping)
+                    if success == 'created':
                         created_count += 1
-                        logging.debug(f"Created mapping: {mapping['uuid_actuator']} -> {mapping['uuid_sensor']}")
+                        logging.debug(f"Successfully created mapping {i+1}")
+                    elif success == 'updated':
+                        updated_count += 1
+                        logging.debug(f"Successfully updated mapping {i+1}")
+                    else:
+                        failed_count += 1
+                        logging.warning(f"Failed to process mapping {i+1}")
                         
                 except Exception as e:
-                    logging.error(f"Error processing mapping {mapping.get('uuid_actuator')} -> {mapping.get('uuid_sensor')}: {str(e)}")
+                    logging.error(f"Error processing mapping {i+1} {mapping.get('uuid_actuator')} -> {mapping.get('uuid_sensor')}: {str(e)}")
                     failed_count += 1
+                    # Ensure clean session state for next iteration
+                    try:
+                        db.session.rollback()
+                    except:
+                        pass
                     continue
-            
-            # Commit all changes
-            db.session.commit()
             
             # Try to link any mappings that now have corresponding devices
             linked_count = link_mappings_to_devices(app)
@@ -157,6 +155,74 @@ def create_or_update_sensor_actuator_mappings(app, mappings):
         except:
             pass
         return False
+
+
+def _process_single_mapping(mapping):
+    """
+    Process a single mapping with proper race condition handling.
+    
+    Args:
+        mapping (dict): Single mapping dictionary
+        
+    Returns:
+        str: 'created', 'updated', or 'failed'
+    """
+    try:
+        # Start with a fresh session state
+        try:
+            db.session.commit()  # Commit any pending changes
+        except:
+            db.session.rollback()  # If commit fails, rollback
+        
+        # Check if mapping already exists
+        existing_mapping = models.SensorActuatorMapping.query.filter_by(
+            uuid_actuator=mapping['uuid_actuator'],
+            uuid_sensor=mapping['uuid_sensor']
+        ).first()
+        
+        if existing_mapping:
+            # Update existing mapping
+            _update_mapping_from_data(existing_mapping, mapping)
+            db.session.commit()
+            logging.debug(f"Updated mapping: {mapping['uuid_actuator']} -> {mapping['uuid_sensor']}")
+            return 'updated'
+        else:
+            # Try to create new mapping with race condition handling
+            try:
+                new_mapping = _create_mapping_from_data(mapping)
+                db.session.add(new_mapping)
+                db.session.commit()
+                logging.debug(f"Created mapping: {mapping['uuid_actuator']} -> {mapping['uuid_sensor']}")
+                return 'created'
+                
+            except IntegrityError as ie:
+                # Handle race condition - mapping was created by another process
+                db.session.rollback()
+                logging.info(f"Mapping {mapping['uuid_actuator']} -> {mapping['uuid_sensor']} "
+                           f"was created by another process, attempting to update")
+                
+                # Try to fetch and update the mapping that was created by another process
+                existing_mapping = models.SensorActuatorMapping.query.filter_by(
+                    uuid_actuator=mapping['uuid_actuator'],
+                    uuid_sensor=mapping['uuid_sensor']
+                ).first()
+                
+                if existing_mapping:
+                    _update_mapping_from_data(existing_mapping, mapping)
+                    db.session.commit()
+                    logging.debug(f"Updated mapping after race condition: {mapping['uuid_actuator']} -> {mapping['uuid_sensor']}")
+                    return 'updated'
+                else:
+                    logging.error(f"Failed to retrieve mapping after integrity error: {mapping['uuid_actuator']} -> {mapping['uuid_sensor']}")
+                    return 'failed'
+                    
+    except Exception as e:
+        logging.error(f"Error processing single mapping {mapping.get('uuid_actuator')} -> {mapping.get('uuid_sensor')}: {str(e)}")
+        try:
+            db.session.rollback()
+        except:
+            pass
+        return 'failed'
 
 
 def _create_mapping_from_data(mapping):

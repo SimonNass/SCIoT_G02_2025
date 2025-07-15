@@ -101,6 +101,23 @@ def safe_str_conversion(value):
     
     return str_value
 
+def safe_float_conversion_for_sensor_data(value):
+    """
+    Safely convert a value to float for sensor data storage.
+    Returns None if conversion fails.
+    """
+    if value is None:
+        return None
+    
+    # Handle empty strings
+    if isinstance(value, str) and value.strip() == '':
+        return None
+    
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return None
+
 def parse_device_payload(payload, device_type):
     """
     Parse device payload JSON and extract relevant fields for sensors or actuators
@@ -167,8 +184,8 @@ def parse_device_payload(payload, device_type):
             'type_name': data.get('type_name'),
             'connector': data.get('connector'),
             'connector_type': str(data.get('connector_type')) if data.get('connector_type') is not None else None,
-            'min_value': float(data.get('min')) if data.get('min') is not None else None,
-            'max_value': float(data.get('max')) if data.get('max') is not None else None,
+            'min_value': safe_float_conversion(data.get('min')),
+            'max_value': safe_float_conversion(data.get('max')),
             'datatype': data.get('datatype'),
             'unit': data.get('unit'),
             'last_value': safe_str_conversion(data.get('last_value')),
@@ -179,7 +196,7 @@ def parse_device_payload(payload, device_type):
             parsed_data.update({
                 'read_interval': int(data.get('read_interval')) if data.get('read_interval') is not None else None,
                 'notify_interval': str(data.get('notify_interval')) if data.get('notify_interval') is not None else None,
-                'notify_change_precision': float(data.get('notify_change_precision')) if data.get('notify_change_precision') is not None else None,
+                'notify_change_precision': safe_float_conversion(data.get('notify_change_precision')),
             })
         elif device_type == 'actuator':
             parsed_data.update({
