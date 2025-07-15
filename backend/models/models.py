@@ -37,7 +37,10 @@ class Room(db.Model):
     is_occupied: Mapped[bool] = mapped_column(Boolean, default=False)
     last_cleaned: Mapped[Optional[datetime]] = mapped_column(DateTime)
     is_cleaned: Mapped[bool] = mapped_column(Boolean, default=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, onupdate=datetime.utcnow)
+    
     rfid_access_id: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     
     # Foreign key to Floor
@@ -104,7 +107,20 @@ class Device(db.Model):
         back_populates="devices"
     )
     
-    # Todo: Add PDDL info need to know which actuator can influence which sensor
+    # Sensor-Actuator mapping relationships
+    # When this device is an actuator that influences sensors
+    actuator_mappings: Mapped[List["SensorActuatorMapping"]] = relationship(
+        back_populates="actuator_device",
+        foreign_keys="SensorActuatorMapping.actuator_device_id",
+        cascade="all, delete-orphan"
+    )
+    
+    # When this device is a sensor influenced by actuators
+    sensor_mappings: Mapped[List["SensorActuatorMapping"]] = relationship(
+        back_populates="sensor_device",
+        foreign_keys="SensorActuatorMapping.sensor_device_id",
+        cascade="all, delete-orphan"
+    )
     
     def __repr__(self) -> str:
         return f"Device(id={self.id!r}, device_id={self.device_id!r}, name={self.name!r}, type={self.device_type!r})"
@@ -124,6 +140,48 @@ class SensorData(db.Model):
     
     def __repr__(self) -> str:
         return f"SensorData(id={self.id!r}, device_id={self.device_id!r}, value={self.value!r}, timestamp={self.timestamp!r})"
+
+class SensorActuatorMapping(db.Model):
+    """Store mappings between sensors and actuators with influence parameters"""
+    __tablename__ = 'sensor_actuator_mappings'
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    
+    # Foreign keys to devices (nullable to handle creation order)
+    actuator_device_id: Mapped[Optional[str]] = mapped_column(ForeignKey("devices.id"), nullable=True)
+    sensor_device_id: Mapped[Optional[str]] = mapped_column(ForeignKey("devices.id"), nullable=True)
+    
+    # UUIDs from the mapping payload (used for initial creation and later linking)
+    uuid_actuator: Mapped[str] = mapped_column(String(100), nullable=False)
+    uuid_sensor: Mapped[str] = mapped_column(String(100), nullable=False)
+    
+    # Mapping parameters
+    impact_factor: Mapped[float] = mapped_column(Float, nullable=False)
+    actuator_can_increases_sensor: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    actuator_can_decreases_sensor: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    only_physical: Mapped[bool] = mapped_column(Boolean, default=False)
+    active_influences: Mapped[int] = mapped_column(Integer, default=0)
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, onupdate=datetime.utcnow)
+    
+    # Relationships
+    actuator_device: Mapped[Optional["Device"]] = relationship(
+        back_populates="actuator_mappings",
+        foreign_keys=[actuator_device_id]
+    )
+    sensor_device: Mapped[Optional["Device"]] = relationship(
+        back_populates="sensor_mappings",
+        foreign_keys=[sensor_device_id]
+    )
+    
+    # Unique constraint to prevent duplicate mappings
+    __table_args__ = (
+        db.UniqueConstraint('uuid_actuator', 'uuid_sensor', name='unique_actuator_sensor_mapping'),
+    )
+    
+    def __repr__(self) -> str:
+        return f"SensorActuatorMapping(actuator={self.uuid_actuator!r}, sensor={self.uuid_sensor!r}, impact={self.impact_factor!r})"
     
 class TypeNameConfig(db.Model):
     """Stores lower-mid and upper-mid limits for each device type to enable dynamic determination of simiplified values"""

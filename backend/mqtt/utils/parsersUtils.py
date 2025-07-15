@@ -15,6 +15,13 @@ def parse_mqtt_topic(topic, app_instance):
         
         # Get the expected topic prefix from config
         expected_prefix = app_instance.config['MQTT_TOPIC_SUBSCRIBE'].split('/')[0]
+        
+        # Process Mapping Topic
+        if len(parts) == 5 and parts[0] == expected_prefix and parts[4] == "all" and parts[3] == "mapping":
+            # SCIoT_G02_2025/<floor_number>/<room_number>/mapping/all
+            _, floor_str, room_number, mapping, _ = parts
+            floor_number = floor_str_to_int_converter(floor_str)
+            return floor_number, room_number, mapping
         if len(parts) == 6 and parts[0] == expected_prefix and parts[5] != "all":
             logging.info(f"Detected message publish for request to gateway")
             return None
@@ -25,20 +32,25 @@ def parse_mqtt_topic(topic, app_instance):
         _, floor_str, room_number, device_type, device_id, _ = parts
         
         # Convert floor to integer
-        try:
-            floor_number = int(floor_str)
-            if floor_number < 0 or floor_number > 100:
-                logging.warning(f"Floor number out of range: {floor_number}")
-                return None
-        except ValueError:
-            logging.warning(f"Invalid floor number in topic: {floor_str}")
-            return None
+        floor_number = floor_str_to_int_converter(floor_str)
+        if floor_number is None:
+            raise Exception("Floor number out of range")
         
         return floor_number, room_number, device_type, device_id
     
     except Exception as e:
         logging.error(f"Error parsing topic {topic}: {str(e)}")
         return None
+    
+def floor_str_to_int_converter(floor_str: str):
+        try:
+            floor_number = int(floor_str)
+            if floor_number < 0 or floor_number > 100:
+                raise Exception("Floor number out of range")
+            return floor_number
+        except ValueError:
+            logging.warning(f"Invalid floor number in topic: {floor_str}")
+            raise
 
 def parse_device_payload(payload, device_type):
     """

@@ -4,6 +4,7 @@ from backend.models import models
 from sqlalchemy.exc import IntegrityError
 from backend.routes.auth.simple_auth import require_api_key
 from backend.mqtt.utils.mqttPublish import request_actuator_update, request_current_sensor_value
+from backend.mqtt.utils.mappingParserUtils import get_actuator_sensor_matrices, get_mapping_impact_factors
 
 api = Blueprint('api', __name__)
 
@@ -599,3 +600,22 @@ def set_type_name_configs():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@api.route('/api/mappings/matrices')
+def get_mapping_matrices():
+    """Get actuator-sensor mapping matrices"""
+    try:
+        increases_matrix, decreases_matrix = get_actuator_sensor_matrices()
+        impact_factors = get_mapping_impact_factors()
+
+        # Return as a proper JSON response
+        response_data = {
+            'increases_matrix': increases_matrix,
+            'decreases_matrix': decreases_matrix,
+            'impact_factors': impact_factors
+        }
+        
+        return jsonify(response_data), 200
+        
+    except Exception as e:
+        return jsonify({'error - Failed to retrieve mapping matrices:': str(e)}), 500

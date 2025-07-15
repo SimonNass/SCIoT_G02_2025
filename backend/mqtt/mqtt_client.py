@@ -1,7 +1,7 @@
 import logging
 import paho.mqtt.client as mqtt
 from backend.mqtt.utils.parsersUtils import parse_mqtt_topic
-from backend.mqtt.utils.dbUtils import get_or_create_device
+from backend.mqtt.utils.dbUtils import get_or_create_device, process_sensor_actuator_mapping
 from backend.mqtt.utils.cacheUtils import initialize_device_cache
 
 # Configuration constants
@@ -63,12 +63,21 @@ def on_message(client, userdata, msg):
             return
         
         logging.info(f"Message received on topic {topic}")
-        logging.debug(f"Payload: {payload}")
         
         # Parse the topic
         parsed = parse_mqtt_topic(topic, app_instance)
         if not parsed:
             logging.warning(f"Skipping message with topic: {topic}")
+            return
+        
+        if parsed[2] == "mapping":
+            logging.info(f"Parsed Topic: {parsed}")
+            floor_number, room_number, _ = parsed
+            success = process_sensor_actuator_mapping(app_instance, floor_number, room_number, payload)
+            if success:
+                logging.info(f"Successfully processed sensor-actuator mapping for floor {floor_number}, room {room_number}")
+            else:
+                logging.error(f"Failed to process sensor-actuator mapping for floor {floor_number}, room {room_number}")
             return
         
         floor_number, room_number, device_type, device_id = parsed

@@ -3,6 +3,7 @@ import backend.models.models as models
 from backend.extensions import db
 from backend.mqtt.utils.cacheUtils import device_cache
 from backend.mqtt.utils.parsersUtils import parse_device_payload, validate_device_data
+from backend.mqtt.utils.mappingParserUtils import parse_mapping_payload, create_or_update_sensor_actuator_mappings, link_mappings_to_devices
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from backend.mqtt.utils.typeNameConfigUtils import get_simple_default_middle_values
@@ -77,6 +78,14 @@ def _handle_existing_device(app_instance, existing_device, sensor_type, room, pa
         # Process payload and update device status in a single transaction
         success = _process_device_payload_and_status(app_instance, existing_device.device_id, sensor_type, payload, room,
                                                    device_obj=existing_device)
+        
+        # Link any pending mappings for this device
+        try:
+            linked_count = link_mappings_to_devices(app_instance)
+            if linked_count > 0:
+                logging.debug(f"Linked {linked_count} pending mappings after adding device {existing_device.device_id} to cache")
+        except Exception as link_error:
+            logging.warning(f"Failed to link mappings after adding device {existing_device.device_id}: {link_error}")
         
         if success:
             logging.info(f"Device {existing_device.device_id} added to cache from database and payload processed")
@@ -159,6 +168,14 @@ def _create_new_device(app_instance, device_id, sensor_type, room, floor_number,
             
             # Add to cache only after successful commit
             device_cache[device_id] = device_info
+            
+            # Link any pending mappings for this device
+            try:
+                linked_count = link_mappings_to_devices(app_instance)
+                if linked_count > 0:
+                    logging.debug(f"Linked {linked_count} pending mappings after creating device {device_id}")
+            except Exception as link_error:
+                logging.warning(f"Failed to link mappings after creating device {device_id}: {link_error}")
             
             log_msg = f"New device created and cached: {device_id} ({sensor_type}) in room {room_number}, floor {floor_number}"
             if sensor_data_created:
@@ -471,4 +488,40 @@ def _handle_rfid_sensor(room, parsed_payload, latest_value):
         # RFID value doesn't match - could be unauthorized access attempt
         logging.warning(f"Unauthorized RFID access attempt in room {room.room_number}: "
                        f"Expected {room.rfid_access_id}, got {rfid_value}")
+        return False
+
+def process_sensor_actuator_mapping(app_instance, floor_number, room_number, payload):
+    """
+    Process sensor-actuator mapping payload from MQTT message.
+    
+    Args:
+        app_instance: Flask app instance
+        floor_number (int): Floor number where mapping applies
+        room_number (str): Room number where mapping applies  
+        payload (str): JSON payload containing mapping data
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        logging.info(f"Processing sensor-actuator mapping for floor {floor_number}, room {room_number}")
+        
+        # Parse the mapping payload
+        parsed_mappings = parse_mapping_payload(payload)
+        if not parsed_mappings:
+            logging.warning("No valid mappings found in payload")
+            return False
+        
+        # Create or update mappings in database
+        success = create_or_update_sensor_actuator_mappings(parsed_mappings)
+        
+        if success:
+            logging.info(f"Successfully processed {len(parsed_mappings)} sensor-actuator mappings")
+        else:
+            logging.warning("Some errors occurred while processing mappings")
+            
+        return success
+        
+    except Exception as e:
+        logging.error(f"Error processing sensor-actuator mapping: {str(e)}")
         return False
