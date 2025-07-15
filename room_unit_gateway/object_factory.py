@@ -307,14 +307,12 @@ def configure_actuator_types(json_list: json):
         connector_types = getattr(Connectortype, str(t['connector_types']))
         datatype = str(t['datatype'])
         unit = str(t['unit'])
+        min_value = int(t['min'])
+        max_value = int(t['max'])
         if connector_types in [Connectortype.I2C_display, Connectortype.Virtual_textual]:
-            min_value = str(t['min'])
-            max_value = str(t['max'])
             initial_value = str(t['initial_value'])
             off_value = str(t['off_value'])
         else:
-            min_value = int(t['min'])
-            max_value = int(t['max'])
             initial_value = int(t['initial_value'])
             off_value = int(t['off_value'])
         t_dict = {'mame_key':mame_key,'connector_types':connector_types,'min':min_value,'max':max_value,'datatype':datatype,'unit':unit,'initial_value':initial_value,'off_value':off_value}
