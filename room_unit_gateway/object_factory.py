@@ -19,6 +19,8 @@ def configure_network_gateway(host: str,
                               port: int,
                               username: str,
                               password: str,
+                              timeout: int,
+                              base_topic: str,
                               room_info: Room_Info,
                               actuators: List[ActuatorInterface]):
     gateway_network = None
@@ -28,6 +30,8 @@ def configure_network_gateway(host: str,
             port=port,
             username=username,
             password=password,
+            timeout=int(timeout),
+            base_topic=base_topic,
             room_info=room_info,
             actuators=actuators
         )
@@ -73,6 +77,8 @@ def configure_sensors(json_list: json, types: dict, ardoino_serial: ArdoinoRever
     for s in init_list:
         name = str(s['name'])
         type_name = str(s['type_name'])
+        room_position = str(s['room_position'])
+        ai_planing_type = str(s['ai_planing_type'])
         connector = int(s['connector'])
         connector_types = types[type_name]['connector_types']
         min_value = types[type_name]['min']
@@ -85,6 +91,8 @@ def configure_sensors(json_list: json, types: dict, ardoino_serial: ArdoinoRever
         try:
             sensor_object = choose_sensor_class(name=name,
                                                 type_name=type_name,
+                                                room_position=room_position,
+                                                ai_planing_type=ai_planing_type,
                                                 connector=connector,
                                                 connector_types=connector_types,
                                                 min_value=min_value,
@@ -102,29 +110,29 @@ def configure_sensors(json_list: json, types: dict, ardoino_serial: ArdoinoRever
             logger.info(f"{e}")
     return sensors
 
-def choose_sensor_class(name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int, ardoino_serial: ArdoinoReverseProxy):
+def choose_sensor_class(name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int, ardoino_serial: ArdoinoReverseProxy):
     try:
         sensor_object = None
         if connector_types == Connectortype.Analog:
-            sensor_object = AnalogSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            sensor_object = AnalogSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
         elif connector_types == Connectortype.Digital:
-            sensor_object = DigitalSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            sensor_object = DigitalSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
         elif connector_types == Connectortype.Digital_multiple_0:
-            sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=0)
+            sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=0)
         elif connector_types == Connectortype.Digital_multiple_1:
-            sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=1)
+            sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=1)
         elif connector_types == Connectortype.Virtual_numerical:
-            sensor_object = VirtualSensor_numerical(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            sensor_object = VirtualSensor_numerical(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
         elif connector_types == Connectortype.Virtual_binary:
-            sensor_object = VirtualSensor_binary(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            sensor_object = VirtualSensor_binary(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
         elif connector_types == Connectortype.Ardoino_temperature:
-            sensor_object = ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="temperature")
+            sensor_object = ArdoinoSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="temperature")
         elif connector_types == Connectortype.Ardoino_humidity:
-            sensor_object = ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="humidity")
+            sensor_object = ArdoinoSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="humidity")
         elif connector_types == Connectortype.Ardoino_soundlevel:
-            sensor_object = ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="soundlevel")
+            sensor_object = ArdoinoSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="soundlevel")
         elif connector_types == Connectortype.Ardoino_rfid:
-            sensor_object = ArdoinoSensor(name=name,type_name=type_name,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="rfid")
+            sensor_object = ArdoinoSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="rfid")
         else:
             raise ValueError("Connector_type is not implemented.")
         return sensor_object
@@ -156,6 +164,8 @@ def configure_actuators(json_list: json, types: dict, ardoino_serial: ArdoinoRev
     for a in init_list:
         name = str(a['name'])
         type_name = str(a['type_name'])
+        room_position = str(a['room_position'])
+        ai_planing_type = str(a['ai_planing_type'])
         connector = int(a['connector'])
         connector_types = types[type_name]['connector_types']
         min_value = types[type_name]['min']
@@ -167,6 +177,8 @@ def configure_actuators(json_list: json, types: dict, ardoino_serial: ArdoinoRev
         try:
             actuator_object = choose_actuator_class(name=name,
                                                     type_name=type_name,
+                                                    room_position=room_position,
+                                                    ai_planing_type=ai_planing_type,
                                                     connector=connector,
                                                     connector_types=connector_types,
                                                     min_value=min_value,
@@ -186,6 +198,8 @@ def configure_actuators(json_list: json, types: dict, ardoino_serial: ArdoinoRev
 def choose_actuator_class(name: str,
                           type_name: str,
                           connector: int,
+                          room_position: str,
+                          ai_planing_type: str,
                           connector_types: Connectortype,
                           min_value: Union[int, str],
                           max_value: Union[int, str],
@@ -199,6 +213,8 @@ def choose_actuator_class(name: str,
         if connector_types == Connectortype.I2C_display:
             actuator_object = DisplayActuator(name=name,
                                    type_name=type_name,
+                                   room_position=room_position,
+                                   ai_planing_type=ai_planing_type,
                                    connector=connector,
                                    connector_types=connector_types,
                                    min_value=min_value,
@@ -210,6 +226,8 @@ def choose_actuator_class(name: str,
         elif connector_types == Connectortype.Analog:
             actuator_object = AnalogActuator(name=name,
                                   type_name=type_name,
+                                  room_position=room_position,
+                                  ai_planing_type=ai_planing_type,
                                   connector=connector,
                                   connector_types=connector_types,
                                   min_value=min_value,
@@ -221,6 +239,8 @@ def choose_actuator_class(name: str,
         elif connector_types == Connectortype.Digital:
             actuator_object = DigitalActuator(name=name,
                                    type_name=type_name,
+                                   room_position=room_position,
+                                   ai_planing_type=ai_planing_type,
                                    connector=connector,
                                    connector_types=connector_types,
                                    min_value=min_value,
@@ -232,6 +252,8 @@ def choose_actuator_class(name: str,
         elif connector_types == Connectortype.Virtual_numerical:
             actuator_object = VirtualActuator_numerical(name=name,
                                    type_name=type_name,
+                                   room_position=room_position,
+                                   ai_planing_type=ai_planing_type,
                                    connector=connector,
                                    connector_types=connector_types,
                                    min_value=min_value,
@@ -243,6 +265,8 @@ def choose_actuator_class(name: str,
         elif connector_types == Connectortype.Virtual_textual:
             actuator_object = VirtualActuator_textual(name=name,
                                    type_name=type_name,
+                                   room_position=room_position,
+                                   ai_planing_type=ai_planing_type,
                                    connector=connector,
                                    connector_types=connector_types,
                                    min_value=min_value,
@@ -254,6 +278,8 @@ def choose_actuator_class(name: str,
         elif connector_types == Connectortype.Ardoino_motor:
             actuator_object = ArdoinoActuator(name=name,
                                    type_name=type_name,
+                                   room_position=room_position,
+                                   ai_planing_type=ai_planing_type,
                                    connector=connector,
                                    connector_types=connector_types,
                                    min_value=min_value,

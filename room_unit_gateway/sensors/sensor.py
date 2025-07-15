@@ -16,10 +16,12 @@ from enumdef import Connectortype, Notifyinterval
 logger = logging.getLogger(__name__)
 
 class SensorInterface(ABC):
-    def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
+    def __init__(self, name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
         self.id = uuid.uuid1()
         self.name = name
         self.type = type_name
+        self.room_position = room_position
+        self.ai_planing_type = ai_planing_type
         self.i2c_connector = connector #assert not used twice
         self.connector_type = connector_types
         self.min_value = min_value
@@ -37,7 +39,7 @@ class SensorInterface(ABC):
         return str(self.__dict__())
 
     def __dict__(self):
-        return {"id":str(self.id),"name":self.name,"type_name":self.type,"connector":self.i2c_connector,"connector_type":str(self.connector_type),"min":self.min_value, "max":self.max_value, "datatype":self.datatype, "unit":self.unit, "read_interval":self.read_interval, "notify_interval":str(self.notify_interval), "notify_change_precision":self.notify_change_precision, "last_value":self.last_value}
+        return {"id":str(self.id),"name":self.name,"type_name":self.type,"room_position":self.room_position,"ai_planing_type":self.ai_planing_type,"connector":self.i2c_connector,"connector_type":str(self.connector_type),"min":self.min_value, "max":self.max_value, "datatype":self.datatype, "unit":self.unit, "read_interval":self.read_interval, "notify_interval":str(self.notify_interval), "notify_change_precision":self.notify_change_precision, "last_value":self.last_value}
 
     def read_sensor(self):
         try:
@@ -59,20 +61,20 @@ class SensorInterface(ABC):
         pass
 
 class AnalogSensor(SensorInterface):
-    def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
+    def __init__(self, name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
         if connector_types != Connectortype.Analog:
             raise ValueError("Connector_type is not Analog.")
-        super().__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
+        super().__init__(name=name, type_name=type_name, room_position=room_position, ai_planing_type=ai_planing_type, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
         _ = self.read_sensor()
 
     def read_internal_sensor(self):
         return grovepi.analogRead(self.i2c_connector)
 
 class DigitalSensor(SensorInterface):
-    def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
+    def __init__(self, name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
         if connector_types != Connectortype.Digital:
             raise ValueError("connector_type is not Digital.")
-        super().__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
+        super().__init__(name=name, type_name=type_name, room_position=room_position, ai_planing_type=ai_planing_type, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
         try:
             grovepi.pinMode(self.i2c_connector,"INPUT")
         except  AttributeError as e:
@@ -85,10 +87,10 @@ class DigitalSensor(SensorInterface):
         return grovepi.digitalRead(self.i2c_connector)
 
 class DigitalMultipleSensor(SensorInterface):
-    def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, i: int, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
+    def __init__(self, name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, i: int, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
         if connector_types not in [Connectortype.Digital_multiple_0, Connectortype.Digital_multiple_1]:
             raise ValueError("connector_type is not Digital_multiple.")
-        super().__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
+        super().__init__(name=name, type_name=type_name, room_position=room_position, ai_planing_type=ai_planing_type, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
         self.i = i
         try:
             grovepi.pinMode(self.i2c_connector,"INPUT")
@@ -108,10 +110,10 @@ class DigitalMultipleSensor(SensorInterface):
         return return_value
 
 class VirtualSensor_numerical(SensorInterface):
-    def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
+    def __init__(self, name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
         if connector_types != Connectortype.Virtual_numerical:
             raise ValueError("connector_type is not Digital.")
-        super().__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
+        super().__init__(name=name, type_name=type_name, room_position=room_position, ai_planing_type=ai_planing_type, connector=connector, connector_types=connector_types, min_value=min_value, max_value=max_value, datatype=datatype, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
         self.rng_selector = 5
         self.seed = 0
         self.index = 0
@@ -141,10 +143,10 @@ class VirtualSensor_numerical(SensorInterface):
         return value
 
 class VirtualSensor_binary(SensorInterface):
-    def __init__(self, name: str, type_name: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
+    def __init__(self, name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
         if connector_types != Connectortype.Virtual_binary:
             raise ValueError("connector_type is not Digital.")
-        super().__init__(name=name, type_name=type_name, connector=connector, connector_types=connector_types, min_value=0, max_value=1, datatype=bool, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=1)
+        super().__init__(name=name, type_name=type_name, room_position=room_position, ai_planing_type=ai_planing_type, connector=connector, connector_types=connector_types, min_value=0, max_value=1, datatype=bool, unit=unit, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=1)
         _ = self.read_sensor()
 
     def read_internal_sensor(self):

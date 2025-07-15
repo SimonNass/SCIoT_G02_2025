@@ -21,8 +21,8 @@
   - [X] (Simon) disable sensors ? > not needed just ignore them
   - [ ] (Simon) update random number generator manual list
   - [ ] (Simon) Toggle button sensor?
-  - [ ] (Simon) add ai planing increrase decrease to actuators
-  - [ ] (Simon) add ai planing types to IoT
+  - [X] (Simon) add ai planing increrase decrease to actuators
+  - [X] (Simon) add ai planing types to IoT
   - [ ] (Simon) rename ardoino to arduino
   - [X] (Simon) mapping firtual environment toggle for real sensor actuator paar
   - [X] (Simon) send firtual environment formating
@@ -38,6 +38,7 @@
   - [X] (Simon) mapping in pddl a -> s
   - [ ] (Simon) individual sensor goals
   - [ ] (Simon) room positiones
+  - [ ] (Simon) program activitys in config file
   - [ ] (Maximilian, Simon) Sensor aggregation
 
 - [ ] Frontend
