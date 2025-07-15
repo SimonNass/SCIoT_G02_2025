@@ -19,6 +19,8 @@ def configure_network_gateway(host: str,
                               port: int,
                               username: str,
                               password: str,
+                              timeout: int,
+                              base_topic: str,
                               room_info: Room_Info,
                               actuators: List[ActuatorInterface]):
     gateway_network = None
@@ -28,6 +30,8 @@ def configure_network_gateway(host: str,
             port=port,
             username=username,
             password=password,
+            timeout=int(timeout),
+            base_topic=base_topic,
             room_info=room_info,
             actuators=actuators
         )
