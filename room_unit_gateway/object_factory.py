@@ -164,8 +164,8 @@ def configure_actuators(json_list: json, types: dict, ardoino_serial: ArdoinoRev
     for a in init_list:
         name = str(a['name'])
         type_name = str(a['type_name'])
-        room_position = str(s['room_position'])
-        ai_planing_type = str(s['ai_planing_type'])
+        room_position = str(a['room_position'])
+        ai_planing_type = str(a['ai_planing_type'])
         connector = int(a['connector'])
         connector_types = types[type_name]['connector_types']
         min_value = types[type_name]['min']
