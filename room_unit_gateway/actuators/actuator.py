@@ -15,7 +15,7 @@ from enumdef import Connectortype
 logger = logging.getLogger(__name__)
 
 class ActuatorInterface(ABC):
-    def __init__(self, name: str, type_name: str, connector: int, room_position: str, ai_planing_type: str, connector_types: Connectortype, min_value: Union[int, str], max_value: Union[int, str], datatype: str, unit: str, initial_value: Union[int, str], off_value: Union[int, str]):
+    def __init__(self, name: str, type_name: str, connector: int, room_position: str, ai_planing_type: str, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: Union[int, str], off_value: Union[int, str]):
         self.id = uuid.uuid1()
         self.name = name
         self.type = type_name
