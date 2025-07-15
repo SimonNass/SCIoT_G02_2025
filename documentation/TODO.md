@@ -1,48 +1,45 @@
 # TODO
 
-- pi
-  - update python version in docker for room pi
-  - test pi with no / wrong sensors, pi check that with nothing conneted or connected wrong it stil works
-  - button add buffer to not send multiple messages if
-  - send welkome message for display
-- build aggregations and context information
-- build planing AI
-- send notes of lecture
-
-## Meeting 01.07
+- [ ] (Simon) send notes of lecture
 
 - [x] Communication gateway -> backend (MQTT)
 - [x] Communication backend->gateway (MQTT)
 - [x] Making motor work
 - [ ] Gateway
-  - [X] (Simon) sensor dictionary send in utf 8
-  - [X] (Simon) send bool actuator is off or on in gateway info
+  - [x] (Simon) sensor dictionary send in utf 8
+  - [x] (Simon) send bool actuator is off or on in gateway info
   - [ ] (Simon) test send after actuator change
-  - [X] (Simon) disable sensors ? > not needed just ignore them
-  - [ ] (Simon) update random number generator manual list
-  - [ ] (Simon) Toggle button sensor?
-  - [X] (Simon) add ai planing increrase decrease to actuators
-  - [X] (Simon) add ai planing types to IoT
-  - [ ] (Simon) rename ardoino to arduino
-  - [X] (Simon) mapping firtual environment toggle for real sensor actuator paar
-  - [X] (Simon) send firtual environment formating
-  - [X] bug when broker not connected ?bug no longer apeares
-  - [X] ardoino sensor return prefix needs to be removed
-  - [X] send ardoino values not 0 to mqtt broker
+  - [x] (Simon) disable sensors ? > not needed just ignore them
+  - [ ] (optional) (Simon) update random number generator manual list
+  - [ ] (optional) (Simon) Toggle button sensor?
+  - [ ] (optional) (Simon) send welkome message for display
+  - [ ] (optional) (Simon) button add buffer to not send multiple messages if
+  - [ ] (optional) (Simon) test pi with no / wrong sensors, pi check that with nothing conneted or connected wrong it stil works
+  - [ ] (optional) (Simon) update python version in docker for room pi
+  - [x] (Simon) add ai planing increrase decrease to actuators
+  - [x] (Simon) add ai planing types to IoT
+  - [ ] (optional) (Simon) rename ardoino to arduino
+  - [ ] (Simon) actuators "min":"0", "max":"32"
+  - [x] (Simon) mapping firtual environment toggle for real sensor actuator paar
+  - [x] (Simon) send firtual environment formating
+  - [x] bug when broker not connected ?bug no longer apeares
+  - [x] ardoino sensor return prefix needs to be removed
+  - [x] send ardoino values not 0 to mqtt broker
 
 - [ ] AI Planning
   - [x] Overarching Goals
-  - [X] (Simon) Activity recognition in ai planer or in context generation
+  - [x] (Simon) Activity recognition in ai planer or in context generation
   - [x] First attempts at lecture implementation
-  - [X] (Simon) plan cleaning and do not plan cleaning toggle
-  - [X] (Simon) mapping in pddl a -> s
-  - [ ] (Simon) individual sensor goals
-  - [ ] (Simon) room positiones
+  - [x] (Simon) plan cleaning and do not plan cleaning toggle
+  - [x] (Simon) mapping in pddl a -> s
+  - [ ] (Simon) Actuator_Text teg
+  - [ ] (optional) (Simon) individual sensor goals
+  - [ ] (optional) (Simon) room positiones
   - [ ] (Simon) program activitys in config file
-  - [ ] (Maximilian, Simon) Sensor aggregation
+  - [ ] (optional) (Maximilian, Simon) Sensor aggregation
 
 - [ ] Frontend
- - [ ] actuators off or on
+ - [ ] actuators display off or on
  - [ ] set actuator value from frontend
 
 - [ ] backend
@@ -67,7 +64,7 @@
   - [ ] update config files to newest form
 
 - [] Bugs 
-  - [ ] (Simon, Maximilian) Bug: "°C", degree Symbol not being parsed correctly in mqtt incoming message -> May need to be parsed on the frontend -> solvet on gateway?
+  - [x] (Simon, Maximilian) Bug: "°C", degree Symbol not being parsed correctly in mqtt incoming message -> May need to be parsed on the frontend -> solvet on gateway?
 
 # AI planing tools
 
