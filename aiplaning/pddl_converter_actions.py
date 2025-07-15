@@ -7,9 +7,10 @@ from typing import List, Dict
 from pddl.logic import base, variables
 from pddl.logic.predicates import EqualTo
 from pddl.action import Action
+from pddl_converter_execution import PlanerTag, pddl_actions_to_execution_mapper
 
 
-def create_cleaning_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
+def create_cleaning_actions(execution_mapper: pddl_actions_to_execution_mapper, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
     actions_list = []
 
     floor_type = pddl_variable_types["floor"][0]
@@ -41,6 +42,7 @@ def create_cleaning_actions(predicates_dict: Dict[str,variables], pddl_variable_
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
     )
     actions_list.append(move_to_floor)
+    execution_mapper.add_action("move_to_floor", [cleaning_team_type, room_type, room2_type, floor_type, floor2_type], [PlanerTag.Clean_Intent, PlanerTag.Helper])
 
     move_to_room = Action(
         "move_to_room",
@@ -51,6 +53,7 @@ def create_cleaning_actions(predicates_dict: Dict[str,variables], pddl_variable_
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
     )
     actions_list.append(move_to_room)
+    execution_mapper.add_action("move_to_room", [cleaning_team_type, room_type, room2_type, floor_type], [PlanerTag.Clean_Intent, PlanerTag.Helper])
 
     move_to_isolated_room = Action(
         "move_to_isolated_room",
@@ -61,6 +64,7 @@ def create_cleaning_actions(predicates_dict: Dict[str,variables], pddl_variable_
         effect=~is_at(cleaning_team_type,room_type) & is_at(cleaning_team_type,room2_type)
     )
     actions_list.append(move_to_isolated_room)
+    execution_mapper.add_action("move_to_isolated_room", [cleaning_team_type, room_type, room2_type, floor_type], [PlanerTag.Clean_Intent, PlanerTag.Helper])
 
     team_clean = Action(
         "team_clean",
@@ -72,10 +76,11 @@ def create_cleaning_actions(predicates_dict: Dict[str,variables], pddl_variable_
         effect=is_cleaned(room_type)
     )
     actions_list.append(team_clean)
+    execution_mapper.add_action("team_clean", [cleaning_team_type, room_type], [PlanerTag.Clean_Intent])
 
     return actions_list
 
-def create_assign_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
+def create_assign_actions(execution_mapper: pddl_actions_to_execution_mapper, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
     actions_list = []
 
     floor_type = pddl_variable_types["floor"][0]
@@ -99,6 +104,7 @@ def create_assign_actions(predicates_dict: Dict[str,variables], pddl_variable_ty
         effect=room_is_part_of_floor(room_type, floor_type)
     )
     actions_list.append(assign_floor)
+    execution_mapper.add_action("assign_floor", [room_type, floor_type], [PlanerTag.Assignment_Intent, PlanerTag.Helper])
 
     assign_room_position = Action(
         "assign_room_position",
@@ -107,6 +113,7 @@ def create_assign_actions(predicates_dict: Dict[str,variables], pddl_variable_ty
         effect=base.ForallCondition((positioned_at(iot_type, room_position_type)), [room_position_type])
     )
     actions_list.append(assign_room_position)
+    execution_mapper.add_action("assign_room_position", [iot_type], [PlanerTag.Assignment_Intent, PlanerTag.Helper])
 
     assign_lock_for_sensor = Action(
         "assign_lock_for_sensor",
@@ -115,10 +122,11 @@ def create_assign_actions(predicates_dict: Dict[str,variables], pddl_variable_ty
         effect=is_locked(sensor_type)
     )
     actions_list.append(assign_lock_for_sensor)
+    execution_mapper.add_action("assign_lock_for_sensor", [sensor_type], [PlanerTag.Assignment_Intent, PlanerTag.Helper])
 
     return actions_list
 
-def create_actuator_actions_binary_sensors(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
+def create_actuator_actions_binary_sensors(execution_mapper: pddl_actions_to_execution_mapper, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
     actions_list = []
 
     room_type = pddl_variable_types["room"][0]
@@ -139,7 +147,7 @@ def create_actuator_actions_binary_sensors(predicates_dict: Dict[str,variables],
     works_together = lambda s1, p1, r1 : positioned_at(s1, p1) & sensor_is_part_of_room(s1, r1) & ~is_locked(s1)
 
     # for binary sensors
-    params_numerical=[binary_s_type, actuator_type, room_type, room_position_type]
+    params_binary=[binary_s_type, actuator_type, room_type, room_position_type]
 
     for increase, activated_a in [(True,True),(False,True),(True,False),(False,False)]:
         action_name = ("increase" if increase ^ (not activated_a) else "decrease")
@@ -165,11 +173,19 @@ def create_actuator_actions_binary_sensors(predicates_dict: Dict[str,variables],
 
         binary_sensor_actuator_change = Action(
             action_name,
-            parameters=params_numerical,
+            parameters=params_binary,
             precondition=pre,
             effect=eff
         )
         actions_list.append(binary_sensor_actuator_change)
+        planer_tags = [PlanerTag.Change_Sensor_Intent]
+        if not activated_a:
+            planer_tags.append(PlanerTag.Actuator_Off)
+        elif increase:
+            planer_tags.append(PlanerTag.Actuator_Increse)
+        else:
+            planer_tags.append(PlanerTag.Actuator_Decrese)
+        execution_mapper.add_action(action_name, params_binary, planer_tags)
 
     for increase, change_a in [(True,True),(False,True),(True,False),(False,False)]:
         action_name = ("increase" if increase ^ (not change_a) else "decrease")
@@ -195,15 +211,23 @@ def create_actuator_actions_binary_sensors(predicates_dict: Dict[str,variables],
 
         binary_sensor_actuator_change = Action(
             action_name,
-            parameters=params_numerical,
+            parameters=params_binary,
             precondition=pre,
             effect=eff
         )
         actions_list.append(binary_sensor_actuator_change)
+        planer_tags = [PlanerTag.Change_Sensor_Intent]
+        if not activated_a:
+            planer_tags.append(PlanerTag.Actuator_Off)
+        elif increase:
+            planer_tags.append(PlanerTag.Actuator_Increse)
+        else:
+            planer_tags.append(PlanerTag.Actuator_Decrese)
+        execution_mapper.add_action(action_name, params_binary, planer_tags)
 
     return actions_list
 
-def create_actuator_actions_numerical_sensors(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
+def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_execution_mapper, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
     actions_list = []
 
     room_type = pddl_variable_types["room"][0]
@@ -259,6 +283,14 @@ def create_actuator_actions_numerical_sensors(predicates_dict: Dict[str,variable
                 effect=eff
             )
             actions_list.append(numerical_sensor_actuator_change)
+            planer_tags = [PlanerTag.Change_Sensor_Intent]
+            if not activated_a:
+                planer_tags.append(PlanerTag.Actuator_Off)
+            elif increase:
+                planer_tags.append(PlanerTag.Actuator_Increse)
+            else:
+                planer_tags.append(PlanerTag.Actuator_Decrese)
+            execution_mapper.add_action(action_name, params_numerical, planer_tags)
 
     for i in range(len(sensor_buckets_sortet) - 1):
         curent_state = predicates_dict[sensor_buckets_sortet[i]]
@@ -293,6 +325,14 @@ def create_actuator_actions_numerical_sensors(predicates_dict: Dict[str,variable
                 effect=eff
             )
             actions_list.append(numerical_sensor_actuator_change)
+            planer_tags = [PlanerTag.Change_Sensor_Intent]
+            if not activated_a:
+                planer_tags.append(PlanerTag.Actuator_Off)
+            elif increase:
+                planer_tags.append(PlanerTag.Actuator_Increse)
+            else:
+                planer_tags.append(PlanerTag.Actuator_Decrese)
+            execution_mapper.add_action(action_name, params_numerical, planer_tags)
 
     remove_actuator_change_flag = Action(
         "remove_actuator_change_flag",
@@ -304,7 +344,7 @@ def create_actuator_actions_numerical_sensors(predicates_dict: Dict[str,variable
 
     return actions_list
 
-def create_activity_detection_actions_x(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_name: str, detect_sensor_type_x_dict: Dict[str, str], fulfill_sensor_type_x_dict: Dict[str, str]):
+def create_activity_detection_actions_x(execution_mapper: pddl_actions_to_execution_mapper, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_name: str, detect_sensor_type_x_dict: Dict[str, str], fulfill_sensor_type_x_dict: Dict[str, str]):
     actions_list = []
 
     # TODO fine tune sensor detection for the activitys
@@ -340,6 +380,7 @@ def create_activity_detection_actions_x(predicates_dict: Dict[str,variables], pd
         effect=base.And(eff, is_doing_x_at)
     )
     actions_list.append(detect_activity_x)
+    execution_mapper.add_action(f"detect_activity_{activity_name}", param, [PlanerTag.Detect_Activity_Intent, PlanerTag.Helper])
 
     detect_no_activity_x = Action(
         f"detect_no_activity_{activity_name}",
@@ -348,6 +389,7 @@ def create_activity_detection_actions_x(predicates_dict: Dict[str,variables], pd
         effect=base.And(eff, base.Not(is_doing_x_at))
     )
     actions_list.append(detect_no_activity_x)
+    execution_mapper.add_action(f"detect_no_activity_{activity_name}", param, [PlanerTag.Detect_Activity_Intent, PlanerTag.Helper])
 
     detect_no_possible_activity_x = Action(
         f"detect_no_possible_activity_{activity_name}",
@@ -356,10 +398,11 @@ def create_activity_detection_actions_x(predicates_dict: Dict[str,variables], pd
         effect=base.And(eff, base.Not(is_doing_x_at))
     )
     actions_list.append(detect_no_possible_activity_x)
+    execution_mapper.add_action(f"detect_no_possible_activity_{activity_name}", param_base, [PlanerTag.Detect_Activity_Intent, PlanerTag.Helper])
 
     return actions_list
 
-def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_detect_mapping: Dict[str,Dict[str,str]], activity_fulfill_mapping: Dict[str,Dict[str,str]]):
+def create_activity_detection_actions(execution_mapper: pddl_actions_to_execution_mapper, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_detect_mapping: Dict[str,Dict[str,str]], activity_fulfill_mapping: Dict[str,Dict[str,str]]):
     actions_list = []
 
     room_type = pddl_variable_types["room"][0]
@@ -368,7 +411,7 @@ def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl
     checked_all_activitys = predicates_dict["checked_all_activitys"]
 
     for activity_name in activity_detect_mapping.keys():
-        detection_activity_x = create_activity_detection_actions_x(predicates_dict, pddl_variable_types, activity_name, activity_detect_mapping[activity_name], activity_fulfill_mapping[activity_name])
+        detection_activity_x = create_activity_detection_actions_x(execution_mapper, predicates_dict, pddl_variable_types, activity_name, activity_detect_mapping[activity_name], activity_fulfill_mapping[activity_name])
         actions_list = actions_list + detection_activity_x
 
     detect_all_activitys_pre = base.And(~checked_all_activitys(room_type, room_position_type))
@@ -381,10 +424,11 @@ def create_activity_detection_actions(predicates_dict: Dict[str,variables], pddl
         effect=checked_all_activitys(room_type, room_position_type)
     )
     actions_list.append(detect_all_activitys)
+    execution_mapper.add_action("detect_all_activitys", [room_type, room_position_type], [PlanerTag.Detect_Activity_Intent, PlanerTag.Helper])
 
     return actions_list
 
-def create_activity_fulfilled_action_x(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_name: str, sensor_type_x_dict: Dict[str, str]):
+def create_activity_fulfilled_action_x(execution_mapper: pddl_actions_to_execution_mapper, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_name: str, sensor_type_x_dict: Dict[str, str]):
 
     room_type: variables = pddl_variable_types["room"][0]
     room_position_type: variables = pddl_variable_types["room_position"][0]
@@ -415,10 +459,11 @@ def create_activity_fulfilled_action_x(predicates_dict: Dict[str,variables], pdd
         precondition=pre,
         effect=eff
     )
+    execution_mapper.add_action(f"fulfill_activity_{activity_name}", [room_type, room_position_type], [PlanerTag.Fulfill_Activity_Intent, PlanerTag.Helper])
 
     return fulfill_activity_x
 
-def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, activity_fulfill_mapping: Dict[str,Dict[str,str]]):
+def create_activity_fulfilled_actions(execution_mapper: pddl_actions_to_execution_mapper, predicates_dict, pddl_variable_types, activity_fulfill_mapping: Dict[str,Dict[str,str]]):
     actions_list = []
 
     room_type = pddl_variable_types["room"][0]
@@ -434,7 +479,7 @@ def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, acti
     # TODO check activitc colisions
 
     for activity_name, sensor_type_x_dict in activity_fulfill_mapping.items():
-        fulfill_activity_x = create_activity_fulfilled_action_x(predicates_dict, pddl_variable_types, activity_name, sensor_type_x_dict)
+        fulfill_activity_x = create_activity_fulfilled_action_x(execution_mapper, predicates_dict, pddl_variable_types, activity_name, sensor_type_x_dict)
         actions_list.append(fulfill_activity_x)
 
     for activity in activity_fulfill_mapping.keys():
@@ -447,6 +492,7 @@ def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, acti
             effect=predicates_dict[f"fulfilled_activity_{activity}"](room_type, room_position_type)
         )
         actions_list.append(fulfill_activity_no_x)
+        execution_mapper.add_action(f"fulfill_activity_no_{activity}", [room_type, room_position_type], [PlanerTag.Fulfill_Activity_Intent, PlanerTag.Helper])
 
     fulfill_all_activitys = Action(
         "fulfill_all_activitys",
@@ -458,10 +504,11 @@ def create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, acti
         effect=fulfilled_activitys(room_type, room_position_type)
     )
     actions_list.append(fulfill_all_activitys)
+    execution_mapper.add_action("fulfill_all_activitys", [room_type, room_position_type], [PlanerTag.Fulfill_Activity_Intent, PlanerTag.Helper])
 
     return actions_list
 
-def create_energy_saving_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
+def create_energy_saving_actions(execution_mapper: pddl_actions_to_execution_mapper, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):
     actions_list = []
 
     room_type = pddl_variable_types["room"][0]
@@ -494,6 +541,7 @@ def create_energy_saving_actions(predicates_dict: Dict[str,variables], pddl_vari
                 & ~is_activated(actuator2_type)
     )
     actions_list.append(cancel_out_actuator)
+    execution_mapper.add_action("cancel_out_actuator_off", [sensor_type, actuator_type, actuator2_type, room_type], [PlanerTag.Save_Energy_Intent, PlanerTag.Actuator_Cancle_Out, PlanerTag.Actuator_Off])
 
     # TODO these will never trigger since it makes the kost optimisation worse without a benefit the planer can see
     cancel_out_actuator = Action(
@@ -511,6 +559,7 @@ def create_energy_saving_actions(predicates_dict: Dict[str,variables], pddl_vari
                 & ~is_changed(actuator2_type)
     )
     actions_list.append(cancel_out_actuator)
+    execution_mapper.add_action("cancel_out_actuator_changed", [sensor_type, actuator_type, actuator2_type, room_type], [PlanerTag.Save_Energy_Intent, PlanerTag.Actuator_Cancle_Out, PlanerTag.Actuator_Increse, PlanerTag.Actuator_Decrese])
 
     save_energy = Action(
         "save_energy",
@@ -522,18 +571,20 @@ def create_energy_saving_actions(predicates_dict: Dict[str,variables], pddl_vari
         effect=~is_activated(actuator_type)
     )
     actions_list.append(save_energy)
+    execution_mapper.add_action("save_energy", [actuator_type, room_type], [PlanerTag.Save_Energy_Intent, PlanerTag.Actuator_Off])
 
     return actions_list
 
 def create_actions(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_detect_mapping: Dict[str,Dict[str,str]], activity_fulfill_mapping: Dict[str,Dict[str,str]]):
     actions_list = []
+    execution_mapper = pddl_actions_to_execution_mapper()
 
-    actions_list = actions_list + create_cleaning_actions(predicates_dict, pddl_variable_types)
-    actions_list = actions_list + create_assign_actions(predicates_dict, pddl_variable_types)
-    actions_list = actions_list + create_actuator_actions_binary_sensors(predicates_dict, pddl_variable_types)
-    actions_list = actions_list + create_actuator_actions_numerical_sensors(predicates_dict, pddl_variable_types)
-    actions_list = actions_list + create_activity_detection_actions(predicates_dict, pddl_variable_types, activity_detect_mapping, activity_fulfill_mapping)
-    actions_list = actions_list + create_activity_fulfilled_actions(predicates_dict, pddl_variable_types, activity_fulfill_mapping)
-    actions_list = actions_list + create_energy_saving_actions(predicates_dict, pddl_variable_types)
+    actions_list = actions_list + create_cleaning_actions(execution_mapper, predicates_dict, pddl_variable_types)
+    actions_list = actions_list + create_assign_actions(execution_mapper, predicates_dict, pddl_variable_types)
+    actions_list = actions_list + create_actuator_actions_binary_sensors(execution_mapper, predicates_dict, pddl_variable_types)
+    actions_list = actions_list + create_actuator_actions_numerical_sensors(execution_mapper, predicates_dict, pddl_variable_types)
+    actions_list = actions_list + create_activity_detection_actions(execution_mapper, predicates_dict, pddl_variable_types, activity_detect_mapping, activity_fulfill_mapping)
+    actions_list = actions_list + create_activity_fulfilled_actions(execution_mapper, predicates_dict, pddl_variable_types, activity_fulfill_mapping)
+    actions_list = actions_list + create_energy_saving_actions(execution_mapper, predicates_dict, pddl_variable_types)
 
-    return actions_list
+    return actions_list, execution_mapper
