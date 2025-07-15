@@ -495,10 +495,10 @@ def process_sensor_actuator_mapping(app_instance, floor_number, room_number, pay
     Process sensor-actuator mapping payload from MQTT message.
     
     Args:
-        app_instance: Flask app instance
-        floor_number (int): Floor number where mapping applies
-        room_number (str): Room number where mapping applies  
-        payload (str): JSON payload containing mapping data
+        app: Flask application instance
+        floor_number: Floor number
+        room_number: Room number  
+        payload: JSON payload containing mapping data
         
     Returns:
         bool: True if successful, False otherwise
@@ -513,7 +513,7 @@ def process_sensor_actuator_mapping(app_instance, floor_number, room_number, pay
             return False
         
         # Create or update mappings in database
-        success = create_or_update_sensor_actuator_mappings(parsed_mappings)
+        success = create_or_update_sensor_actuator_mappings(app_instance, parsed_mappings)
         
         if success:
             logging.info(f"Successfully processed {len(parsed_mappings)} sensor-actuator mappings")

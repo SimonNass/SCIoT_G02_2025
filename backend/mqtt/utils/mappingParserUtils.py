@@ -5,7 +5,6 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import backend.models.models as models
 from backend.extensions import db
-from flask import current_app
 
 
 def parse_mapping_payload(payload):
@@ -98,18 +97,19 @@ def parse_mapping_payload(payload):
         return None
 
 
-def create_or_update_sensor_actuator_mappings(mappings):
+def create_or_update_sensor_actuator_mappings(app, mappings):
     """
     Create or update sensor-actuator mappings in the database.
     
     Args:
+        app: Flask application instance
         mappings (List[Dict]): List of parsed mapping dictionaries
         
     Returns:
         bool: True if successful, False otherwise
     """
     try:
-        with current_app.app_context():
+        with app.app_context():
             created_count = 0
             updated_count = 0
             failed_count = 0
@@ -143,7 +143,7 @@ def create_or_update_sensor_actuator_mappings(mappings):
             db.session.commit()
             
             # Try to link any mappings that now have corresponding devices
-            linked_count = link_mappings_to_devices()
+            linked_count = link_mappings_to_devices(app)
             
             logging.info(f"Mapping operation completed: {created_count} created, {updated_count} updated, "
                         f"{failed_count} failed, {linked_count} linked to devices")
@@ -182,15 +182,18 @@ def _update_mapping_from_data(existing_mapping, mapping):
     existing_mapping.updated_at = datetime.utcnow()
 
 
-def link_mappings_to_devices() -> int:
+def link_mappings_to_devices(app) -> int:
     """
     Link existing mappings to devices that have been created.
+    
+    Args:
+        app: Flask application instance
         
     Returns:
         int: Number of mappings successfully linked
     """
     try:
-        with current_app.app_context():
+        with app.app_context():
             # Get all mappings that don't have device links yet
             unlinked_mappings = models.SensorActuatorMapping.query.filter(
                 (models.SensorActuatorMapping.actuator_device_id.is_(None)) |
@@ -237,76 +240,104 @@ def link_mappings_to_devices() -> int:
         return 0
 
 
-def get_actuator_sensor_matrices() -> Tuple[Dict[str, List[str]], Dict[str, List[str]]]:
+def get_actuator_sensor_matrices(app=None) -> Tuple[Dict[str, List[str]], Dict[str, List[str]]]:
     """
     Build actuator-sensor mapping matrices from database.
+    
+    Args:
+        app: Flask application instance (optional, uses current_app if None)
         
     Returns:
         - actuator_increases_sensor_mapping_matrix: {'a1': ['s1', 's2'], 'a2': ['s2']}
         - actuator_decreases_sensor_mapping_matrix: {'a1': ['s1']}
     """
     try:
-        with current_app.app_context():
-            # Get all active mappings with linked devices
-            mappings = models.SensorActuatorMapping.query.filter(
-                models.SensorActuatorMapping.actuator_device_id.isnot(None),
-                models.SensorActuatorMapping.sensor_device_id.isnot(None)
-            ).all()
-            
-            increases_matrix = {}
-            decreases_matrix = {}
-            
-            for mapping in mappings:
-                actuator_uuid = mapping.uuid_actuator
-                sensor_uuid = mapping.uuid_sensor
-                
-                # Build increases matrix
-                if mapping.actuator_can_increases_sensor:
-                    if actuator_uuid not in increases_matrix:
-                        increases_matrix[actuator_uuid] = []
-                    if sensor_uuid not in increases_matrix[actuator_uuid]:
-                        increases_matrix[actuator_uuid].append(sensor_uuid)
-                
-                # Build decreases matrix
-                if mapping.actuator_can_decreases_sensor:
-                    if actuator_uuid not in decreases_matrix:
-                        decreases_matrix[actuator_uuid] = []
-                    if sensor_uuid not in decreases_matrix[actuator_uuid]:
-                        decreases_matrix[actuator_uuid].append(sensor_uuid)
-            
-            logging.debug(f"Generated mapping matrices: {len(increases_matrix)} actuators with increase mappings, "
-                         f"{len(decreases_matrix)} actuators with decrease mappings")
-            
-            return increases_matrix, decreases_matrix
+        # If app is provided, use it; otherwise use current_app (for API routes)
+        if app:
+            with app.app_context():
+                return _get_matrices()
+        else:
+            from flask import current_app
+            with current_app.app_context():
+                return _get_matrices()
             
     except Exception as e:
         logging.error(f"Error generating actuator-sensor matrices: {str(e)}")
         return {}, {}
 
 
-def get_mapping_impact_factors() -> Dict[str, float]:
+def _get_matrices():
+    """Helper function to get matrices within app context"""
+    # Get all active mappings with linked devices
+    mappings = models.SensorActuatorMapping.query.filter(
+        models.SensorActuatorMapping.actuator_device_id.isnot(None),
+        models.SensorActuatorMapping.sensor_device_id.isnot(None)
+    ).all()
+    
+    increases_matrix = {}
+    decreases_matrix = {}
+    
+    for mapping in mappings:
+        actuator_uuid = mapping.uuid_actuator
+        sensor_uuid = mapping.uuid_sensor
+        
+        # Build increases matrix
+        if mapping.actuator_can_increases_sensor:
+            if actuator_uuid not in increases_matrix:
+                increases_matrix[actuator_uuid] = []
+            if sensor_uuid not in increases_matrix[actuator_uuid]:
+                increases_matrix[actuator_uuid].append(sensor_uuid)
+        
+        # Build decreases matrix
+        if mapping.actuator_can_decreases_sensor:
+            if actuator_uuid not in decreases_matrix:
+                decreases_matrix[actuator_uuid] = []
+            if sensor_uuid not in decreases_matrix[actuator_uuid]:
+                decreases_matrix[actuator_uuid].append(sensor_uuid)
+    
+    logging.debug(f"Generated mapping matrices: {len(increases_matrix)} actuators with increase mappings, "
+                 f"{len(decreases_matrix)} actuators with decrease mappings")
+    
+    return increases_matrix, decreases_matrix
+
+
+def get_mapping_impact_factors(app=None) -> Dict[str, float]:
     """
     Get impact factors for all actuator-sensor pairs.
+    
+    Args:
+        app: Flask application instance (optional, uses current_app if None)
         
     Returns:
         Dict mapping "actuator_uuid:sensor_uuid" strings to impact factors
     """
     try:
-        with current_app.app_context():
-            mappings = models.SensorActuatorMapping.query.filter(
-                models.SensorActuatorMapping.actuator_device_id.isnot(None),
-                models.SensorActuatorMapping.sensor_device_id.isnot(None)
-            ).all()
-            
-            impact_factors = {}
-            for mapping in mappings:
-                # Use string key instead of tuple
-                key = f"{mapping.uuid_actuator}:{mapping.uuid_sensor}"
-                impact_factors[key] = mapping.impact_factor
-            
-            logging.debug(f"Retrieved impact factors for {len(impact_factors)} actuator-sensor pairs")
-            return impact_factors
+        # If app is provided, use it; otherwise use current_app (for API routes)
+        if app:
+            with app.app_context():
+                return _get_impact_factors()
+        else:
+            from flask import current_app
+            with current_app.app_context():
+                return _get_impact_factors()
             
     except Exception as e:
         logging.error(f"Error retrieving mapping impact factors: {str(e)}")
         return {}
+
+
+def _get_impact_factors():
+    """Helper function to get impact factors within app context"""
+    mappings = models.SensorActuatorMapping.query.filter(
+        models.SensorActuatorMapping.actuator_device_id.isnot(None),
+        models.SensorActuatorMapping.sensor_device_id.isnot(None)
+    ).all()
+    
+    impact_factors = {}
+    for mapping in mappings:
+        # Use string key instead of tuple
+        key = f"{mapping.uuid_actuator}:{mapping.uuid_sensor}"
+        impact_factors[key] = mapping.impact_factor
+    
+    logging.debug(f"Retrieved impact factors for {len(impact_factors)} actuator-sensor pairs")
+    return impact_factors

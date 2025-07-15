@@ -52,6 +52,55 @@ def floor_str_to_int_converter(floor_str: str):
             logging.warning(f"Invalid floor number in topic: {floor_str}")
             raise
 
+def safe_float_conversion(value):
+    """
+    Safely convert a value to float, handling empty strings and None values.
+    Returns None if conversion fails or value is empty.
+    """
+    if value is None:
+        return None
+    
+    # Handle empty strings
+    if isinstance(value, str) and value.strip() == '':
+        return None
+    
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return None
+
+def safe_int_conversion(value):
+    """
+    Safely convert a value to int, handling empty strings and None values.
+    Returns None if conversion fails or value is empty.
+    """
+    if value is None:
+        return None
+    
+    # Handle empty strings
+    if isinstance(value, str) and value.strip() == '':
+        return None
+    
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return None
+
+def safe_str_conversion(value):
+    """
+    Safely convert a value to string, handling None values and empty strings.
+    Returns None for None input or empty strings.
+    """
+    if value is None:
+        return None
+    
+    # Convert to string and check if it's empty or just whitespace
+    str_value = str(value).strip()
+    if str_value == '' or str_value.lower() == 'none':
+        return None
+    
+    return str_value
+
 def parse_device_payload(payload, device_type):
     """
     Parse device payload JSON and extract relevant fields for sensors or actuators
@@ -122,7 +171,7 @@ def parse_device_payload(payload, device_type):
             'max_value': float(data.get('max')) if data.get('max') is not None else None,
             'datatype': data.get('datatype'),
             'unit': data.get('unit'),
-            'last_value': str(data.get('last_value')) if data.get('last_value') is not None else None,
+            'last_value': safe_str_conversion(data.get('last_value')),
         }
         
         # Extract device-specific fields
@@ -134,8 +183,8 @@ def parse_device_payload(payload, device_type):
             })
         elif device_type == 'actuator':
             parsed_data.update({
-                'initial_value': str(data.get('initial_value')) if data.get('initial_value') is not None else None,
-                'off_value': str(data.get('off_value')) if data.get('off_value') is not None else None,
+                'initial_value': safe_str_conversion(data.get('initial_value')),
+                'off_value': safe_str_conversion(data.get('off_value')),
                 'is_off': bool(data.get('is_off')) if data.get('is_off') is not None else None,
             })
         
