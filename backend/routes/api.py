@@ -225,7 +225,18 @@ def list_rooms_for_floor(floor_number):
                     'device_id': device.device_id,
                     'name': device.name,
                     'device_type': device.device_type,
+                    'description': device.description,
+                    'min_value': device.min_value,
+                    'max_value': device.max_value,
                     'is_online': device.is_online,
+                    'last_seen': device.last_seen.isoformat() if device.last_seen else None,
+                    'read_interval': device.read_interval,
+                    'created_at': device.created_at.isoformat(),
+                    'last_value': device.last_value,
+                    'last_value_simplified': device.last_value_simplified,
+                    'initial_value': device.initial_value,
+                    'off_value': device.off_value,
+                    'is_off': device.is_off,
                 }
                 room_data['devices'].append(device_data)
 
@@ -393,9 +404,12 @@ def list_devices_in_room(floor_number, room_number):
                'max_value': device.max_value,
                'is_online': device.is_online,
                'last_seen': device.last_seen.isoformat() if device.last_seen else None,
+               'read_interval': device.read_interval,
                'created_at': device.created_at.isoformat(),
                'last_value': device.last_value,
                'last_value_simplified': device.last_value_simplified,
+               'initial_value': device.initial_value,
+               'off_value': device.off_value,
                'is_off': device.is_off,
            }
            devices.append(device_data)
