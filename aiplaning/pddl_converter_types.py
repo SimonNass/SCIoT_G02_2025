@@ -29,7 +29,9 @@ def create_type_variables():
                   "humidity_s": 1,
                   "light_s": 1,
                   "sound_s": 1,
-                  "rotation_s": 1,
+                  "motion_s": 1,
+                  "window_rotation_s": 1,
+                  "button_s": 1,
                   }
 
     pddl_variables = {}
@@ -62,21 +64,17 @@ def create_type_dict():
 
         "button_s_type": "binary_s_type",
         "motion_s_type": "binary_s_type",
-        "virtual_switch_s_type": "binary_s_type",
 
         "temperature_s_type": "numerical_s_type",
         "humidity_s_type": "numerical_s_type",
         "light_s_type": "numerical_s_type",
         "sound_s_type": "numerical_s_type",
-        "rotation_s_type": "numerical_s_type",
-        "virtual_dimmer_s_type": "numerical_s_type",
+        "window_rotation_s_type": "numerical_s_type",
 
         "switch_a_type": "binary_a_type",
         "light_switch_a_type": "binary_a_type",
-        "virtual_switch_a_type": "binary_a_type",
 
         "light_dimmer_a_type": "numerical_a_type",
-        "virtual_dimmer_a_type": "numerical_a_type",
 
         "display_a_type": "textual_a_type",
     }

@@ -12,11 +12,9 @@ pylint --disable=missing-class-docstring ^
  --disable=logging-fstring-interpolation ^
  --disable=logging-format-interpolation ^
  --disable=logging-not-lazy ^
- --disable=wrong-import-position ^
  --disable=broad-exception-caught ^
  --disable=too-few-public-methods ^
  --disable=fixme ^
- --disable=wrong-import-order ^
  --disable=import-error ^
  --disable=too-many-arguments ^
  --disable=too-many-locals ^
@@ -25,5 +23,8 @@ pylint --disable=missing-class-docstring ^
  --disable=not-callable ^
  --disable=too-many-instance-attributes ^
  --disable=wildcard-import ^
+ --disable=unused-import ^
+ --disable=duplicate-code ^
+ --disable=unused-argument ^
  %mypath%room_unit_gateway\
  

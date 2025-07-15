@@ -21,8 +21,8 @@
   - [X] (Simon) disable sensors ? > not needed just ignore them
   - [ ] (Simon) update random number generator manual list
   - [ ] (Simon) Toggle button sensor?
-  - [ ] (Simon) add ai planing increrase decrease to actuators
-  - [ ] (Simon) add ai planing types to IoT
+  - [X] (Simon) add ai planing increrase decrease to actuators
+  - [X] (Simon) add ai planing types to IoT
   - [ ] (Simon) rename ardoino to arduino
   - [X] (Simon) mapping firtual environment toggle for real sensor actuator paar
   - [X] (Simon) send firtual environment formating
@@ -32,13 +32,13 @@
 
 - [ ] AI Planning
   - [x] Overarching Goals
-  - [ ] (Simon) Conversion of DB values to context to inital state
-  - [ ] (Simon) Activity recognition in ai planer or in context generation
+  - [X] (Simon) Activity recognition in ai planer or in context generation
   - [x] First attempts at lecture implementation
   - [X] (Simon) plan cleaning and do not plan cleaning toggle
-  - [ ] (Simon) mapping in pddl a -> s
+  - [X] (Simon) mapping in pddl a -> s
   - [ ] (Simon) individual sensor goals
   - [ ] (Simon) room positiones
+  - [ ] (Simon) program activitys in config file
   - [ ] (Maximilian, Simon) Sensor aggregation
 
 - [ ] Frontend
@@ -47,6 +47,8 @@
 
 - [ ] backend
   - [ ] Needed Backend Endpoints
+  - [ ] (Maximilian) Conversion of DB values to context to inital state
+  - [ ] (Maximilian) mapping ifrom db to pddl a -> s
   - [x] (Maximilian) provide actuator active/inactive value (need value from frontend)
   - [x] (Maximilian) Set room occupancy endpoint
   - [x] (Maximilian) Get Config values

@@ -16,25 +16,8 @@ import pddl_converter_objects
 import pddl_converter_input
 import pddl_converter_initial_state
 import pddl_converter_help
+from pddl_converter_execution import PlanerTag, pddl_actions_to_execution_mapper
 
-
-def create_domain(domain_name: str, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], activity_detect_mapping: Dict[str,Dict[str,str]], activity_fulfill_mapping: Dict[str,Dict[str,str]]):
-    # set up types
-    type_dict = pddl_converter_types.create_type_dict()
-
-    # define actions
-    actions_list = pddl_converter_actions.create_actions(predicates_dict, pddl_variable_types, activity_detect_mapping, activity_fulfill_mapping)
-
-    # define the domain object.
-    requirements = [Requirements.STRIPS, Requirements.TYPING, Requirements.ADL]
-    domain = Domain(domain_name,
-                    requirements=requirements,
-                    types=type_dict,
-                    predicates=list(predicates_dict.values()),
-                    actions=actions_list)
-
-    #print(domain)
-    return domain
 
 def create(input_dictionary):
 
@@ -46,7 +29,21 @@ def create(input_dictionary):
 
     predicates_dict = pddl_converter_predicates.create_predicates_variables(pddl_variable_types, activity_fulfill_mapping.keys())
 
-    domain = create_domain(input_dictionary['domain_name'], predicates_dict, pddl_variable_types, activity_detect_mapping, activity_fulfill_mapping)
+    # set up types
+    type_dict = pddl_converter_types.create_type_dict()
+
+    # define actions
+    actions_list, execution_mapper = pddl_converter_actions.create_actions(predicates_dict, pddl_variable_types, activity_detect_mapping, activity_fulfill_mapping)
+
+    # define the domain object.
+    requirements = [Requirements.STRIPS, Requirements.TYPING, Requirements.ADL]
+    domain = Domain(input_dictionary['domain_name'],
+                    requirements=requirements,
+                    types=type_dict,
+                    predicates=list(predicates_dict.values()),
+                    actions=actions_list)
+
+    #print(domain)
 
     all_objects, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_sensors,uid_to_pddl_variable_actuators, uid_to_pddl_variable_elevators, uid_to_pddl_variable_cleaning_teams, uid_to_pddl_variable_room_positions = pddl_converter_objects.create_all_obbjects(input_dictionary)
 
@@ -75,7 +72,7 @@ def create(input_dictionary):
     )
     #print(problem)
 
-    return domain, problem
+    return domain, problem, execution_mapper
 
 def main():
     pddl_converter_help.check_lib_versions()
@@ -94,7 +91,8 @@ def main():
     domaine_file_name = input_dictionary['domaine_file_name']
     problem_file_name = input_dictionary['problem_file_name']
 
-    d, p = create(input_dictionary)
+    d, p, execution_mapper = create(input_dictionary)
+    execution_mapper.filter_plan(None)
 
     pddl_converter_help.write_out_pddl(output_path, domaine_file_name + ".pddl", d)
     pddl_converter_help.write_out_pddl(output_path, problem_file_name + ".pddl", p)

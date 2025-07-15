@@ -9,7 +9,7 @@ from networking.networking_reciever import GatewayNetworkReciever
 logger = logging.getLogger(__name__)
 
 class MQTTEndpoint:
-    def __init__(self, gateway: GatewayNetworkReciever, host: str, port: int, username: str, password: str, topic_prefix: str):
+    def __init__(self, gateway: GatewayNetworkReciever, host: str, port: int, username: str, password: str, timeout: int, topic_prefix: str):
         self.gateway = gateway
         self.host = remove_quotation(host)
         self.port = port
@@ -17,7 +17,7 @@ class MQTTEndpoint:
         self.password = password
         self.topic_prefix = topic_prefix # eg. str("iot/1/101/")
         self.mqtt_client = None
-        self.timeout = 600
+        self.timeout = timeout
         self.qos = 2
         print (f"Selected host: {self.host} and port: {self.port}")
         print (f"Username {self.username} with password length {len(self.password)}")

@@ -12,6 +12,5 @@ pylint --disable=invalid-name ^
  --disable=too-many-arguments ^
  --disable=too-many-locals ^
  --disable=unnecessary-lambda-assignment ^
- --disable=global-statement ^
  --disable=import-error ^
  %mypath%aiplaning\

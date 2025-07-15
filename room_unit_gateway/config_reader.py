@@ -30,10 +30,12 @@ def read_mqtt_config(config):
         mqtt_host = config.get('MQTT', 'host', fallback='0.0.0.0')
         mqtt_port = config.getint('MQTT', 'port', fallback=1884)
         mqtt_username = config.get('MQTT', 'username', fallback='root')
-        return mqtt_name, mqtt_host, mqtt_port, mqtt_username
+        mqtt_base_topic = config.get('MQTT', 'base_topic', fallback='SCIoT_G02_2025')
+        mqtt_timeout = config.get('MQTT', 'timeout', fallback=600)
+        return mqtt_name, mqtt_host, mqtt_port, mqtt_username, mqtt_base_topic, mqtt_timeout
     except Exception as e:
         logger.error(f"Reading config file was not succesfully in the MQTT section {e}")
-        return 'MQTT', '0.0.0.0', 1884, 'root'
+        return 'MQTT', '0.0.0.0', 1884, 'root', 'SCIoT_G02_2025', 600
 
 def read_architecture_config(config):
     try:
@@ -121,7 +123,7 @@ def read_config(config_file_name, password: str):
 
     max_cycle_time = read_general_config(config)
 
-    _, mqtt_host, mqtt_port, mqtt_username = read_mqtt_config(config)
+    _, mqtt_host, mqtt_port, mqtt_username, mqtt_base_topic, mqtt_timeout = read_mqtt_config(config)
     room_info = read_architecture_config(config)
 
     ardoino_serial = read_ardoino_config(config)
@@ -137,6 +139,8 @@ def read_config(config_file_name, password: str):
                                                                port=mqtt_port,
                                                                username=mqtt_username,
                                                                password=password,
+                                                               timeout=mqtt_timeout,
+                                                               base_topic=mqtt_base_topic,
                                                                room_info=room_info,
                                                                actuators=actuator_class_list)
 
