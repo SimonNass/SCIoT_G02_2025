@@ -19,7 +19,7 @@
   - [x] (Simon) add ai planing increrase decrease to actuators
   - [x] (Simon) add ai planing types to IoT
   - [ ] (optional) (Simon) rename ardoino to arduino
-  - [ ] (Simon) actuators "min":"0", "max":"32"
+  - [x] (Simon) actuators "min":"0", "max":"32"
   - [x] (Simon) mapping firtual environment toggle for real sensor actuator paar
   - [x] (Simon) send firtual environment formating
   - [x] bug when broker not connected ?bug no longer apeares
