@@ -3,6 +3,7 @@ import requests
 from flask import current_app, jsonify, request, Blueprint
 import time
 from backend.models import models
+from backend.aiplaning.pddl_converter_main import run_planner_with_db_data
 
 pddl_api = Blueprint('pddl_api', __name__)
 
@@ -356,5 +357,13 @@ def get_latest_plan_for_room(room_number):
             'latest_plan': plan_data
         })
         
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@pddl_api.route('/api/planning/run_planner', methods=['GET'])
+def run_planner_db():
+    try:
+        run_planner_with_db_data()
+        return 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500

@@ -4,7 +4,7 @@
 # pip install pddl==0.4.3
 from typing import Dict, List
 from pddl.logic import constants
-import pddl_converter_help
+from backend.aiplaning import pddl_converter_help
 
 def create_objects(name_list: List[str], type_name: str):
     names = ''

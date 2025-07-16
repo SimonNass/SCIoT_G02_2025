@@ -7,8 +7,7 @@ def get_floor_uids():
     from flask import current_app
     with current_app.app_context():
         floors_ids = Floor.query.with_entities(Floor.id).all()
-        logging.info(f"Room UIDs per floor: {floors_ids}")
-        return [id for (id,) in floors_ids]
+        return [floor_id for (floor_id,) in floors_ids]
 
 def get_room_uids_per_floor():
     """Get dictionary mapping floor IDs to their room IDs."""
@@ -35,7 +34,7 @@ def get_sensor_room_mapping():
     """Get dictionary mapping room IDs to their sensor device IDs."""
     from flask import current_app
     with current_app.app_context():
-        sensor_data = db.session.query(Device.id, Device.room_id).filter_by(device_type='sensor').all()
+        sensor_data = db.session.query(Device.device_id, Device.room_id).filter_by(device_type='sensor').all()
 
         sensor_room_mapping = {}
         for device_id, room_id in sensor_data:
@@ -49,7 +48,7 @@ def get_actuator_room_mapping():
     """Get dictionary mapping room IDs to their actuator device IDs."""
     from flask import current_app
     with current_app.app_context():
-        actuator_data = db.session.query(Device.id, Device.room_id).filter_by(device_type='actuator').all()
+        actuator_data = db.session.query(Device.device_id, Device.room_id).filter_by(device_type='actuator').all()
         
         actuator_room_mapping = {}
         for device_id, room_id in actuator_data:
@@ -63,14 +62,14 @@ def get_sensor_types():
     """Get dictionary mapping sensor device IDs to their type names."""
     from flask import current_app
     with current_app.app_context():
-        sensor_data = db.session.query(Device.id, Device.type_name).filter_by(device_type='sensor').all()
+        sensor_data = db.session.query(Device.device_id, Device.type_name).filter_by(device_type='sensor').all()
         return {device_id: type_name for device_id, type_name in sensor_data}
     
 def get_sensor_initial_values():
     """Get dictionary mapping sensor IDs to their last simplified values."""
     from flask import current_app
     with current_app.app_context():
-        sensor_data = db.session.query(Device.id, Device.last_value_simplified).filter_by(device_type='sensor').all()
+        sensor_data = db.session.query(Device.device_id, Device.last_value_simplified).filter_by(device_type='sensor').all()
         
         sensor_values = {}
         for device_id, last_value_simplified in sensor_data:
@@ -85,7 +84,7 @@ def get_actuator_initial_values():
     """Get dictionary mapping actuator IDs to their current state (on/off)."""
     from flask import current_app
     with current_app.app_context():
-        actuator_data = db.session.query(Device.id, Device.is_off).filter_by(device_type='actuator').all()
+        actuator_data = db.session.query(Device.device_id, Device.is_off).filter_by(device_type='actuator').all()
         
         actuator_values = {}
         for device_id, is_off in actuator_data:

@@ -7,7 +7,7 @@ from typing import List, Dict
 from pddl.logic import base, variables
 from pddl.logic.predicates import EqualTo
 from pddl.action import Action
-from pddl_converter_execution import PlanerTag, pddl_actions_to_execution_mapper
+from backend.aiplaning.pddl_converter_execution import PlanerTag, pddl_actions_to_execution_mapper
 
 
 def create_cleaning_actions(execution_mapper: pddl_actions_to_execution_mapper, predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]]):

@@ -19,3 +19,6 @@ requests>=2.25.0
 
 # Cron
 apscheduler==3.11.0
+
+# AI planning
+pddl==0.4.3

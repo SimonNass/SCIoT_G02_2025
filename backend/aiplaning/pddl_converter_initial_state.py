@@ -4,7 +4,7 @@
 # pip install pddl==0.4.3
 from typing import Dict, List
 from pddl.logic import variables, constants, base
-import pddl_converter_help
+from backend.aiplaning import pddl_converter_help
 
 def create_initial_state_room_topology(predicates_dict: Dict[str,variables], floor_uids, room_uids_per_floor, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms):
     initial_state = []

@@ -7,8 +7,9 @@ import os
 import configparser
 from backend.aiplaning.utils.dbUtils import get_floor_uids, get_room_uids_per_floor, get_room_occupied_initial_values, get_sensor_room_mapping, get_actuator_room_mapping, get_sensor_types, get_sensor_initial_values, get_actuator_initial_values
 from backend.mqtt.utils.mappingParserUtils import get_actuator_sensor_matrices
+from typing import List, Dict, Optional
 
-def query_input_over_db():
+def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = None, sensor_initial_locked: Optional[List[str]] = None):
     domain_name = "test_SCIoT_G02_2025"
     problem_name = 'test'
     output_path = 'auto_generated/'
@@ -61,7 +62,8 @@ def query_input_over_db():
     # sensor_initial_values = {'s1': -1, 's2':1, 's3':-1}
     sensor_initial_values = get_sensor_initial_values()
     logging.info(f"sensor_initial_values: {sensor_initial_values}")
-    sensor_goal_values = {'s1': -1, 's2':1}
+    # sensor_goal_values = {'s1': -1, 's2':1}
+
     # actuator_initial_values = {'a1': True, 'a2':False}
     actuator_initial_values = get_actuator_initial_values()
     logging.info(f"sensor_initial_values: {sensor_initial_values}")
@@ -75,7 +77,7 @@ def query_input_over_db():
     #            sensor_initial_values.update({device:curent_value})
 
     # potential to make stuff unchangable for the ai as long as the room is occupied
-    sensor_initial_locked = ['s4']
+    # sensor_initial_locked = ['s4']
 
     # below this not set by db use these hardcoded ones for now
     elevator_uids = ['e0','e1']
