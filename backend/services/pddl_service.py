@@ -63,7 +63,7 @@ class PDDLPlannerService:
                 headers={'Content-Type': 'application/json'},
                 timeout=10  # 10 seconds timeout
             )
-            
+            logging.info("Gets here")
             response.raise_for_status()
             job_response = response.json()
             

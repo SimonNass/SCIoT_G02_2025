@@ -62,8 +62,8 @@ def get_sensor_types():
     """Get dictionary mapping sensor device IDs to their type names."""
     from flask import current_app
     with current_app.app_context():
-        sensor_data = db.session.query(Device.device_id, Device.type_name).filter_by(device_type='sensor').all()
-        return {device_id: type_name for device_id, type_name in sensor_data}
+        sensor_data = db.session.query(Device.device_id, Device.ai_planing_type).filter_by(device_type='sensor').all()
+        return {device_id: ai_planing_type for device_id, ai_planing_type in sensor_data}
     
 def get_sensor_initial_values():
     """Get dictionary mapping sensor IDs to their last simplified values."""

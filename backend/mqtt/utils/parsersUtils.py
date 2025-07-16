@@ -188,6 +188,7 @@ def parse_device_payload(payload, device_type):
             'max_value': safe_float_conversion(data.get('max')),
             'datatype': data.get('datatype'),
             'unit': data.get('unit'),
+            'ai_planing_type': safe_str_conversion(data.get('ai_planing_type')),
             'last_value': safe_str_conversion(data.get('last_value')),
         }
         

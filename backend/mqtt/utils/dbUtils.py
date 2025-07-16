@@ -297,6 +297,9 @@ def _update_device_from_payload(device_obj, parsed_payload):
         
         if parsed_payload.get('unit'):
             device_obj.unit = parsed_payload['unit']
+
+        if parsed_payload.get('ai_planing_type'):
+            device_obj.ai_planing_type = parsed_payload['ai_planing_type']
         
         if parsed_payload.get('min_value') is not None:
             device_obj.min_value = parsed_payload['min_value']

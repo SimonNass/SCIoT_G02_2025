@@ -52,7 +52,7 @@ def create(input_dictionary):
         
         # create initial state
         initial_state = pddl_converter_initial_state.create_initial_state(predicates_dict, input_dictionary, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_sensors,uid_to_pddl_variable_actuators, uid_to_pddl_variable_elevators, uid_to_pddl_variable_cleaning_teams, uid_to_pddl_variable_room_positions)
-        logging.info("Gets here2")
+
         # TODO
         #floor_uids = input_dictionary['floor_uids']
         #room_uids_per_floor = input_dictionary['room_uids_per_floor']
@@ -115,10 +115,10 @@ def run_planner_with_db_data(sensor_goal_values: Optional[Dict[str, int]] = [],
     logging.info(input_dictionary)
     
     d, p, execution_mapper = create(input_dictionary)
-    logging.info("After create")
     pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "d" + ".pddl", d)
     pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "p" + ".pddl", p)
-    solve_result = pddl_service.solve_planning_problem(d, p, "dual-bfws-ffparser")
+    logging.info(f"Before Planner start {type(d), type(p)}")
+    solve_result = pddl_service.solve_planning_problem(str(d), str(p), "dual-bfws-ffparser")
     logging.info(f"Plan: {solve_result.get('plan')}")
     filtered_plan = execution_mapper.filter_plan(None)
     logging.info(f"Filtered Plan: {filtered_plan}")
