@@ -6,7 +6,7 @@ from datetime import datetime
 import backend.models.models as models
 from backend.extensions import db
 
-
+# Todo: correct error logging for non existing devices
 def parse_mapping_payload(payload):
     """
     Parse the mapping payload from MQTT message.

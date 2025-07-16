@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 """Module specifies the data input to generate the pddl domain and problem based on the data in the backend DB."""
 
+import logging
 import json
 import os
 import configparser
+from backend.aiplaning.utils.dbUtils import get_floor_uids, get_room_uids_per_floor, get_room_occupied_initial_values, get_sensor_room_mapping, get_actuator_room_mapping, get_sensor_types, get_sensor_initial_values, get_actuator_initial_values
+from backend.mqtt.utils.mappingParserUtils import get_actuator_sensor_matrices
 
 def query_input_over_db():
     domain_name = "test_SCIoT_G02_2025"
@@ -12,18 +15,26 @@ def query_input_over_db():
     domaine_file_name = 'test_domain'
     problem_file_name = 'test_problem'
 
-    floor_uids = ['f0','f1']
-    room_uids_per_floor = {'f0':['r0','r1','r3'],'f1':['r2']}
+    # floor_uids = ['f0','f1']
+    floor_uids = get_floor_uids()
+    # room_uids_per_floor = {'f0':['r0','r1','r3'],'f1':['r2']}
+    room_uids_per_floor = get_room_uids_per_floor()
+    
     # TODO what if sensor with room is not part of anny floor?
-    room_occupied_initial_values = {'r0':False, 'r1': True, 'r2':False, 'r3': True}
+    # room_occupied_initial_values = {'r0':False, 'r1': True, 'r2':False, 'r3': True}
+    room_occupied_initial_values = get_room_occupied_initial_values()
     #floor_list = db.list_all_floors()
     #floor_uids = [floor['id'] for floor in floor_list]
     #room_uids_per_floor = {floor['id']:floor['rooms'] for floor in floor_list}
     #for floor in floor_list:
     #    room_occupied_initial_values = {room['id']:room['is_occupied'] for room in room_uids_per_floor[floor]}
 
-    sensor_room_mapping = {'r0':['s1'], 'r2':['s2'], 'r3':['s3', 's4']}
-    actuator_room_mapping = {'r0':['a1'], 'r2':['a2']}
+    # sensor_room_mapping = {'r0':['s1'], 'r2':['s2'], 'r3':['s3', 's4']}
+    # actuator_room_mapping = {'r0':['a1'], 'r2':['a2']}
+    sensor_room_mapping = get_sensor_room_mapping()
+    logging.info(f"sensor_room_mapping: {sensor_room_mapping}")
+    actuator_room_mapping = get_actuator_room_mapping()
+    logging.info(f"actuator_room_mapping: {actuator_room_mapping}")
     #for floor in floor_uids:
     #    for room in room_uids_per_floor[floor]:
     #        device_list = db.list_devices_in_room(floor,room)['devices']
@@ -37,15 +48,23 @@ def query_input_over_db():
     #        sensor_room_mapping.update({room:sensor_uids})
     #        actuator_room_mapping.update({room:actuator_uids})
 
-    sensor_types = {'s1':'light_s', 's2':'humidity_s', 's3':'temperature_s', 's4':'temperature_s'}
+    # sensor_types = {'s1':'light_s', 's2':'humidity_s', 's3':'temperature_s', 's4':'temperature_s'}
+    sensor_types = get_sensor_types()
 
     # TODO get info from db
-    actuator_increases_sensor_mapping_matrix = {'a1':['s1','s2'], 'a2':['s2']}
-    actuator_decreases_sensor_mapping_matrix = {'a1':['s1']}
+    # actuator_increases_sensor_mapping_matrix = {'a1':['s1','s2'], 'a2':['s2']}
+    # actuator_decreases_sensor_mapping_matrix = {'a1':['s1']}
+    actuator_increases_sensor_mapping_matrix, actuator_decreases_sensor_mapping_matrix = get_actuator_sensor_matrices()
+    logging.info(f"actuator_increases_sensor_mapping_matrix: {actuator_increases_sensor_mapping_matrix}")
+    logging.info(f"actuator_decreases_sensor_mapping_matrix: {actuator_decreases_sensor_mapping_matrix}")
 
-    sensor_initial_values = {'s1': -1, 's2':1, 's3':-1}
+    # sensor_initial_values = {'s1': -1, 's2':1, 's3':-1}
+    sensor_initial_values = get_sensor_initial_values()
+    logging.info(f"sensor_initial_values: {sensor_initial_values}")
     sensor_goal_values = {'s1': -1, 's2':1}
-    actuator_initial_values = {'a1': True, 'a2':False}
+    # actuator_initial_values = {'a1': True, 'a2':False}
+    actuator_initial_values = get_actuator_initial_values()
+    logging.info(f"sensor_initial_values: {sensor_initial_values}")
     #for floor in floor_uids:
     #    for room in room_uids_per_floor[floor]:
     #        for device in sensor_room_mapping[room]:
