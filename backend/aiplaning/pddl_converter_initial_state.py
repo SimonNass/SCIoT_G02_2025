@@ -136,12 +136,16 @@ def create_iot_influences_iot_mapping(predicates_dict: Dict[str,variables], actu
 
     return initial_state
 
-def create_sensor_values(predicates_dict: Dict[str,variables], floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], sensor_room_mapping:Dict[str,List[str]], uid_to_pddl_variable_sensors: Dict[str,constants], sensor_initial_values: List[int]):
+def create_sensor_values(predicates_dict: Dict[str,variables], floor_uids: List[str], room_uids_per_floor:Dict[str,List[str]], sensor_room_mapping:Dict[str,List[str]], uid_to_pddl_variable_sensors: Dict[str,constants], sensor_initial_values: List[int], sensor_types: Dict[str,str]):
     state_list = []
+
+    is_sensing = predicates_dict["is_sensing"]
 
     is_low = predicates_dict["is_low"]
     is_ok = predicates_dict["is_ok"]
     is_high = predicates_dict["is_high"]
+
+    all_binary_types = ["binary_s", "button_s", "motion_s"]
 
     for room in pddl_converter_help.iterator_ofer_dict_list_elements(floor_uids,room_uids_per_floor):
         if room not in sensor_room_mapping:
@@ -149,15 +153,22 @@ def create_sensor_values(predicates_dict: Dict[str,variables], floor_uids: List[
         for s in sensor_room_mapping[room]:
             sensor_object = uid_to_pddl_variable_sensors[s]
             object_state = 0
-            state = is_ok(sensor_object)
-            if s in sensor_initial_values:
-                object_state = sensor_initial_values[s]
-            if object_state == -1:
-                state = is_low(sensor_object)
-            elif object_state == 0:
+            if sensor_types[s] in all_binary_types:
+                state = base.Not(is_sensing(sensor_object))
+                if s in sensor_initial_values:
+                    object_state = sensor_initial_values[s]
+                if object_state == 1:
+                    state = base.Not(is_sensing(sensor_object))
+            else:
                 state = is_ok(sensor_object)
-            elif object_state == 1:
-                state = is_high(sensor_object)
+                if s in sensor_initial_values:
+                    object_state = sensor_initial_values[s]
+                if object_state == -1:
+                    state = is_low(sensor_object)
+                elif object_state == 0:
+                    state = is_ok(sensor_object)
+                elif object_state == 1:
+                    state = is_high(sensor_object)
             state_list.append(state)
 
     return state_list
@@ -223,6 +234,7 @@ def create_initial_state(predicates_dict: Dict[str,variables], input_dictionary:
     actuator_increases_sensor_mapping_matrix = input_dictionary['actuator_increases_sensor_mapping_matrix']
     actuator_decreases_sensor_mapping_matrix = input_dictionary['actuator_decreases_sensor_mapping_matrix']
 
+    sensor_types = input_dictionary['sensor_types']
     sensor_initial_values = input_dictionary['sensor_initial_values']
     # TODO
     sensor_initial_locked = input_dictionary['sensor_initial_locked']
@@ -246,7 +258,7 @@ def create_initial_state(predicates_dict: Dict[str,variables], input_dictionary:
     assert len(sensor_initial_values) <= len(uid_to_pddl_variable_sensors)
     assert len(actuator_initial_values) <= len(uid_to_pddl_variable_actuators)
 
-    initial_state = initial_state + create_sensor_values(predicates_dict, floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_initial_values)
+    initial_state = initial_state + create_sensor_values(predicates_dict, floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_initial_values, sensor_types)
     initial_state = initial_state + create_sensor_locks(predicates_dict, sensor_initial_locked, uid_to_pddl_variable_sensors)
 
     initial_state = initial_state + create_actuator_values(predicates_dict, floor_uids, room_uids_per_floor, actuator_room_mapping, uid_to_pddl_variable_actuators, actuator_initial_values)
