@@ -292,6 +292,9 @@ def _update_device_from_payload(device_obj, parsed_payload):
     """Update device object with parsed payload data"""
     try:
         # Update device fields with payload data
+        if parsed_payload.get('name'):
+            device_obj.name = parsed_payload['name']
+        
         if parsed_payload.get('type_name'):
             device_obj.type_name = parsed_payload['type_name']
         

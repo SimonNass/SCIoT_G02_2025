@@ -364,6 +364,6 @@ def get_latest_plan_for_room(room_number):
 def run_planner_db():
     try:
         run_planner_with_db_data()
-        return 200
+        return jsonify({'success': True, 'message': 'Planner executed successfully'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
