@@ -26,6 +26,9 @@ class SensorInterface(ABC):
         self.connector_type = connector_types
         self.min_value = min_value
         self.max_value = max_value
+        if min_value > max_value:
+            self.min_value = max_value
+            self.max_value = min_value
         self.datatype = datatype
         self.unit = unit
         self.read_interval = read_interval
@@ -44,7 +47,8 @@ class SensorInterface(ABC):
     def read_sensor(self):
         try:
             roaw_sensor_value = self.read_internal_sensor()
-            self.last_value = roaw_sensor_value + self.virtual_environment_impact
+            manipulated_sensor_value = roaw_sensor_value + self.virtual_environment_impact
+            self.last_value = max(self.min_value,min(self.max_value,manipulated_sensor_value))
             self.last_value_timestamp = time.time()
             self.datatype = str(type(self.last_value))
             print (f"uuid: {self.id}, device name: {self.name}, value: {self.last_value} = {roaw_sensor_value} + {self.virtual_environment_impact}")
