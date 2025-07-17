@@ -125,10 +125,10 @@ def system_info():
     #print ("numpy version:" + str(np.version.version))
     logger.info(f"numpy version: {str(np.version.version)}")
 
-def run_gateway_for_config(config_file_name: str, password: str):
+def run_gateway_for_config(config_file_name: str, password: str, host: str=None):
     config_values = {}
     try:
-        config_values = config_reader.read_config(config_file_name, password)
+        config_values = config_reader.read_config(config_file_name, password, host)
     except Exception as e:
         print (f"Reading config file {config_file_name} was not succesfull {config_values}")
         print (e, flush=True)

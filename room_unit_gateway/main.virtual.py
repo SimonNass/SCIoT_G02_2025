@@ -13,16 +13,20 @@ logger = logging.getLogger(__name__)
 def main():
     """
     Usage:
-      python main.py <config_folder> <mqtt_password>
+      python main.py <config_folder> [<mqtt_host>] <mqtt_password>
     It will scan <config_folder> for all “*.ini” files and spawn one thread per file.
     """
     logging.basicConfig(filename='pi_room_gateway.log', level=logging.INFO)
 
-    if len(sys.argv) != 3:
-        print("Usage: python main.py <config_folder> <mqtt_password>")
+    if len(sys.argv) < 3 or len(sys.argv) > 4:
+        print("Usage: python main.py <config_folder> [<mqtt_host>] <mqtt_password>")
         sys.exit(1)
-
-    config_folder, password = sys.argv[1], sys.argv[2]
+    if len(sys.argv) == 3:
+        config_folder, host, password = sys.argv[1], None, sys.argv[2]
+    elif len(sys.argv) == 4:
+        config_folder, host, password = sys.argv[1], sys.argv[2], sys.argv[3]
+    else:
+        sys.exit(1)
 
     if not os.path.isdir(config_folder):
         print(f"Error: '{config_folder}' is not a directory or does not exist.", file=sys.stderr)
@@ -43,7 +47,7 @@ def main():
     for cfg in ini_files:
         t = threading.Thread(
             target=help_methods.run_gateway_for_config,
-            args=(cfg, password),
+            args=(cfg, password, host),
             daemon=True
         )
         t.start()
