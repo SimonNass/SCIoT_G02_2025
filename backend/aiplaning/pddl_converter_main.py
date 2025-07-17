@@ -19,6 +19,7 @@ from backend.aiplaning import pddl_converter_input
 from backend.aiplaning import pddl_converter_initial_state
 from backend.aiplaning import pddl_converter_help
 from backend.aiplaning.pddl_converter_execution import PlanerTag, pddl_actions_to_execution_mapper
+from backend.aiplaning.utils.updateActuators import updateActuators
 
 
 def create(input_dictionary):
@@ -119,10 +120,12 @@ def run_planner_with_db_data(sensor_goal_values: Optional[Dict[str, int]] = [],
     pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "p" + ".pddl", p)
     solve_result = pddl_service.solve_planning_problem(str(d), str(p), "dual-bfws-ffparser")
     logging.info(f"Plan: {solve_result.get('plan')}")
-    cleaning_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans = execution_mapper.filter_plan(solve_result.get('plan'))
-    
-    
-    return increse_actuator_plans, decrese_actuator_plans
+    filtered_plan, cleaning_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans = execution_mapper.filter_plan(solve_result.get('plan'))
+    updateActuators(increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans)
+    # Todo: save cleaning plan and parsed plan
+    logging.info(f"Filtered Plan: {filtered_plan}")
+
+    return increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans
 
 
 if __name__ == '__main__':
