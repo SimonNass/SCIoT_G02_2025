@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from backend.aiplaning.utils.dbUtils import get_sensor_types
 from backend.extensions import db
 from backend.models import models
 from sqlalchemy.exc import IntegrityError
@@ -179,7 +180,8 @@ def list_all_floors():
                     'room_type': room.room_type,
                     'capacity': room.capacity,
                     'is_occupied': room.is_occupied,
-                    'device_count': len(room.devices)
+                    'device_count': len(room.devices),
+                    'rfid_access_id': room.rfid_access_id,
                 }
                 floor_data['rooms'].append(room_data)
 
@@ -215,6 +217,7 @@ def list_rooms_for_floor(floor_number):
                 'last_cleaned': room.last_cleaned.isoformat() if room.last_cleaned else None,
                 'is_cleaned': room.is_cleaned,
                 'created_at': room.created_at.isoformat(),
+                'rfid_access_id': room.rfid_access_id,
                 'devices': []
             }
 
@@ -237,6 +240,7 @@ def list_rooms_for_floor(floor_number):
                     'initial_value': device.initial_value,
                     'off_value': device.off_value,
                     'is_off': device.is_off,
+                    'ai_planing_type': device.ai_planing_type
                 }
                 room_data['devices'].append(device_data)
 
@@ -411,6 +415,7 @@ def list_devices_in_room(floor_number, room_number):
                'initial_value': device.initial_value,
                'off_value': device.off_value,
                'is_off': device.is_off,
+               'ai_planing_type': device.ai_planing_type
            }
            devices.append(device_data)
 
@@ -633,3 +638,13 @@ def get_mapping_matrices():
         
     except Exception as e:
         return jsonify({'error - Failed to retrieve mapping matrices:': str(e)}), 500
+
+@api.route('/query/test', methods=['GET'])
+def list_floor_uids():
+    try:
+        floor_ids = get_sensor_types()
+        import logging
+        logging.info(f"Info: {floor_ids}")
+        return jsonify(floor_ids), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

@@ -29,7 +29,8 @@ def get_room_occupied_initial_values():
     with current_app.app_context():
         room_data = db.session.query(Room.id, Room.is_occupied).all()
         return {room_id: is_occupied for room_id, is_occupied in room_data}
-    
+
+# Todo: Only return online devices
 def get_sensor_room_mapping():
     """Get dictionary mapping room IDs to their sensor device IDs."""
     from flask import current_app

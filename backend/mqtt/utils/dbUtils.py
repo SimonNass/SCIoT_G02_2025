@@ -154,9 +154,10 @@ def _create_new_device(app_instance, device_id, sensor_type, room, floor_number,
                         simplified_value=simplified_value,
                         timestamp=datetime.utcnow()
                     )
-                    # Handle RFID sensor behavious
+                    # Handle RFID sensor behavior
                     _handle_rfid_sensor(room, parsed_payload, latest_value)
 
+                    db.session.add(room)
                     db.session.add(sensor_data)
                     sensor_data_created = True
                     logging.debug(f"Sensor data record created for new device {device_id}")
@@ -244,7 +245,8 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
                                 timestamp=datetime.utcnow()
                             )
                             _handle_rfid_sensor(room, parsed_payload, latest_value)
-
+                            
+                            db.session.add(room)
                             db.session.add(sensor_data)
                             sensor_data_created = True
                             logging.debug(f"Sensor data record created for device {device_id}")
@@ -476,7 +478,7 @@ def _handle_rfid_sensor(room, parsed_payload, latest_value):
         return False
     
     # Initialize RFID access ID if not set
-    if room.rfid_access_id is None:
+    if room.rfid_access_id is None and rfid_value is not None and rfid_value > 0.0:
         room.rfid_access_id = rfid_value
         logging.info(f"RFID access ID initialized for room {room.room_number}: {rfid_value}")
         return True
