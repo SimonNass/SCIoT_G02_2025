@@ -12,30 +12,19 @@ import time
 from abc import ABC, abstractmethod
 import logging
 from enumdef import Connectortype
+from iot_info import IoT_Info
 logger = logging.getLogger(__name__)
 
 class ActuatorInterface(ABC):
-    def __init__(self, name: str, type_name: str, connector: int, room_position: str, ai_planing_type: str, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: Union[int, str], off_value: Union[int, str]):
-        self.id = uuid.uuid1()
-        self.name = name
-        self.type = type_name
-        self.room_position = room_position
-        self.ai_planing_type = ai_planing_type
-        self.i2c_connector = connector #assert not used twice
-        self.connector_type = connector_types
-        self.min_value = min_value
-        self.max_value = max_value
-        if min_value > max_value:
-            self.min_value = max_value
-            self.max_value = min_value
-        self.datatype = datatype
-        self.unit = unit
-        self.initial_value = max(min_value,min(max_value,initial_value))
+    def __init__(self, general_iot_device: IoT_Info, initial_value: Union[int, str], off_value: Union[int, str], impact_step_size: float):
+        self.general_iot_device = general_iot_device
+        self.initial_value = max(self.general_iot_device.min_value,min(self.general_iot_device.max_value,initial_value))
         self.last_value = self.initial_value
         self.last_value_timestamp = time.time()
         if not self.is_valid(self.initial_value):
-            self.last_value = min_value
-        self.off_value = max(min_value,min(max_value,off_value))
+            self.last_value = self.general_iot_device.min_value
+        self.off_value = max(self.general_iot_device.min_value,min(self.general_iot_device.max_value,off_value))
+        self.impact_step_size = impact_step_size
         self.value_has_changed = False
 
     @abstractmethod
@@ -46,12 +35,15 @@ class ActuatorInterface(ABC):
         return str(self.__dict__())
 
     def __dict__(self):
-        return {"id":str(self.id),"name":self.name,"type_name":self.type,"room_position":self.room_position,"ai_planing_type":self.ai_planing_type,"connector":self.i2c_connector,"connector_type":str(self.connector_type),"min":self.min_value, "max":self.max_value, "datatype":self.datatype, "unit":self.unit, "initial_value":self.initial_value, "off_value":self.off_value, "is_off":self.is_off(), "last_value":self.last_value}
+        return_dict = {}
+        return_dict.update(self.general_iot_device.__dict__())
+        return_dict.update({"initial_value":self.initial_value, "off_value":self.off_value, "impact_step_size":self.impact_step_size, "is_off":self.is_off(), "last_value":self.last_value})
+        return return_dict
 
     def write_actuator(self, value: int):
-        write_value = max(self.min_value,min(self.max_value,value))
+        write_value = max(self.general_iot_device.min_value,min(self.general_iot_device.max_value,value))
         if not self.is_valid(write_value):
-            text = f"value {value} is out of the allowed interval [{self.min_value},{self.max_value}] for this actuator"
+            text = f"value {value} is out of the allowed interval [{self.general_iot_device.min_value},{self.general_iot_device.max_value}] for this actuator"
             raise ValueError(text)
         try:
             _ = self.write_internal_actuator(write_value)
@@ -59,21 +51,22 @@ class ActuatorInterface(ABC):
             self.last_value = write_value
             self.datatype = str(type(self.last_value))
             self.value_has_changed = True
-            print (f"uuid: {self.id}, device name: {self.name}, value: {self.last_value}")
-            logger.info(f"uuid: {self.id}, device name: {self.name}, value: {self.last_value}, type: {self.datatype}")
+            print (f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value}")
+            logger.info(f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value}, type: {self.datatype}")
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("write was unsucesful")
             #print (e)
-            logger.error(f"{self.name}: write was unsucesful {e}")
+            logger.error(f"{self.general_iot_device.name}: write was unsucesful {e}")
 
     @abstractmethod
     def write_internal_actuator(self, write_value: int):
         pass
 
     def is_valid(self, value: int):
-        if (value > self.max_value) or (value < self.min_value):
-            text = f"value {value} is out of the allowed interval [{self.min_value},{self.max_value}] for this actuator"
-            print (text)
+        if (value > self.general_iot_device.max_value) or (value < self.general_iot_device.min_value):
+            text = f"value {value} is out of the allowed interval [{self.general_iot_device.min_value},{self.general_iot_device.max_value}] for this actuator"
+            print (f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name} {text}")
+            logger.warning(f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name} {text}")
             return False
         return True
 
@@ -81,58 +74,58 @@ class ActuatorInterface(ABC):
         return self.last_value == self.off_value
 
 class AnalogActuator(ActuatorInterface):
-    def __init__(self, name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: int, off_value: int):
-        if connector_types != Connectortype.Analog:
+    def __init__(self, general_iot_device: IoT_Info, initial_value: int, off_value: int, impact_step_size: float):
+        if general_iot_device.connector_type != Connectortype.Analog:
             raise ValueError("Connector_type is not Analog.")
-        super().__init__(name=name,type_name=type_name, room_position=room_position, ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+        super().__init__(general_iot_device=general_iot_device,initial_value=initial_value,off_value=off_value, impact_step_size=impact_step_size)
         try:
-            grovepi.pinMode(self.i2c_connector,"OUTPUT")
+            grovepi.pinMode(self.general_iot_device.i2c_connector,"OUTPUT")
         except  AttributeError as e:
             print ("pinMode was unsucesful")
             #print (e)
-            logger.error(f"{self.name}: pinMode was unsucesful {e}")
+            logger.error(f"{self.general_iot_device.name}: pinMode was unsucesful {e}")
         self.write_actuator(self.initial_value)
 
     def __del__(self):
         try:
-            grovepi.analogWrite(self.i2c_connector,self.off_value)
+            grovepi.analogWrite(self.general_iot_device.i2c_connector,self.off_value)
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("write was unsucesful")
             #print (e)
-            logger.error(f"{self.name}: write was unsucesful {e}")
+            logger.error(f"{self.general_iot_device.name}: write was unsucesful {e}")
 
     def write_internal_actuator(self, write_value: int):
-        return grovepi.analogWrite(self.i2c_connector,write_value)
+        return grovepi.analogWrite(self.general_iot_device.i2c_connector,write_value)
 
 class DigitalActuator(ActuatorInterface):
-    def __init__(self, name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: int, off_value: int):
-        if connector_types != Connectortype.Digital:
+    def __init__(self, general_iot_device: IoT_Info, initial_value: int, off_value: int, impact_step_size: float):
+        if general_iot_device.connector_type != Connectortype.Digital:
             raise ValueError("Connector_type is not Analog.")
-        super().__init__(name=name,type_name=type_name, room_position=room_position, ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+        super().__init__(general_iot_device=general_iot_device,initial_value=initial_value,off_value=off_value, impact_step_size=impact_step_size)
         try:
-            grovepi.pinMode(self.i2c_connector,"OUTPUT")
+            grovepi.pinMode(self.general_iot_device.i2c_connector,"OUTPUT")
         except  AttributeError as e:
             print ("pinMode was unsucesful")
             #print (e)
-            logger.error(f"{self.name}: pinMode was unsucesful {e}")
+            logger.error(f"{self.general_iot_device.name}: pinMode was unsucesful {e}")
         self.write_actuator(self.initial_value)
 
     def __del__(self):
         try:
-            grovepi.digitalWrite(self.i2c_connector,self.off_value)
+            grovepi.digitalWrite(self.general_iot_device.i2c_connector,self.off_value)
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("write was unsucesful")
             #print (e)
-            logger.error(f"{self.name}: write was unsucesful {e}")
+            logger.error(f"{self.general_iot_device.name}: write was unsucesful {e}")
 
     def write_internal_actuator(self, write_value: int):
-        return grovepi.digitalWrite(self.i2c_connector,write_value)
+        return grovepi.digitalWrite(self.general_iot_device.i2c_connector,write_value)
 
 class VirtualActuator_numerical(ActuatorInterface):
-    def __init__(self, name: str, type_name: str, connector: int, room_position: str, ai_planing_type: str, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: int, off_value: int):
-        if connector_types != Connectortype.Virtual_numerical:
+    def __init__(self, general_iot_device: IoT_Info, initial_value: int, off_value: int, impact_step_size: float):
+        if general_iot_device.connector_type != Connectortype.Virtual_numerical:
             raise ValueError("Connector_type is not Virtual.")
-        super().__init__(name=name,type_name=type_name, room_position=room_position, ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+        super().__init__(general_iot_device=general_iot_device,initial_value=initial_value,off_value=off_value, impact_step_size=impact_step_size)
         self.write_actuator(self.initial_value)
 
     def __del__(self):

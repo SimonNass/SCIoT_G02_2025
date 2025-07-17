@@ -23,14 +23,14 @@ class Virtual_environment():
 
     def check_if_actuators_has_influenc(self, actuator_uuid: uuid):
         for actuator in self.actuators:
-            if actuator.id == actuator_uuid:
+            if actuator.general_iot_device.id == actuator_uuid:
                 return not actuator.is_off()
         logger.warning('Environment bug check_if_actuators_has_influenc')
         return False
 
     def calculate_actuators_impact(self, actuator_uuid: str):
         for actuator in self.actuators:
-            if actuator.id == actuator_uuid:
+            if actuator.general_iot_device.id == actuator_uuid:
                 if isinstance(actuator.last_value, str):
                     return 1
                 return float(actuator.last_value)
@@ -63,8 +63,8 @@ class Virtual_environment():
 
         for sensor in self.sensors:
             impact = 0
-            if sensor.id in sensor_dict:
-                impact = sensor_dict.get(sensor.id)
+            if sensor.general_iot_device.id in sensor_dict:
+                impact = sensor_dict.get(sensor.general_iot_device.id)
             sensor.virtual_environment_impact = impact
 
     def performe_environment_step(self):
@@ -92,6 +92,6 @@ class Virtual_environment():
 
     def find_uuid(self, name: str, object_list: List[Union[SensorInterface,ActuatorInterface]]):
         for element in object_list:
-            if element.name == name:
-                return element.id
+            if element.general_iot_device.name == name:
+                return element.general_iot_device.id
         raise LookupError

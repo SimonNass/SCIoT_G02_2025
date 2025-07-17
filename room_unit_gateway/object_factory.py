@@ -13,6 +13,7 @@ from enumdef import Connectortype, Notifyinterval
 from networking.ardoino_reverse_proxy import ArdoinoReverseProxy
 from networking.networking_domain import GatewayNetwork
 from room_info import Room_Info
+from iot_info import IoT_Info
 logger = logging.getLogger(__name__)
 
 def configure_network_gateway(host: str,
@@ -80,7 +81,7 @@ def configure_sensors(json_list: json, types: dict, ardoino_serial: ArdoinoRever
         room_position = str(s['room_position'])
         ai_planing_type = str(s['ai_planing_type'])
         connector = int(s['connector'])
-        connector_types = types[type_name]['connector_types']
+        connector_type = types[type_name]['connector_type']
         min_value = types[type_name]['min']
         max_value = types[type_name]['max']
         datatype = types[type_name]['datatype']
@@ -89,16 +90,17 @@ def configure_sensors(json_list: json, types: dict, ardoino_serial: ArdoinoRever
         notify_interval = types[type_name]['notify_interval']
         notify_change_precision = types[type_name]['notify_change_precision']
         try:
-            sensor_object = choose_sensor_class(name=name,
-                                                type_name=type_name,
-                                                room_position=room_position,
-                                                ai_planing_type=ai_planing_type,
-                                                connector=connector,
-                                                connector_types=connector_types,
-                                                min_value=min_value,
-                                                max_value=max_value,
-                                                datatype=datatype,
-                                                unit=unit,
+            iot_info = IoT_Info(name=name,
+                                type_name=type_name,
+                                room_position=room_position,
+                                ai_planing_type=ai_planing_type,
+                                connector=connector,
+                                connector_type=connector_type,
+                                min_value=min_value,
+                                max_value=max_value,
+                                datatype=datatype,
+                                unit=unit)
+            sensor_object = choose_sensor_class(iot_info=iot_info,
                                                 read_interval=read_interval,
                                                 notify_interval=notify_interval,
                                                 notify_change_precision=notify_change_precision,
@@ -110,29 +112,29 @@ def configure_sensors(json_list: json, types: dict, ardoino_serial: ArdoinoRever
             logger.info(f"{e}")
     return sensors
 
-def choose_sensor_class(name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int, ardoino_serial: ArdoinoReverseProxy):
+def choose_sensor_class(iot_info: IoT_Info, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int, ardoino_serial: ArdoinoReverseProxy):
     try:
         sensor_object = None
-        if connector_types == Connectortype.Analog:
-            sensor_object = AnalogSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
-        elif connector_types == Connectortype.Digital:
-            sensor_object = DigitalSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
-        elif connector_types == Connectortype.Digital_multiple_0:
-            sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=0)
-        elif connector_types == Connectortype.Digital_multiple_1:
-            sensor_object = DigitalMultipleSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=1)
-        elif connector_types == Connectortype.Virtual_numerical:
-            sensor_object = VirtualSensor_numerical(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
-        elif connector_types == Connectortype.Virtual_binary:
-            sensor_object = VirtualSensor_binary(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
-        elif connector_types == Connectortype.Ardoino_temperature:
-            sensor_object = ArdoinoSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="temperature")
-        elif connector_types == Connectortype.Ardoino_humidity:
-            sensor_object = ArdoinoSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="humidity")
-        elif connector_types == Connectortype.Ardoino_soundlevel:
-            sensor_object = ArdoinoSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="soundlevel")
-        elif connector_types == Connectortype.Ardoino_rfid:
-            sensor_object = ArdoinoSensor(name=name,type_name=type_name,room_position=room_position,ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value, datatype=datatype,unit=unit,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="rfid")
+        if iot_info.connector_type == Connectortype.Analog:
+            sensor_object = AnalogSensor(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+        elif iot_info.connector_type == Connectortype.Digital:
+            sensor_object = DigitalSensor(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+        elif iot_info.connector_type == Connectortype.Digital_multiple_0:
+            sensor_object = DigitalMultipleSensor(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=0)
+        elif iot_info.connector_type == Connectortype.Digital_multiple_1:
+            sensor_object = DigitalMultipleSensor(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=1)
+        elif iot_info.connector_type == Connectortype.Virtual_numerical:
+            sensor_object = VirtualSensor_numerical(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+        elif iot_info.connector_type == Connectortype.Virtual_binary:
+            sensor_object = VirtualSensor_binary(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+        elif iot_info.connector_type == Connectortype.Ardoino_temperature:
+            sensor_object = ArdoinoSensor(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="temperature")
+        elif iot_info.connector_type == Connectortype.Ardoino_humidity:
+            sensor_object = ArdoinoSensor(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="humidity")
+        elif iot_info.connector_type == Connectortype.Ardoino_soundlevel:
+            sensor_object = ArdoinoSensor(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="soundlevel")
+        elif iot_info.connector_type == Connectortype.Ardoino_rfid:
+            sensor_object = ArdoinoSensor(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="rfid")
         else:
             raise ValueError("Connector_type is not implemented.")
         return sensor_object
@@ -146,7 +148,7 @@ def configure_sensor_types(json_list: json):
     types = {}
     for t in init_list:
         mame_key = str(t['type_name'])
-        connector_types = getattr(Connectortype, str(t['connector_types']))
+        connector_type = getattr(Connectortype, str(t['connector_types']))
         min_value = int(t['min'])
         max_value = int(t['max'])
         datatype = str(t['datatype'])
@@ -154,7 +156,7 @@ def configure_sensor_types(json_list: json):
         read_interval = int(t['read_interval'])
         notify_interval = getattr(Notifyinterval, str(t['notify_interval']))
         notify_change_precision = int(t['notify_change_precision'])
-        t_dict = {'mame_key':mame_key,'connector_types':connector_types,'min':min_value,'max':max_value,'datatype':datatype,'unit':unit,'read_interval':read_interval,'notify_interval':notify_interval,'notify_change_precision':notify_change_precision}
+        t_dict = {'mame_key':mame_key,'connector_type':connector_type,'min':min_value,'max':max_value,'datatype':datatype,'unit':unit,'read_interval':read_interval,'notify_interval':notify_interval,'notify_change_precision':notify_change_precision}
         types.update({mame_key:t_dict})
     return types
 
@@ -167,26 +169,29 @@ def configure_actuators(json_list: json, types: dict, ardoino_serial: ArdoinoRev
         room_position = str(a['room_position'])
         ai_planing_type = str(a['ai_planing_type'])
         connector = int(a['connector'])
-        connector_types = types[type_name]['connector_types']
+        connector_type = types[type_name]['connector_type']
         min_value = types[type_name]['min']
         max_value = types[type_name]['max']
         datatype = types[type_name]['datatype']
         unit = types[type_name]['unit']
         initial_value = types[type_name]['initial_value']
         off_value = types[type_name]['off_value']
+        impact_step_size = types[type_name]['impact_step_size']
         try:
-            actuator_object = choose_actuator_class(name=name,
-                                                    type_name=type_name,
-                                                    room_position=room_position,
-                                                    ai_planing_type=ai_planing_type,
-                                                    connector=connector,
-                                                    connector_types=connector_types,
-                                                    min_value=min_value,
-                                                    max_value=max_value,
-                                                    datatype=datatype,
-                                                    unit=unit,
+            iot_info = IoT_Info(name=name,
+                                type_name=type_name,
+                                room_position=room_position,
+                                ai_planing_type=ai_planing_type,
+                                connector=connector,
+                                connector_type=connector_type,
+                                min_value=min_value,
+                                max_value=max_value,
+                                datatype=datatype,
+                                unit=unit)
+            actuator_object = choose_actuator_class(iot_info=iot_info,
                                                     initial_value=initial_value,
                                                     off_value=off_value,
+                                                    impact_step_size=impact_step_size,
                                                     ardoino_serial=ardoino_serial)
 
             actuators.append(actuator_object)
@@ -195,99 +200,43 @@ def configure_actuators(json_list: json, types: dict, ardoino_serial: ArdoinoRev
             logger.error(f"{e}")
     return actuators
 
-def choose_actuator_class(name: str,
-                          type_name: str,
-                          connector: int,
-                          room_position: str,
-                          ai_planing_type: str,
-                          connector_types: Connectortype,
-                          min_value: Union[int, str],
-                          max_value: Union[int, str],
-                          datatype: str,
-                          unit: str,
+def choose_actuator_class(iot_info: IoT_Info,
                           initial_value: Union[int, str],
                           off_value: Union[int, str],
+                          impact_step_size: float,
                           ardoino_serial: ArdoinoReverseProxy):
     try:
         actuator_object = None
-        if connector_types == Connectortype.I2C_display:
-            actuator_object = DisplayActuator(name=name,
-                                   type_name=type_name,
-                                   room_position=room_position,
-                                   ai_planing_type=ai_planing_type,
-                                   connector=connector,
-                                   connector_types=connector_types,
-                                   min_value=min_value,
-                                   max_value=max_value,
-                                   datatype=datatype,
-                                   unit=unit,
-                                   initial_value=initial_value,
-                                   off_value=off_value)
-        elif connector_types == Connectortype.Analog:
-            actuator_object = AnalogActuator(name=name,
-                                  type_name=type_name,
-                                  room_position=room_position,
-                                  ai_planing_type=ai_planing_type,
-                                  connector=connector,
-                                  connector_types=connector_types,
-                                  min_value=min_value,
-                                  max_value=max_value,
-                                  datatype=datatype,
-                                  unit=unit,
-                                  initial_value=initial_value,
-                                  off_value=off_value)
-        elif connector_types == Connectortype.Digital:
-            actuator_object = DigitalActuator(name=name,
-                                   type_name=type_name,
-                                   room_position=room_position,
-                                   ai_planing_type=ai_planing_type,
-                                   connector=connector,
-                                   connector_types=connector_types,
-                                   min_value=min_value,
-                                   max_value=max_value,
-                                   datatype=datatype,
-                                   unit=unit,
-                                   initial_value=initial_value,
-                                   off_value=off_value)
-        elif connector_types == Connectortype.Virtual_numerical:
-            actuator_object = VirtualActuator_numerical(name=name,
-                                   type_name=type_name,
-                                   room_position=room_position,
-                                   ai_planing_type=ai_planing_type,
-                                   connector=connector,
-                                   connector_types=connector_types,
-                                   min_value=min_value,
-                                   max_value=max_value,
-                                   datatype=datatype,
-                                   unit=unit,
-                                   initial_value=initial_value,
-                                   off_value=off_value)
-        elif connector_types == Connectortype.Virtual_textual:
-            actuator_object = VirtualActuator_textual(name=name,
-                                   type_name=type_name,
-                                   room_position=room_position,
-                                   ai_planing_type=ai_planing_type,
-                                   connector=connector,
-                                   connector_types=connector_types,
-                                   min_value=min_value,
-                                   max_value=max_value,
-                                   datatype=datatype,
-                                   unit=unit,
-                                   initial_value=initial_value,
-                                   off_value=off_value)
-        elif connector_types == Connectortype.Ardoino_motor:
-            actuator_object = ArdoinoActuator(name=name,
-                                   type_name=type_name,
-                                   room_position=room_position,
-                                   ai_planing_type=ai_planing_type,
-                                   connector=connector,
-                                   connector_types=connector_types,
-                                   min_value=min_value,
-                                   max_value=max_value,
-                                   datatype=datatype,
-                                   unit=unit,
+        if iot_info.connector_type == Connectortype.I2C_display:
+            actuator_object = DisplayActuator(general_iot_device=iot_info,
                                    initial_value=initial_value,
                                    off_value=off_value,
+                                   impact_step_size=impact_step_size)
+        elif iot_info.connector_type == Connectortype.Analog:
+            actuator_object = AnalogActuator(general_iot_device=iot_info,
+                                  initial_value=initial_value,
+                                  off_value=off_value,
+                                   impact_step_size=impact_step_size)
+        elif iot_info.connector_type == Connectortype.Digital:
+            actuator_object = DigitalActuator(general_iot_device=iot_info,
+                                   initial_value=initial_value,
+                                   off_value=off_value,
+                                   impact_step_size=impact_step_size)
+        elif iot_info.connector_type == Connectortype.Virtual_numerical:
+            actuator_object = VirtualActuator_numerical(general_iot_device=iot_info,
+                                   initial_value=initial_value,
+                                   off_value=off_value,
+                                   impact_step_size=impact_step_size)
+        elif iot_info.connector_type == Connectortype.Virtual_textual:
+            actuator_object = VirtualActuator_textual(general_iot_device=iot_info,
+                                   initial_value=initial_value,
+                                   off_value=off_value,
+                                   impact_step_size=impact_step_size)
+        elif iot_info.connector_type == Connectortype.Ardoino_motor:
+            actuator_object = ArdoinoActuator(general_iot_device=iot_info,
+                                   initial_value=initial_value,
+                                   off_value=off_value,
+                                   impact_step_size=impact_step_size,
                                    ardoino_serial=ardoino_serial,
                                    type_name_ardoino="motor")
         else:
@@ -304,17 +253,18 @@ def configure_actuator_types(json_list: json):
     types = {}
     for t in init_list:
         mame_key = str(t['type_name'])
-        connector_types = getattr(Connectortype, str(t['connector_types']))
+        connector_type = getattr(Connectortype, str(t['connector_types']))
         datatype = str(t['datatype'])
         unit = str(t['unit'])
         min_value = int(t['min'])
         max_value = int(t['max'])
-        if connector_types in [Connectortype.I2C_display, Connectortype.Virtual_textual]:
+        if connector_type in [Connectortype.I2C_display, Connectortype.Virtual_textual]:
             initial_value = str(t['initial_value'])
             off_value = str(t['off_value'])
         else:
             initial_value = int(t['initial_value'])
             off_value = int(t['off_value'])
-        t_dict = {'mame_key':mame_key,'connector_types':connector_types,'min':min_value,'max':max_value,'datatype':datatype,'unit':unit,'initial_value':initial_value,'off_value':off_value}
+        impact_step_size = float(t['impact_step_size'])
+        t_dict = {'mame_key':mame_key,'connector_type':connector_type,'min':min_value,'max':max_value,'datatype':datatype,'unit':unit,'initial_value':initial_value,'off_value':off_value,'impact_step_size':impact_step_size}
         types.update({mame_key:t_dict})
     return types
