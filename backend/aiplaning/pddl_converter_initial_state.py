@@ -145,7 +145,7 @@ def create_sensor_values(predicates_dict: Dict[str,variables], floor_uids: List[
     is_ok = predicates_dict["is_ok"]
     is_high = predicates_dict["is_high"]
 
-    all_binary_types = ["binary_s", "button_s", "motion_s"]
+    all_binary_types = ["binary_s", "button_s", "motion_s", "pressure_s", "bed_s", "chair_s", "shower_s"]
 
     for room in pddl_converter_help.iterator_ofer_dict_list_elements(floor_uids,room_uids_per_floor):
         if room not in sensor_room_mapping:
@@ -158,7 +158,7 @@ def create_sensor_values(predicates_dict: Dict[str,variables], floor_uids: List[
                 if s in sensor_initial_values:
                     object_state = sensor_initial_values[s]
                 if object_state == 1:
-                    state = base.Not(is_sensing(sensor_object))
+                    state = is_sensing(sensor_object)
             else:
                 state = is_ok(sensor_object)
                 if s in sensor_initial_values:
