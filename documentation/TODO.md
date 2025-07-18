@@ -8,7 +8,7 @@
 - [ ] Gateway
   - [x] (Simon) sensor dictionary send in utf 8
   - [x] (Simon) send bool actuator is off or on in gateway info
-  - [ ] (Simon) test send after actuator change
+  - [x] (Simon) test send after actuator change
   - [ ] (Simon) make agregated sensor subclass that cumulates sensors when read !!!!!!
   - [x] (Simon) disable sensors ? > not needed just ignore them
   - [ ] (optional) (Simon) update random number generator manual list

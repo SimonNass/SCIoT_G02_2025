@@ -40,7 +40,7 @@ class ActuatorInterface(ABC):
         return_dict.update({"initial_value":self.initial_value, "off_value":self.off_value, "impact_step_size":self.impact_step_size, "is_off":self.is_off(), "last_value":self.last_value})
         return return_dict
 
-    def write_actuator(self, value: int):
+    def write_actuator(self, value: float):
         write_value = max(self.general_iot_device.min_value,min(self.general_iot_device.max_value,value))
         if not self.is_valid(write_value):
             text = f"value {value} is out of the allowed interval [{self.general_iot_device.min_value},{self.general_iot_device.max_value}] for this actuator"
@@ -49,17 +49,17 @@ class ActuatorInterface(ABC):
             _ = self.write_internal_actuator(write_value)
             self.last_value_timestamp = time.time()
             self.last_value = write_value
-            self.datatype = str(type(self.last_value))
+            self.general_iot_device.datatype = str(type(self.last_value))
             self.value_has_changed = True
             print (f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value}")
-            logger.info(f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value}, type: {self.datatype}")
+            logger.info(f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value}, type: {self.general_iot_device.datatype}")
         except (Exception, IOError, TypeError, AttributeError) as e:
             print ("write was unsucesful")
             #print (e)
             logger.error(f"{self.general_iot_device.name}: write was unsucesful {e}")
 
     @abstractmethod
-    def write_internal_actuator(self, write_value: int):
+    def write_internal_actuator(self, write_value: float):
         pass
 
     def is_valid(self, value: int):
