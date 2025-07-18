@@ -6,10 +6,12 @@ from backend.models.models import Device
 from backend.mqtt.utils.cacheUtils import remove_device_from_cache
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from backend.aiplaning.pddl_converter_main import run_planner_with_db_data
 import atexit
 
-mark_devices_offline_after_hours = 1
-delete_after_hours = 24
+mark_devices_offline_after_minutes = 1
+delete_after_minutes = 10
+run_planner_every_seconds = 10
 
 def _mark_devices_offline():
     """
@@ -19,7 +21,7 @@ def _mark_devices_offline():
     try:
         with current_app.app_context():
             # Calculate the threshold time (mark_devices_offline_after_hours hours ago)
-            threshold_time = datetime.utcnow() - timedelta(hours=mark_devices_offline_after_hours)
+            threshold_time = datetime.utcnow() - timedelta(minutes=mark_devices_offline_after_minutes)
             
             # Find devices that were last seen more than mark_devices_offline_after_hours hours ago and are currently online
             offline_devices = Device.query.filter(
@@ -59,7 +61,7 @@ def _cleanup_old_devices():
     try:
         with current_app.app_context():
             # Calculate the threshold time (delete_after_hours hours ago)
-            threshold_time = datetime.utcnow() - timedelta(hours=delete_after_hours)
+            threshold_time = datetime.utcnow() - timedelta(minutes=delete_after_minutes)
             
             # Find devices that were last seen more than delete_after_hours hours ago
             old_devices = Device.query.filter(
@@ -115,25 +117,37 @@ def start_scheduler(app):
     def cleanup_old_devices():
         with app.app_context():
             _cleanup_old_devices()
+
+    def run_planning():
+        with app.app_context():
+            run_planner_with_db_data()
     
     # Job 1: Mark devices offline
     scheduler.add_job(
         func=mark_devices_offline,
-        trigger=IntervalTrigger(hours=mark_devices_offline_after_hours),
+        trigger=IntervalTrigger(minutes=mark_devices_offline_after_minutes),
         id='mark_devices_offline',
-        name=f'Mark devices offline if not seen for {mark_devices_offline_after_hours} hours',
+        name=f'Mark devices offline if not seen for {mark_devices_offline_after_minutes} minutes',
         replace_existing=True
     )
     
     # Job 2: Cleanup old devices
     scheduler.add_job(
         func=cleanup_old_devices,
-        trigger=IntervalTrigger(hours=delete_after_hours),
+        trigger=IntervalTrigger(minutes=delete_after_minutes),
         id='cleanup_old_devices',
-        name=f'Delete devices not seen for {delete_after_hours} hours',
+        name=f'Delete devices not seen for {delete_after_minutes} minutes',
         replace_existing=True
     )
-    
+
+    # Job 3:
+    # scheduler.add_job(
+    #     func=run_planning,
+    #     trigger=IntervalTrigger(seconds=run_planner_every_seconds),
+    #     id='run_planning',
+    #     name=f'Runs AI Plannin every {run_planner_every_seconds} seconds',
+    #     replace_existing=True
+    # )
     scheduler.start()
     logging.info("Device management scheduler started")
     
