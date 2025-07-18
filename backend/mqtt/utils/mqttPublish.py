@@ -12,13 +12,14 @@ def request_actuator_update(device_id: str, new_value: Any) -> bool:
         bool: True if message was published successfully, False otherwise
     """
     try:
+
         payload = {
             "new_value": new_value
         }
         
         # Validate device information
         device = models.Device.query.filter_by(device_id=device_id).first()
-        print(device)
+
         if not device:
             logging.error(f'Device {device_id} does not exist')
             return False
@@ -29,9 +30,18 @@ def request_actuator_update(device_id: str, new_value: Any) -> bool:
             return False
         
         # Check if new_value is in range
-        if not (device.min_value <= new_value <= device.max_value):
-            logging.error(f'New value {new_value} for device {device_id} is out of range ({device.min_value}, {device.max_value})')
-            return False
+        if device.datatype is not 'str':
+            new_value = safe_float_conversion_for_sensor_data(new_value)
+            if new_value is not None and not (safe_float_conversion_for_sensor_data(device.min_value) <= new_value <= safe_float_conversion_for_sensor_data(device.max_value)):
+                logging.error(f'New value {new_value} for device {device_id} is out of range ({device.min_value}, {device.max_value})')
+                return False
+            if new_value is None:
+                logging.error(f"Failed to update actuator value, new_value can not be None - device_id: {device_id}")
+                return False
+            
+            payload = {
+                "new_value": new_value
+            }
         
         room = device.room
         floor = room.floor
@@ -61,9 +71,25 @@ def request_actuator_update(device_id: str, new_value: Any) -> bool:
             return False
             
     except Exception as e:
-        logging.error(f"Error publishing actuator update: {str(e)}")
+        logging.error(f"Error publishing actuator update {device_id} - value: {new_value}: {str(e)}")
         return False
 
+def safe_float_conversion_for_sensor_data(value):
+    """
+    Safely convert a value to float for sensor data storage.
+    Returns None if conversion fails.
+    """
+    if value is None:
+        return None
+    
+    # Handle empty strings
+    if isinstance(value, str) and value.strip() == '':
+        return None
+    
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return None
 
 def request_current_sensor_value(device_id: str) -> bool:
     """

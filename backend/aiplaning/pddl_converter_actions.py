@@ -369,7 +369,11 @@ def create_activity_detection_actions_x(execution_mapper: pddl_actions_to_execut
         pre_exists = base.And(pre_exists, sensor_is_applicable(pddl_variable_types[key][0], room_type, room_position_type))
     pre_senses = base.And()
     for key, value in detect_sensor_type_x_dict.items():
-        pre_senses = base.And(pre_senses, predicates_dict[value](pddl_variable_types[key][0]))
+        if "~" in value:
+            modified_value = value.replace('~','')
+            pre_senses = base.And(pre_senses, base.Not(predicates_dict[modified_value](pddl_variable_types[key][0])))
+        else:
+            pre_senses = base.And(pre_senses, predicates_dict[value](pddl_variable_types[key][0]))
 
     eff = base.And(checked_activity_x, base.Not(fulfilled_activity_x))
 
@@ -472,9 +476,6 @@ def create_activity_fulfilled_actions(execution_mapper: pddl_actions_to_executio
     checked_all_activitys = predicates_dict["checked_all_activitys"]
     fulfilled_activitys = predicates_dict["fulfilled_activitys"]
 
-    fulfilled_activity_sleep = predicates_dict["fulfilled_activity_sleep"]
-    fulfilled_activity_read = predicates_dict["fulfilled_activity_read"]
-
     # TODO add or for sensor state
     # TODO check activitc colisions
 
@@ -494,13 +495,13 @@ def create_activity_fulfilled_actions(execution_mapper: pddl_actions_to_executio
         actions_list.append(fulfill_activity_no_x)
         execution_mapper.add_action(f"fulfill_activity_no_{activity}", [room_type, room_position_type], [PlanerTag.Fulfill_Activity_Intent, PlanerTag.Helper])
 
+    fulfilled_all_activitys_pre = base.And(checked_all_activitys(room_type, room_position_type), ~fulfilled_activitys(room_type, room_position_type))
+    for activity in activity_fulfill_mapping.keys():
+        fulfilled_all_activitys_pre = base.And(fulfilled_all_activitys_pre ,predicates_dict[f"fulfilled_activity_{activity}"](room_type, room_position_type))
     fulfill_all_activitys = Action(
         "fulfill_all_activitys",
         parameters=[room_type, room_position_type],
-        precondition=checked_all_activitys(room_type, room_position_type)
-                    & fulfilled_activity_sleep(room_type, room_position_type)
-                    & fulfilled_activity_read(room_type, room_position_type)
-                    & ~fulfilled_activitys(room_type, room_position_type),
+        precondition=fulfilled_all_activitys_pre,
         effect=fulfilled_activitys(room_type, room_position_type)
     )
     actions_list.append(fulfill_all_activitys)

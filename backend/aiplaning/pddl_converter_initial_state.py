@@ -112,25 +112,26 @@ def create_iot_position_mapping(predicates_dict: Dict[str,variables], uid_to_pdd
 
     return initial_state
 
-def create_iot_influences_iot_mapping(predicates_dict: Dict[str,variables], actuator_increases_sensor_mapping_matrix, actuator_decreases_sensor_mapping_matrix, uid_to_pddl_variable_actuators, uid_to_pddl_variable_sensors):
+def create_iot_influences_iot_mapping(predicates_dict: Dict[str,variables], actuator_increases_sensor_mapping_matrix: Dict[str,List[str]], actuator_decreases_sensor_mapping_matrix: Dict[str,List[str]], uid_to_pddl_variable_actuators, uid_to_pddl_variable_sensors):
     initial_state = []
 
     actuator_increases_sensor = predicates_dict["actuator_increases_sensor"]
     actuator_decreases_sensor = predicates_dict["actuator_decreases_sensor"]
 
-    assert len(actuator_increases_sensor_mapping_matrix.keys()) <= len(uid_to_pddl_variable_actuators)
-    for _, sensor_list_mapping in actuator_increases_sensor_mapping_matrix.items():
-        assert len(sensor_list_mapping) <= len(uid_to_pddl_variable_sensors)
-    assert len(actuator_decreases_sensor_mapping_matrix.keys()) <= len(uid_to_pddl_variable_actuators)
-    for _, sensor_list_mapping in actuator_decreases_sensor_mapping_matrix.items():
-        assert len(sensor_list_mapping) <= len(uid_to_pddl_variable_sensors)
-
     for a, s_list in actuator_increases_sensor_mapping_matrix.items():
+        if a not in uid_to_pddl_variable_actuators:
+            continue
         for s in s_list:
+            if s not in uid_to_pddl_variable_sensors:
+                continue
             next_influence = actuator_increases_sensor(uid_to_pddl_variable_actuators[a], uid_to_pddl_variable_sensors[s])
             initial_state.append(next_influence)
     for a, s_list in actuator_decreases_sensor_mapping_matrix.items():
+        if a not in uid_to_pddl_variable_actuators:
+            continue
         for s in s_list:
+            if s not in uid_to_pddl_variable_sensors:
+                continue
             next_influence = actuator_decreases_sensor(uid_to_pddl_variable_actuators[a], uid_to_pddl_variable_sensors[s])
             initial_state.append(next_influence)
 
@@ -145,7 +146,7 @@ def create_sensor_values(predicates_dict: Dict[str,variables], floor_uids: List[
     is_ok = predicates_dict["is_ok"]
     is_high = predicates_dict["is_high"]
 
-    all_binary_types = ["binary_s", "button_s", "motion_s"]
+    all_binary_types = ["binary_s", "button_s", "motion_s", "pressure_s", "bed_s", "chair_s", "shower_s"]
 
     for room in pddl_converter_help.iterator_ofer_dict_list_elements(floor_uids,room_uids_per_floor):
         if room not in sensor_room_mapping:
@@ -158,7 +159,7 @@ def create_sensor_values(predicates_dict: Dict[str,variables], floor_uids: List[
                 if s in sensor_initial_values:
                     object_state = sensor_initial_values[s]
                 if object_state == 1:
-                    state = base.Not(is_sensing(sensor_object))
+                    state = is_sensing(sensor_object)
             else:
                 state = is_ok(sensor_object)
                 if s in sensor_initial_values:
@@ -255,8 +256,6 @@ def create_initial_state(predicates_dict: Dict[str,variables], input_dictionary:
 
     initial_state = initial_state + create_iot_influences_iot_mapping(predicates_dict, actuator_increases_sensor_mapping_matrix, actuator_decreases_sensor_mapping_matrix, uid_to_pddl_variable_actuators, uid_to_pddl_variable_sensors)
 
-    assert len(sensor_initial_values) <= len(uid_to_pddl_variable_sensors)
-    assert len(actuator_initial_values) <= len(uid_to_pddl_variable_actuators)
 
     initial_state = initial_state + create_sensor_values(predicates_dict, floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_initial_values, sensor_types)
     initial_state = initial_state + create_sensor_locks(predicates_dict, sensor_initial_locked, uid_to_pddl_variable_sensors)
@@ -264,7 +263,6 @@ def create_initial_state(predicates_dict: Dict[str,variables], input_dictionary:
     initial_state = initial_state + create_actuator_values(predicates_dict, floor_uids, room_uids_per_floor, actuator_room_mapping, uid_to_pddl_variable_actuators, actuator_initial_values)
 
     # context room occupied
-    assert len(room_occupied_initial_values) <= len(uid_to_pddl_variable_rooms)
     initial_state = initial_state + create_room_occupied_values(predicates_dict, room_occupied_initial_values, floor_uids, room_uids_per_floor, uid_to_pddl_variable_rooms)
 
     return initial_state
