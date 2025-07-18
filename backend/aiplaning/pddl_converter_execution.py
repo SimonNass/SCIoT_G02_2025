@@ -32,7 +32,17 @@ class pddl_actions_to_execution_mapper():
     def add_action(self, name: str, parametertypes: List[str], planertags: List[PlanerTag]):
         self.pddl_actions_to_execution_map.update({name.lower():(parametertypes, planertags)})
 
+    def calculate_helper_actions(self):
+        helper_action_names = []
+        for action_name, action_values in self.pddl_actions_to_execution_map.items():
+            if PlanerTag.Helper in action_values[1]:
+                helper_action_names.append(action_name)
+        return helper_action_names
+
     def filter_plan(self, plan: List[str]):
+        if plan == None:
+            logging.warning(f"Plan is None.")
+            return
         try: 
         # test example
         # # plan = ["0.00000: (ASSIGN_LOCK_FOR_SENSOR TEMPERATURE_S_S3)",
@@ -93,6 +103,6 @@ class pddl_actions_to_execution_mapper():
             logging.info(f"Turn off actuator plans: {turn_off_actuator_plans}")
             logging.info(f"Decrese Actuator actuator plans: {decrese_actuator_plans}")
             logging.info(f"Two Actuators Involved Actioin Plans: {two_actuators_involved_actioin_plans}")
-            return cleaning_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans
+            return filtered_plan, cleaning_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans
         except Exception as e:
             logging.error({'Error parsing plan to usable information': str(e)})

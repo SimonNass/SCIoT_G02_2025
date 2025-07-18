@@ -221,6 +221,8 @@ class PDDLPlan(db.Model):
     planning_time: Mapped[Optional[float]] = mapped_column(Float)
     planner_used: Mapped[str] = mapped_column(String(100))
     raw_plan: Mapped[str] = mapped_column(Text, nullable=False)
+    cleaning_plan: Mapped[Optional[List[List[str]]]] = mapped_column(JSON)
+    filtered_plan: Mapped[Optional[List[List[str]]]] = mapped_column(JSON)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 

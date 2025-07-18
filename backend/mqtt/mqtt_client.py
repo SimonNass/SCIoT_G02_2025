@@ -67,7 +67,7 @@ def on_message(client, userdata, msg):
         # Parse the topic
         parsed = parse_mqtt_topic(topic, app_instance)
         if not parsed:
-            logging.warning(f"Skipping message with topic: {topic}")
+            # logging.warning(f"Skipping message with topic: {topic}")
             return
         
         if parsed[2] == "mapping":

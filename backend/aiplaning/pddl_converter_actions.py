@@ -170,6 +170,7 @@ def create_actuator_actions_binary_sensors(execution_mapper: pddl_actions_to_exe
         else:
             pre = base.And(pre, is_activated(actuator_type))
             eff = base.And(eff, ~is_activated(actuator_type))
+        eff = base.And(eff, base.Not(predicates_dict["has_initial_state"](binary_s_type)))
 
         binary_sensor_actuator_change = Action(
             action_name,
@@ -208,6 +209,7 @@ def create_actuator_actions_binary_sensors(execution_mapper: pddl_actions_to_exe
         else:
             pre = base.And(pre, is_changed(actuator_type))
             eff = base.And(eff, ~is_changed(actuator_type))
+        eff = base.And(eff, base.Not(predicates_dict["has_initial_state"](binary_s_type)))
 
         binary_sensor_actuator_change = Action(
             action_name,
@@ -275,6 +277,7 @@ def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_
             else:
                 pre = base.And(pre, is_activated(actuator_type))
                 eff = base.And(eff, ~is_activated(actuator_type))
+            eff = base.And(eff, base.Not(predicates_dict["has_initial_state"](numerical_s_type)))
 
             numerical_sensor_actuator_change = Action(
                 action_name,
@@ -317,6 +320,7 @@ def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_
             else:
                 pre = base.And(pre, is_changed(actuator_type))
                 eff = base.And(eff, ~is_changed(actuator_type))
+            eff = base.And(eff, base.Not(predicates_dict["has_initial_state"](numerical_s_type)))
 
             numerical_sensor_actuator_change = Action(
                 action_name,
@@ -361,15 +365,23 @@ def create_activity_detection_actions_x(execution_mapper: pddl_actions_to_execut
     
     param_base = [room_type, room_position_type]
     param_added = [pddl_variable_types[i][0] for i in detect_sensor_type_x_dict.keys()]
+    param_added_ini_state = [pddl_variable_types[i][1] for i in detect_sensor_type_x_dict.keys()]
     param = param_base + param_added
 
     pre_base = base.Not(checked_activity_x)
     pre_exists = base.And()
+    pre_exists_ini_state = base.And()
     for key in detect_sensor_type_x_dict.keys():
         pre_exists = base.And(pre_exists, sensor_is_applicable(pddl_variable_types[key][0], room_type, room_position_type))
+        pre_exists_ini_state = base.And(pre_exists_ini_state, sensor_is_applicable(pddl_variable_types[key][1], room_type, room_position_type))
+        pre_base = base.And(pre_base, predicates_dict["has_initial_state"](pddl_variable_types[key][0]))
     pre_senses = base.And()
     for key, value in detect_sensor_type_x_dict.items():
-        pre_senses = base.And(pre_senses, predicates_dict[value](pddl_variable_types[key][0]))
+        if "~" in value:
+            modified_value = value.replace('~','')
+            pre_senses = base.And(pre_senses, base.Not(predicates_dict[modified_value](pddl_variable_types[key][0])))
+        else:
+            pre_senses = base.And(pre_senses, predicates_dict[value](pddl_variable_types[key][0]))
 
     eff = base.And(checked_activity_x, base.Not(fulfilled_activity_x))
 
@@ -393,8 +405,8 @@ def create_activity_detection_actions_x(execution_mapper: pddl_actions_to_execut
 
     detect_no_possible_activity_x = Action(
         f"detect_no_possible_activity_{activity_name}",
-        parameters=param_base,
-        precondition=base.And(pre_base, base.Not(base.ExistsCondition(pre_exists, param_added))),
+        parameters=param,
+        precondition=base.And(pre_base, base.Not(base.ExistsCondition(pre_exists_ini_state, param_added_ini_state))),
         effect=base.And(eff, base.Not(is_doing_x_at))
     )
     actions_list.append(detect_no_possible_activity_x)
@@ -472,9 +484,6 @@ def create_activity_fulfilled_actions(execution_mapper: pddl_actions_to_executio
     checked_all_activitys = predicates_dict["checked_all_activitys"]
     fulfilled_activitys = predicates_dict["fulfilled_activitys"]
 
-    fulfilled_activity_sleep = predicates_dict["fulfilled_activity_sleep"]
-    fulfilled_activity_read = predicates_dict["fulfilled_activity_read"]
-
     # TODO add or for sensor state
     # TODO check activitc colisions
 
@@ -494,13 +503,13 @@ def create_activity_fulfilled_actions(execution_mapper: pddl_actions_to_executio
         actions_list.append(fulfill_activity_no_x)
         execution_mapper.add_action(f"fulfill_activity_no_{activity}", [room_type, room_position_type], [PlanerTag.Fulfill_Activity_Intent, PlanerTag.Helper])
 
+    fulfilled_all_activitys_pre = base.And(checked_all_activitys(room_type, room_position_type), ~fulfilled_activitys(room_type, room_position_type))
+    for activity in activity_fulfill_mapping.keys():
+        fulfilled_all_activitys_pre = base.And(fulfilled_all_activitys_pre ,predicates_dict[f"fulfilled_activity_{activity}"](room_type, room_position_type))
     fulfill_all_activitys = Action(
         "fulfill_all_activitys",
         parameters=[room_type, room_position_type],
-        precondition=checked_all_activitys(room_type, room_position_type)
-                    & fulfilled_activity_sleep(room_type, room_position_type)
-                    & fulfilled_activity_read(room_type, room_position_type)
-                    & ~fulfilled_activitys(room_type, room_position_type),
+        precondition=fulfilled_all_activitys_pre,
         effect=fulfilled_activitys(room_type, room_position_type)
     )
     actions_list.append(fulfill_all_activitys)

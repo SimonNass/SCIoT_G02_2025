@@ -306,12 +306,13 @@ def link_mappings_to_devices(app) -> int:
         return 0
 
 
-def get_actuator_sensor_matrices(app=None) -> Tuple[Dict[str, List[str]], Dict[str, List[str]]]:
+def get_actuator_sensor_matrices(app=None, room_number=None) -> Tuple[Dict[str, List[str]], Dict[str, List[str]]]:
     """
     Build actuator-sensor mapping matrices from database.
     
     Args:
         app: Flask application instance (optional, uses current_app if None)
+        room_number: Room number to filter mappings (optional, gets all if None)
         
     Returns:
         - actuator_increases_sensor_mapping_matrix: {'a1': ['s1', 's2'], 'a2': ['s2']}
@@ -321,24 +322,44 @@ def get_actuator_sensor_matrices(app=None) -> Tuple[Dict[str, List[str]], Dict[s
         # If app is provided, use it; otherwise use current_app (for API routes)
         if app:
             with app.app_context():
-                return _get_matrices()
+                return _get_matrices(room_number)
         else:
             from flask import current_app
             with current_app.app_context():
-                return _get_matrices()
+                return _get_matrices(room_number)
             
     except Exception as e:
         logging.error(f"Error generating actuator-sensor matrices: {str(e)}")
         return {}, {}
 
 
-def _get_matrices():
+def _get_matrices(room_number=None):
     """Helper function to get matrices within app context"""
-    # Get all active mappings with linked devices
-    mappings = models.SensorActuatorMapping.query.filter(
-        models.SensorActuatorMapping.actuator_device_id.isnot(None),
-        models.SensorActuatorMapping.sensor_device_id.isnot(None)
-    ).all()
+    if room_number is not None:
+        # Get the specific room
+        room = models.Room.query.filter_by(room_number=room_number).first()
+        if not room:
+            logging.warning(f"Room with number {room_number} not found")
+            return {}, {}
+        
+        # Get all active mappings where both actuator and sensor are in the specified room
+        mappings = models.SensorActuatorMapping.query.join(
+            models.Device, models.SensorActuatorMapping.actuator_device_id == models.Device.id
+        ).join(
+            models.Device, models.SensorActuatorMapping.sensor_device_id == models.Device.id,
+            aliased=True
+        ).filter(
+            models.SensorActuatorMapping.actuator_device_id.isnot(None),
+            models.SensorActuatorMapping.sensor_device_id.isnot(None),
+            models.Device.room_id == room.id,  # Actuator in the room
+            models.Device.room_id == room.id   # Sensor in the room
+        ).all()
+    else:
+        # Get all active mappings with linked devices
+        mappings = models.SensorActuatorMapping.query.filter(
+            models.SensorActuatorMapping.actuator_device_id.isnot(None),
+            models.SensorActuatorMapping.sensor_device_id.isnot(None)
+        ).all()
     
     increases_matrix = {}
     decreases_matrix = {}
