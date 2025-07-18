@@ -85,10 +85,12 @@ def main():
 
     over_config_file = False
     config_file_name = ''
-    if len(sys.argv) > 2:
-        print ("Chosen system arguments: " + str(sys.argv))
+    use_local_pddl_service = False
+    if len(sys.argv) > 3:
         over_config_file = sys.argv[1]
         config_file_name = sys.argv[2]
+        use_local_pddl_service = bool(sys.argv[3] in ["True"])
+        print (f"Chosen system arguments: over_config_file {over_config_file}, config_file_name {config_file_name}, use_local_pddl_service {use_local_pddl_service}")
 
     input_dictionary = pddl_converter_input.query_input(over_config_file,config_file_name)
 
@@ -98,8 +100,20 @@ def main():
     problem_file_name = input_dictionary['problem_file_name']
 
     d, p, execution_mapper = create(input_dictionary)
-    # Use PDDL Service to plan: pddl_service.solve_planning_problem(d, p)
-    execution_mapper.filter_plan(None)
+    
+    # Use PDDL Service to plan
+    plan = None
+    #if use_local_pddl_service:
+    #    from backend.services.pddl_service import PDDLPlannerService
+    #    from flask import Flask
+    #    from backend.config import Config
+    #    pddl_service = PDDLPlannerService()
+    #    app = Flask(__name__)
+    #    app.config.from_object(Config)
+    #    pddl_service.init_app(app)
+    #    solve_result = pddl_service.solve_planning_problem(str(d), str(p), "dual-bfws-ffparser")
+    #    plan = solve_result.get('plan')
+    execution_mapper.filter_plan(plan)
 
     pddl_converter_help.write_out_pddl(output_path, domaine_file_name + ".pddl", d)
     pddl_converter_help.write_out_pddl(output_path, problem_file_name + ".pddl", p)
