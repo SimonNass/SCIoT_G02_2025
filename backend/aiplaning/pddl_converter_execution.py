@@ -32,6 +32,13 @@ class pddl_actions_to_execution_mapper():
     def add_action(self, name: str, parametertypes: List[str], planertags: List[PlanerTag]):
         self.pddl_actions_to_execution_map.update({name.lower():(parametertypes, planertags)})
 
+    def calculate_helper_actions(self):
+        helper_action_names = []
+        for action_name, action_values in self.pddl_actions_to_execution_map.items():
+            if PlanerTag.Helper in action_values[1]:
+                helper_action_names.append(action_name)
+        return helper_action_names
+
     def filter_plan(self, plan: List[str]):
         if plan == None:
             logging.warning(f"Plan is None.")

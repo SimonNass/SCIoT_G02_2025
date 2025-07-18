@@ -3,6 +3,7 @@
 
 # pip install pddl==0.4.3
 import sys
+import json
 from typing import List, Dict, Optional
 from pddl.logic import variables
 from pddl.core import Domain, Problem
@@ -102,9 +103,10 @@ def main():
 
     pddl_converter_help.write_out_pddl(output_path, domaine_file_name + ".pddl", d)
     pddl_converter_help.write_out_pddl(output_path, problem_file_name + ".pddl", p)
-    #json_text = '{"excludeActions": []}'
-    json_text = '{"excludeActions": ["detect_all_activitys","fulfill_all_activitys","detect_no_possible_activity_sleep","detect_no_possible_activity_read","fulfill_activity_no_sleep","fulfill_activity_no_read"]}'
-    pddl_converter_help.write_out_pddl_visualisation_hints(output_path, domaine_file_name + ".planviz.json", json_text)
+
+    helper_action_names = execution_mapper.calculate_helper_actions()
+    json_text = {'excludeActions': helper_action_names}
+    pddl_converter_help.write_out_pddl(output_path, domaine_file_name + ".planviz.json", json.dumps(json_text))
 
 def run_planner_with_db_data(sensor_goal_values: Optional[Dict[str, int]] = [],
                             sensor_initial_locked: Optional[List[str]] = []):
