@@ -170,6 +170,7 @@ def create_actuator_actions_binary_sensors(execution_mapper: pddl_actions_to_exe
         else:
             pre = base.And(pre, is_activated(actuator_type))
             eff = base.And(eff, ~is_activated(actuator_type))
+        eff = base.And(eff, base.Not(predicates_dict["has_initial_state"](binary_s_type)))
 
         binary_sensor_actuator_change = Action(
             action_name,
@@ -208,6 +209,7 @@ def create_actuator_actions_binary_sensors(execution_mapper: pddl_actions_to_exe
         else:
             pre = base.And(pre, is_changed(actuator_type))
             eff = base.And(eff, ~is_changed(actuator_type))
+        eff = base.And(eff, base.Not(predicates_dict["has_initial_state"](binary_s_type)))
 
         binary_sensor_actuator_change = Action(
             action_name,
@@ -275,6 +277,7 @@ def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_
             else:
                 pre = base.And(pre, is_activated(actuator_type))
                 eff = base.And(eff, ~is_activated(actuator_type))
+            eff = base.And(eff, base.Not(predicates_dict["has_initial_state"](numerical_s_type)))
 
             numerical_sensor_actuator_change = Action(
                 action_name,
@@ -317,6 +320,7 @@ def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_
             else:
                 pre = base.And(pre, is_changed(actuator_type))
                 eff = base.And(eff, ~is_changed(actuator_type))
+            eff = base.And(eff, base.Not(predicates_dict["has_initial_state"](numerical_s_type)))
 
             numerical_sensor_actuator_change = Action(
                 action_name,
@@ -361,12 +365,16 @@ def create_activity_detection_actions_x(execution_mapper: pddl_actions_to_execut
     
     param_base = [room_type, room_position_type]
     param_added = [pddl_variable_types[i][0] for i in detect_sensor_type_x_dict.keys()]
+    param_added_ini_state = [pddl_variable_types[i][1] for i in detect_sensor_type_x_dict.keys()]
     param = param_base + param_added
 
     pre_base = base.Not(checked_activity_x)
     pre_exists = base.And()
+    pre_exists_ini_state = base.And()
     for key in detect_sensor_type_x_dict.keys():
         pre_exists = base.And(pre_exists, sensor_is_applicable(pddl_variable_types[key][0], room_type, room_position_type))
+        pre_exists_ini_state = base.And(pre_exists_ini_state, sensor_is_applicable(pddl_variable_types[key][1], room_type, room_position_type))
+        pre_base = base.And(pre_base, predicates_dict["has_initial_state"](pddl_variable_types[key][0]))
     pre_senses = base.And()
     for key, value in detect_sensor_type_x_dict.items():
         if "~" in value:
@@ -397,8 +405,8 @@ def create_activity_detection_actions_x(execution_mapper: pddl_actions_to_execut
 
     detect_no_possible_activity_x = Action(
         f"detect_no_possible_activity_{activity_name}",
-        parameters=param_base,
-        precondition=base.And(pre_base, base.Not(base.ExistsCondition(pre_exists, param_added))),
+        parameters=param,
+        precondition=base.And(pre_base, base.Not(base.ExistsCondition(pre_exists_ini_state, param_added_ini_state))),
         effect=base.And(eff, base.Not(is_doing_x_at))
     )
     actions_list.append(detect_no_possible_activity_x)

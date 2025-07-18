@@ -42,6 +42,7 @@ Install Docker on PI after this URL tutorial:
 https://docs.docker.com/engine/install/raspberry-pi-os/
 sudo docker build --tag 'room-pi' -f pi.Dockerfile .
 sudo docker run --privileged --network host room-pi
+sudo docker run --privileged --network host room-pi "configs_dir/manual_configs/config_pi_and_ardoino.ini" "host" "password"
 sudo docker stop $(sudo docker ps -a -q)
 docker system prune
 http://127.0.0.1:81/health

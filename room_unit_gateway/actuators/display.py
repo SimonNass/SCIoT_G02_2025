@@ -11,12 +11,15 @@ import time
 import logging
 from enumdef import Connectortype
 from actuators.actuator import ActuatorInterface
+from iot_info import IoT_Info
 logger = logging.getLogger(__name__)
 
 class AbstractActuator_textual(ActuatorInterface):
-    def __init__(self, name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: str, off_value: str, char_limit_per_line: int, char_limit_lines: int):
+    def __init__(self, general_iot_device: IoT_Info, initial_value: str, off_value: str, impact_step_size: float, char_limit_per_line: int, char_limit_lines: int):
         self.char_limit = char_limit_per_line * char_limit_lines
-        super().__init__(name=name,type_name=type_name, room_position=room_position, ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=0,max_value=self.char_limit,datatype=datatype,unit=unit,initial_value=0,off_value=0)
+        general_iot_device.min_value = 0
+        general_iot_device.max_value = self.char_limit
+        super().__init__(general_iot_device=general_iot_device,initial_value=0,off_value=0, impact_step_size=impact_step_size)
         self.initial_value = initial_value
         self.last_value = self.initial_value
         self.last_value_timestamp = time.time()
@@ -27,18 +30,18 @@ class AbstractActuator_textual(ActuatorInterface):
         try:
             if len(write_value) > self.char_limit:
                 print ("Text is too long")
-                logger.warning(f"{self.name}: {write_value} Text is too long")
+                logger.warning(f"{self.general_iot_device.name}: {write_value} Text is too long")
                 write_value = write_value[:self.char_limit]
             _ = self.write_internal_actuator(write_value)
             self.last_value_timestamp = time.time()
             self.last_value = write_value
             self.datatype = str(type(self.last_value))
             self.value_has_changed = True
-            print (f"uuid: {self.id}, device name: {self.name}, value: {self.last_value}")
-            logger.info(f"uuid: {self.id}, device name: {self.name}, value: {self.last_value}, type: {self.datatype}")
+            print (f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value}")
+            logger.info(f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value}, type: {self.datatype}")
         except Exception as e:
             print ("write was unsucesful")
-            logger.error(f"{self.name}: write was unsucesful {e}")
+            logger.error(f"{self.general_iot_device.name}: write was unsucesful {e}")
 
     def is_valid(self, value: str):
         if len(str(value)) > self.char_limit:
@@ -48,17 +51,17 @@ class AbstractActuator_textual(ActuatorInterface):
         return True
 
 class DisplayActuator(AbstractActuator_textual):
-    def __init__(self, name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: str, off_value: str):
-        if connector_types != Connectortype.I2C_display:
+    def __init__(self, general_iot_device: IoT_Info, initial_value: str, off_value: str, impact_step_size: float):
+        if general_iot_device.connector_type != Connectortype.I2C_display:
             raise ValueError("Connector_type is not a display.")
-        super().__init__(name=name,type_name=type_name, room_position=room_position, ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value, char_limit_per_line=16, char_limit_lines=2)
+        super().__init__(general_iot_device=general_iot_device,initial_value=initial_value,off_value=off_value, impact_step_size=impact_step_size, char_limit_per_line=16, char_limit_lines=2)
         r, g, b, text = self.split_state_info(self.initial_value)
         try:
             setRGB(r,g,b)
         except  (Exception, AttributeError) as e:
             print ("setRGB was unsucesful")
             #print (e)
-            logger.error(f"{self.name}: setRGB was unsucesful {e}")
+            logger.error(f"{self.general_iot_device.name}: setRGB was unsucesful {e}")
         self.write_actuator(text)
 
     def __del__(self):
@@ -69,7 +72,7 @@ class DisplayActuator(AbstractActuator_textual):
         except  (Exception, AttributeError) as e:
             print ("setRGB or setText was unsucesful")
             #print (e)
-            logger.error(f"{self.name}: setRGB or setText was unsucesful {e}")
+            logger.error(f"{self.general_iot_device.name}: setRGB or setText was unsucesful {e}")
 
     def write_internal_actuator(self, write_value: str):
         setText(write_value)
@@ -84,10 +87,10 @@ class DisplayActuator(AbstractActuator_textual):
         return r, g, b, text
 
 class VirtualActuator_textual(AbstractActuator_textual):
-    def __init__(self, name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: str, off_value: str):
-        if connector_types != Connectortype.Virtual_textual:
+    def __init__(self, general_iot_device: IoT_Info, initial_value: str, off_value: str, impact_step_size: float):
+        if general_iot_device.connector_type != Connectortype.Virtual_textual:
             raise ValueError("Connector_type is not Virtual_textual.")
-        super().__init__(name=name,type_name=type_name, room_position=room_position, ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value, char_limit_per_line=16, char_limit_lines=2)
+        super().__init__(general_iot_device=general_iot_device,initial_value=initial_value, off_value=off_value, impact_step_size=impact_step_size, char_limit_per_line=16, char_limit_lines=2)
         self.write_actuator(self.initial_value)
 
     def __del__(self):

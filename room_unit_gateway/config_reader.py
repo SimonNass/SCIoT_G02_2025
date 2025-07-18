@@ -112,7 +112,7 @@ def read_virtual_environment_config(config, sensor_class_list, actuator_class_li
         print (virtual_environment)
         return virtual_environment
 
-def read_config(config_file_name, password: str):
+def read_config(config_file_name: str, password: str, host: str=None):
     print (f"reading in {config_file_name}", flush=True)
     try:
         config = configparser.ConfigParser(interpolation=None)
@@ -124,6 +124,9 @@ def read_config(config_file_name, password: str):
     max_cycle_time = read_general_config(config)
 
     _, mqtt_host, mqtt_port, mqtt_username, mqtt_base_topic, mqtt_timeout = read_mqtt_config(config)
+    if host != None:
+        mqtt_host = host
+    print(mqtt_host)
     room_info = read_architecture_config(config)
 
     ardoino_serial = read_ardoino_config(config)

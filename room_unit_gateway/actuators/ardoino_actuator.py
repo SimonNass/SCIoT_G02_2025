@@ -4,13 +4,14 @@ import logging
 from actuators.actuator import ActuatorInterface
 from enumdef import Connectortype
 from networking.ardoino_reverse_proxy import ArdoinoReverseProxy
+from iot_info import IoT_Info
 logger = logging.getLogger(__name__)
 
 class ArdoinoActuator(ActuatorInterface):
-    def __init__(self, name: str, type_name: str, room_position: str, ai_planing_type: str, connector: int, connector_types: Connectortype, min_value: int, max_value: int, datatype: str, unit: str, initial_value: int, off_value: int, ardoino_serial: ArdoinoReverseProxy, type_name_ardoino: str):
+    def __init__(self, general_iot_device: IoT_Info, initial_value: int, off_value: int, impact_step_size: float, ardoino_serial: ArdoinoReverseProxy, type_name_ardoino: str):
         #if connector_types != Connectortype.Analog:
         #    raise ValueError("Connector_type is not Analog.")
-        super().__init__(name=name,type_name=type_name, room_position=room_position, ai_planing_type=ai_planing_type,connector=connector,connector_types=connector_types,min_value=min_value,max_value=max_value,datatype=datatype,unit=unit,initial_value=initial_value,off_value=off_value)
+        super().__init__(general_iot_device=general_iot_device,initial_value=initial_value,off_value=off_value, impact_step_size=impact_step_size)
         self.type_name_ardoino = type_name_ardoino
         # in bps
         self.ardoino_serial = ardoino_serial

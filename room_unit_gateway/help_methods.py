@@ -25,7 +25,7 @@ def read_all_sensors(sensors: List[SensorInterface]):
 
 def read_all_actuators(actuators: List[ActuatorInterface]):
     for actuator in actuators:
-        print (f'{actuator.name} has value {actuator.last_value}', flush=True)
+        print (f'{actuator.general_iot_device.name} has value {actuator.last_value}', flush=True)
 
 def write_all_actuators(actuators: List[ActuatorInterface], value: int):
     for actuator in actuators:
@@ -33,7 +33,7 @@ def write_all_actuators(actuators: List[ActuatorInterface], value: int):
 
 def write_all_displays(displays: List[ActuatorInterface], text: str):
     for display in displays:
-        if display.connector_type != Connectortype.I2C_display:
+        if display.general_iot_device.connector_type != Connectortype.I2C_display:
             continue
         display.write_actuator(text)
 
@@ -59,7 +59,7 @@ def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface
             read_dict = sensor.read_sensor()
             if abs(old_value - sensor.last_value) >= sensor.notify_change_precision:
                 network_connection.send_all_data_sensor(sensor,True)
-            text = f"{sensor.name}: {str(read_dict['last_value'])}"
+            text = f"{sensor.general_iot_device.name}: {str(read_dict['last_value'])}"
             write_all_displays(displays, text)
 
 def cyclic_actuator_read(actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
@@ -125,10 +125,10 @@ def system_info():
     #print ("numpy version:" + str(np.version.version))
     logger.info(f"numpy version: {str(np.version.version)}")
 
-def run_gateway_for_config(config_file_name: str, password: str):
+def run_gateway_for_config(config_file_name: str, password: str, host: str=None):
     config_values = {}
     try:
-        config_values = config_reader.read_config(config_file_name, password)
+        config_values = config_reader.read_config(config_file_name, password, host)
     except Exception as e:
         print (f"Reading config file {config_file_name} was not succesfull {config_values}")
         print (e, flush=True)
