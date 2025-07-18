@@ -108,7 +108,7 @@ def main():
 
 def run_planner_with_db_data(sensor_goal_values: Optional[Dict[str, int]] = [],
                             sensor_initial_locked: Optional[List[str]] = []):
-    pddl_converter_help.check_lib_versions()
+    #pddl_converter_help.check_lib_versions()
 
     input_dictionary = pddl_converter_input.query_input_over_db(sensor_goal_values, sensor_initial_locked)
     logging.info("Gets here")
