@@ -9,8 +9,8 @@ from apscheduler.triggers.interval import IntervalTrigger
 from backend.aiplaning.pddl_converter_main import run_planner_with_db_data
 import atexit
 
-mark_devices_offline_after_minutes = 1
-delete_after_minutes = 10
+mark_devices_offline_after_minutes = 10
+delete_after_minutes = 30
 run_planner_every_seconds = 10
 
 def _mark_devices_offline():
