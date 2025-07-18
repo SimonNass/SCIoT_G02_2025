@@ -171,6 +171,8 @@ def create_sensor_values(predicates_dict: Dict[str,variables], floor_uids: List[
                 elif object_state == 1:
                     state = is_high(sensor_object)
             state_list.append(state)
+            has_initial_state = predicates_dict["has_initial_state"](sensor_object)
+            state_list.append(has_initial_state)
 
     return state_list
 
