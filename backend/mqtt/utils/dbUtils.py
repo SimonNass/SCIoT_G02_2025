@@ -261,8 +261,6 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
                 else:
                     logging.warning(f"Invalid payload for device {device_id}")
             
-            db.session.add(device_obj)
-            
             # Commit all changes at once
             db.session.commit()
             

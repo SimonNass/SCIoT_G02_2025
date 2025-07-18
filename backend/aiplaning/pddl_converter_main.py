@@ -137,8 +137,8 @@ def run_planner_with_db_data(sensor_goal_values: Optional[Dict[str, int]] = {},
     # logging.info(input_dictionary)
     
     d, p, execution_mapper = create(input_dictionary)
-    pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "d" + ".pddl", d)
-    pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "p" + ".pddl", p)
+    # pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "d" + ".pddl", d)
+    # pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "p" + ".pddl", p)
     solve_result = pddl_service.solve_planning_problem(str(d), str(p), planner, False)
     
     filtered_plan, cleaning_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans = execution_mapper.filter_plan(solve_result.get('plan'))
