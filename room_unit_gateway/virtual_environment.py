@@ -83,7 +83,7 @@ class Virtual_environment():
                 only_physical = bool(dictionary_map['only_physical'] in ['True'])
             except Exception as e:
                 print (e, flush=True)
-                logger.error(f"{e}")
+                logger.warning(f"{e}")
 
             try:
                 actuator_uuid = self.find_uuid(actuator_name, self.actuators)
