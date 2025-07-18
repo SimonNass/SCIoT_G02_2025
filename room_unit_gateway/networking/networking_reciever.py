@@ -16,7 +16,7 @@ class GatewayNetworkReciever:
             #select the actuator based on uuid
             specified_actuator = self.actuators[0]
             for a in self.actuators:
-                if str(a.id) != device_uuid:
+                if str(a.general_iot_device.id) != device_uuid:
                     continue
                 specified_actuator = a
             return specified_actuator
