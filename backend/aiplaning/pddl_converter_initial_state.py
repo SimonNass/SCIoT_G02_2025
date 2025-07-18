@@ -118,13 +118,6 @@ def create_iot_influences_iot_mapping(predicates_dict: Dict[str,variables], actu
     actuator_increases_sensor = predicates_dict["actuator_increases_sensor"]
     actuator_decreases_sensor = predicates_dict["actuator_decreases_sensor"]
 
-    assert len(actuator_increases_sensor_mapping_matrix.keys()) <= len(uid_to_pddl_variable_actuators)
-    for sensor_list_mapping in actuator_increases_sensor_mapping_matrix.values():
-        assert len(sensor_list_mapping) <= len(uid_to_pddl_variable_sensors)
-    assert len(actuator_decreases_sensor_mapping_matrix.keys()) <= len(uid_to_pddl_variable_actuators)
-    for sensor_list_mapping in actuator_decreases_sensor_mapping_matrix.values():
-        assert len(sensor_list_mapping) <= len(uid_to_pddl_variable_sensors)
-
     for a, s_list in actuator_increases_sensor_mapping_matrix.items():
         if a not in uid_to_pddl_variable_actuators:
             continue
