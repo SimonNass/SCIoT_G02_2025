@@ -33,6 +33,9 @@ class pddl_actions_to_execution_mapper():
         self.pddl_actions_to_execution_map.update({name.lower():(parametertypes, planertags)})
 
     def filter_plan(self, plan: List[str]):
+        if plan == None:
+            logging.warning(f"Plan is None.")
+            return
         try: 
         # test example
         # # plan = ["0.00000: (ASSIGN_LOCK_FOR_SENSOR TEMPERATURE_S_S3)",
