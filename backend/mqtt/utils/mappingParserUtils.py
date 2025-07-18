@@ -247,6 +247,8 @@ def _update_mapping_from_data(existing_mapping, mapping):
     existing_mapping.active_influences = mapping['active_influences']
     existing_mapping.updated_at = datetime.utcnow()
 
+    db.session.add(existing_mapping)
+
 
 def link_mappings_to_devices(app) -> int:
     """

@@ -261,6 +261,8 @@ def _process_device_payload_and_status(app_instance, device_id, sensor_type, pay
                 else:
                     logging.warning(f"Invalid payload for device {device_id}")
             
+            db.session.add(device_obj)
+            
             # Commit all changes at once
             db.session.commit()
             
@@ -350,6 +352,7 @@ def update_device_status(app_instance, device_id, is_online=True):
                 device.is_online = is_online
                 if is_online:
                     device.last_seen = datetime.utcnow()
+                db.session.add(device)
                 db.session.commit()
                 
                 # Update cache
@@ -489,6 +492,7 @@ def _handle_rfid_sensor(room, parsed_payload, latest_value):
         room.is_occupied = not room.is_occupied
         
         status_change = "entered" if room.is_occupied else "exited"
+        db.session.add(room)
         logging.info(f"Room {room.room_number}: User {status_change} (RFID: {rfid_value})")
         
         return True
