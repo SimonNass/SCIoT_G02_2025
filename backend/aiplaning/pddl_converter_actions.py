@@ -369,7 +369,11 @@ def create_activity_detection_actions_x(execution_mapper: pddl_actions_to_execut
         pre_exists = base.And(pre_exists, sensor_is_applicable(pddl_variable_types[key][0], room_type, room_position_type))
     pre_senses = base.And()
     for key, value in detect_sensor_type_x_dict.items():
-        pre_senses = base.And(pre_senses, predicates_dict[value](pddl_variable_types[key][0]))
+        if "~" in value:
+            modified_value = value.replace('~','')
+            pre_senses = base.And(pre_senses, base.Not(predicates_dict[modified_value](pddl_variable_types[key][0])))
+        else:
+            pre_senses = base.And(pre_senses, predicates_dict[value](pddl_variable_types[key][0]))
 
     eff = base.And(checked_activity_x, base.Not(fulfilled_activity_x))
 
