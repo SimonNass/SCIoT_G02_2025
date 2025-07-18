@@ -237,9 +237,16 @@ def save_to_database(
                     target_device_ids=parameter_list 
                 )
                 
-                db.session.add(plan_step)
+                db.session.add(plan)
 
             db.session.commit()
+
+            # Refresh the object to ensure all relationships are loaded
+            db.session.refresh(plan)
+            
+            # Load the steps relationship before returning
+            _ = plan.steps  # This triggers loading of the relationship
+            
             logging.info(f"Plan saved to database with ID: {plan.id}")
             return plan
         except Exception as e:

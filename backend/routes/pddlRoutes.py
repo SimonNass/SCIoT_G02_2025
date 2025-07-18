@@ -367,9 +367,71 @@ def get_latest_plan_for_room(room_number):
         return jsonify({'error': str(e)}), 500
     
 @pddl_api.route('/api/planning/run_planner', methods=['GET'])
-def run_planner_db():
+def run_planner_all():
+    """Run planner for entire building"""
     try:
-        run_planner_with_db_data()
-        return jsonify({'success': True, 'message': 'Planner executed successfully'}), 200
+        plan = run_planner_with_db_data()
+        plan_data = {
+            'id': plan.id,
+            'scope': plan.scope.value,
+            'target_floor_id': plan.target_floor_id,
+            'target_room_id': plan.target_room_id,
+            'total_cost': plan.total_cost,
+            'planning_time': plan.planning_time,
+            'planner_used': plan.planner_used,
+            'raw_plan': plan.raw_plan,
+            'created_at': plan.created_at.isoformat(),
+            'filtered_plan': plan.filtered_plan,
+            'cleaning_plan': plan.cleaning_plan,
+            'steps': []
+        }
+        
+        # Include plan steps
+        for step in plan.steps:
+            step_data = {
+                'id': step.id,
+                'step_order': step.step_order,
+                'action_name': step.action_name,
+                'raw_step': step.raw_step,
+                'target_device_ids': step.target_device_ids
+            }
+            plan_data['steps'].append(step_data)
+        
+        return jsonify(plan_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@pddl_api.route('/api/planning/run_planner/room/<string:room_number>', methods=['GET'])
+def run_planner_specific_room(room_number):
+    """Run planner for a specific room"""
+    try:
+        plan = run_planner_with_db_data({}, [], room_number)
+        plan_data = {
+            'id': plan.id,
+            'scope': plan.scope.value,
+            'target_floor_id': plan.target_floor_id,
+            'target_room_id': plan.target_room_id,
+            'total_cost': plan.total_cost,
+            'planning_time': plan.planning_time,
+            'planner_used': plan.planner_used,
+            'raw_plan': plan.raw_plan,
+            'created_at': plan.created_at.isoformat(),
+            'filtered_plan': plan.filtered_plan,
+            'cleaning_plan': plan.cleaning_plan,
+            'steps': []
+        }
+        
+        # Include plan steps
+        for step in plan.steps:
+            step_data = {
+                'id': step.id,
+                'step_order': step.step_order,
+                'action_name': step.action_name,
+                'raw_step': step.raw_step,
+                'target_device_ids': step.target_device_ids
+            }
+            plan_data['steps'].append(step_data)
+        
+        return jsonify(plan_data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500

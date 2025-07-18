@@ -127,14 +127,12 @@ def run_planner_with_db_data(sensor_goal_values: Optional[Dict[str, int]] = {},
     filtered_plan, cleaning_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans = execution_mapper.filter_plan(solve_result.get('plan'))
     
     updateActuators(increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans)
-    # Todo: save cleaning plan and parsed plan
     if room_number is None:
-        save_to_database(solve_result, planner, cleaning_plan, filtered_plan)
+        plan = save_to_database(solve_result, planner, cleaning_plan, filtered_plan)
     else:
-        save_to_database(solve_result, planner, cleaning_plan, filtered_plan, PlanScope.ROOM, None, room_number)
-    logging.info(f"Filtered Plan: {filtered_plan}")
+        plan = save_to_database(solve_result, planner, cleaning_plan, filtered_plan, PlanScope.ROOM, room_number)
 
-    return increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans
+    return plan
 
 
 if __name__ == '__main__':
