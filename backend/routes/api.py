@@ -6,6 +6,9 @@ from sqlalchemy.exc import IntegrityError
 from backend.routes.auth.simple_auth import require_api_key
 from backend.mqtt.utils.mqttPublish import request_actuator_update, request_current_sensor_value
 from backend.mqtt.utils.mappingParserUtils import get_actuator_sensor_matrices, get_mapping_impact_factors
+from datetime import datetime, timedelta
+from sqlalchemy import and_
+import logging
 
 api = Blueprint('api', __name__)
 
@@ -648,5 +651,259 @@ def list_floor_uids():
         import logging
         logging.info(f"Info: {floor_ids}")
         return jsonify(floor_ids), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+# Device offline/deletion endpoints
+@api.route('/devices/<string:device_id>/offline/set', methods=['POST'])
+@require_api_key
+def set_device_offline(device_id):
+    """
+    Set a specific device to offline status
+    Path: /devices/{device_id}/offline
+    """
+    try:
+        device = models.Device.query.filter_by(device_id=device_id).first()
+        if not device:
+            return jsonify({'error': f'Device {device_id} does not exist'}), 404
+        
+        device.is_online = False
+        db.session.commit()
+        
+        return jsonify({
+            'message': f'Device {device_id} set to offline successfully',
+            'device_id': device_id,
+            'is_online': False
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@api.route('/devices/<string:device_id>/delete', methods=['DELETE'])
+@require_api_key
+def delete_device(device_id):
+    """
+    Delete a specific device
+    Path: /devices/{device_id}/delete
+    """
+    try:
+        device = models.Device.query.filter_by(device_id=device_id).first()
+        if not device:
+            return jsonify({'error': f'Device {device_id} does not exist'}), 404
+        
+        db.session.delete(device)
+        db.session.commit()
+        
+        return jsonify({
+            'message': f'Device {device_id} deleted successfully',
+            'device_id': device_id
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# Bulk offline/deletion based on last_seen
+@api.route('/devices/bulk/offline/set', methods=['POST'])
+@require_api_key
+def bulk_set_devices_offline():
+    """
+    Set devices to offline that haven't been seen for more than n minutes
+    Expected JSON format:
+    {
+        "minutes": 30
+    }
+    """
+    try:
+        data = request.get_json()
+        if not data or 'minutes' not in data:
+            return jsonify({'error': 'minutes parameter is required'}), 400
+        
+        minutes = data['minutes']
+        cutoff_time = datetime.utcnow() - timedelta(minutes=minutes)
+        
+        devices = models.Device.query.filter(
+            and_(
+                models.Device.last_seen < cutoff_time,
+                models.Device.is_online == True
+            )
+        ).all()
+        
+        updated_count = 0
+        for device in devices:
+            device.is_online = False
+            updated_count += 1
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': f'{updated_count} devices set to offline',
+            'minutes_threshold': minutes,
+            'devices_affected': updated_count
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@api.route('/devices/bulk/delete', methods=['DELETE'])
+@require_api_key
+def bulk_delete_devices():
+    """
+    Delete devices that haven't been seen for more than n minutes
+    Expected JSON format:
+    {
+        "minutes": 60
+    }
+    """
+    try:
+        data = request.get_json()
+        if not data or 'minutes' not in data:
+            return jsonify({'error': 'minutes parameter is required'}), 400
+        
+        minutes = data['minutes']
+        cutoff_time = datetime.utcnow() - timedelta(minutes=minutes)
+        
+        devices = models.Device.query.filter(
+            models.Device.last_seen < cutoff_time
+        ).all()
+        
+        deleted_count = len(devices)
+        device_ids = [device.device_id for device in devices]
+        
+        for device in devices:
+            db.session.delete(device)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': f'{deleted_count} devices deleted',
+            'minutes_threshold': minutes,
+            'devices_deleted': deleted_count,
+            'deleted_device_ids': device_ids
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# Sensor data retrieval endpoints
+@api.route('/devices/<string:device_id>/sensor_data', methods=['POST'])
+@require_api_key
+def get_device_sensor_data(device_id):
+    """
+    Get sensor data for a device with interval sampling
+    Expected JSON format:
+    {
+        "interval": 6
+    }
+    If interval is 6 and there are 60 datapoints, returns every 6th datapoint (10 total)
+    """
+    try:
+        device = models.Device.query.filter_by(device_id=device_id).first()
+        if not device:
+            return jsonify({'error': f'Device {device_id} does not exist'}), 404
+        
+        if device.device_type != 'sensor':
+            return jsonify({'error': f'Device {device_id} is not a sensor'}), 400
+        
+        data = request.get_json()
+        interval = data.get('interval', 1) if data else 1
+        
+        if interval < 1:
+            return jsonify({'error': 'interval must be at least 1'}), 400
+        
+        # Get all sensor data for this device
+        all_sensor_data = models.SensorData.query.filter_by(
+            device_id=device.id
+        ).order_by(models.SensorData.timestamp.asc()).all()
+        
+        # Apply interval sampling - take every nth datapoint
+        sampled_data = all_sensor_data[::interval]
+        
+        result = []
+        for data_point in sampled_data:
+            result.append({
+                'id': data_point.id,
+                'value': data_point.value,
+                'simplified_value': data_point.simplified_value,
+                'timestamp': data_point.timestamp.isoformat()
+            })
+        
+        return jsonify({
+            'device_id': device_id,
+            'device_name': device.name,
+            'type_name': device.type_name,
+            'unit': device.unit,
+            'total_datapoints_available': len(all_sensor_data),
+            'sampling_interval': interval,
+            'sampled_datapoints': len(result),
+            'sensor_data': result
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@api.route('/devices/<string:device_id>/sensor_data/recent', methods=['POST'])
+@require_api_key
+def get_recent_sensor_data(device_id):
+    """
+    Get sensor data from the last n minutes with interval sampling
+    Expected JSON format:
+    {
+        "minutes": 30,
+        "interval": 6
+    }
+    """
+    try:
+        device = models.Device.query.filter_by(device_id=device_id).first()
+        if not device:
+            return jsonify({'error': f'Device {device_id} does not exist'}), 404
+        
+        if device.device_type != 'sensor':
+            return jsonify({'error': f'Device {device_id} is not a sensor'}), 400
+        
+        data = request.get_json()
+        minutes = data.get('minutes', 60) if data else 60
+        interval = data.get('interval', 1) if data else 1
+        
+        if interval < 1:
+            return jsonify({'error': 'interval must be at least 1'}), 400
+        
+        cutoff_time = datetime.utcnow() - timedelta(minutes=minutes)
+        logging.info(cutoff_time)
+        
+        sensor_data = models.SensorData.query.filter(
+            and_(
+                models.SensorData.device_id == device.id,
+                models.SensorData.timestamp >= cutoff_time
+            )
+        ).order_by(models.SensorData.timestamp.asc()).all()
+        
+        # Apply interval sampling
+        sampled_data = sensor_data[::interval]  # Take every nth value
+        
+        result = []
+        for data in sampled_data:
+            result.append({
+                'id': data.id,
+                'value': data.value,
+                'simplified_value': data.simplified_value,
+                'timestamp': data.timestamp.isoformat()
+            })
+        
+        return jsonify({
+            'device_id': device_id,
+            'device_name': device.name,
+            'type_name': device.type_name,
+            'unit': device.unit,
+            'minutes_range': minutes,
+            'sampling_interval': interval,
+            'total_datapoints_in_range': len(sensor_data),
+            'sampled_datapoints': len(result),
+            'sensor_data': result
+        }), 200
+        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
