@@ -244,7 +244,8 @@ def list_rooms_for_floor(floor_number):
                     'initial_value': device.initial_value,
                     'off_value': device.off_value,
                     'is_off': device.is_off,
-                    'ai_planing_type': device.ai_planing_type
+                    'ai_planing_type': device.ai_planing_type,
+                    'impact_step_size': device.impact_step_size
                 }
                 room_data['devices'].append(device_data)
 
@@ -420,7 +421,8 @@ def list_devices_in_room(floor_number, room_number):
                'initial_value': device.initial_value,
                'off_value': device.off_value,
                'is_off': device.is_off,
-               'ai_planing_type': device.ai_planing_type
+               'ai_planing_type': device.ai_planing_type,
+               'impact_step_size': device.impact_step_size
            }
            devices.append(device_data)
 

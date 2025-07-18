@@ -12,13 +12,13 @@ def updateActuators(increse_actuator_plans: list, turn_off_actuator_plans: list,
                 device = devices.get(uuid)
                 if device:
                     if device.datatype is 'str':
-                        request_actuator_update(device.device_id, device.off_value)
+                        request_actuator_update(device.device_id, "Employee Notified")
                         continue
                     last_value_float: float = safe_float_conversion_for_sensor_data(device.last_value)
-                    # Todo: change to impact factor
                     min_value_float = safe_float_conversion_for_sensor_data(device.min_value)
                     min_value_float = min_value_float if min_value_float is not None else 0
-                    increase_value = max((last_value_float if last_value_float is not None else 0) + 10, min_value_float)
+                    increase_value = max((last_value_float if last_value_float is not None else 0) + device.impact_step_size, min_value_float)
+                    logging.info(f"Increase Value {increase_value}")
                     request_actuator_update(device.device_id, increase_value)
 
         for plan in turn_off_actuator_plans:
@@ -26,6 +26,7 @@ def updateActuators(increse_actuator_plans: list, turn_off_actuator_plans: list,
             for uuid in uuids:
                 device = devices.get(uuid)
                 if device:
+                    logging.info(f"Defice Off {device.off_value}")
                     request_actuator_update(device.device_id, device.off_value)
 
         for plan in decrese_actuator_plans:
@@ -34,13 +35,12 @@ def updateActuators(increse_actuator_plans: list, turn_off_actuator_plans: list,
                 device = devices.get(uuid)
                 if device:
                     if device.datatype is 'str':
-                        request_actuator_update(device.device_id, device.off_value)
+                        request_actuator_update(device.device_id, "Employee Notified")
                         continue 
                     last_value_float: float = safe_float_conversion_for_sensor_data(device.last_value)
-                    # Todo: change to impact factor
                     min_value_float = safe_float_conversion_for_sensor_data(device.min_value)
                     min_value_float = min_value_float if min_value_float is not None else 0
-                    decrease_value = max((last_value_float if last_value_float is not None else 0) - 10, min_value_float)
+                    decrease_value = max((last_value_float if last_value_float is not None else 0) - device.impact_step_size, min_value_float)
                     logging.info(f"Decrease value: {decrease_value}")
                     request_actuator_update(device.device_id, decrease_value)
     except Exception as e:

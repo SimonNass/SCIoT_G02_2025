@@ -204,6 +204,7 @@ def parse_device_payload(payload, device_type):
                 'initial_value': safe_str_conversion(data.get('initial_value')),
                 'off_value': safe_str_conversion(data.get('off_value')),
                 'is_off': bool(data.get('is_off')) if data.get('is_off') is not None else None,
+                'impact_step_size': safe_float_conversion(data.get('impact_step_size')),
             })
         
         # Remove None values to avoid overwriting existing data with None
