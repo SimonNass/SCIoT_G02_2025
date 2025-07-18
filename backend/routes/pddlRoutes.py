@@ -105,6 +105,8 @@ def list_all_plans():
                 'planner_used': plan.planner_used,
                 'raw_plan': plan.raw_plan,
                 'created_at': plan.created_at.isoformat(),
+                'filtered_plan': plan.filtered_plan,
+                'cleaning_plan': plan.cleaning_plan,
                 'steps': []
             }
             
@@ -152,6 +154,8 @@ def list_plans_for_floor(floor_number):
                 'planner_used': plan.planner_used,
                 'raw_plan': plan.raw_plan,
                 'created_at': plan.created_at.isoformat(),
+                'filtered_plan': plan.filtered_plan,
+                'cleaning_plan': plan.cleaning_plan,
                 'steps': []
             }
             
@@ -247,6 +251,8 @@ def get_latest_plan():
             'planner_used': plan.planner_used,
             'raw_plan': plan.raw_plan,
             'created_at': plan.created_at.isoformat(),
+            'filtered_plan': plan.filtered_plan,
+            'cleaning_plan': plan.cleaning_plan,
             'steps': []
         }
         

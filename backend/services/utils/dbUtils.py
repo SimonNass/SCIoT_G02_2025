@@ -45,6 +45,7 @@ def save_plan_to_database(
         
         # Create plan steps
         plan_actions = plan_data.get('plan', [])
+        logging.info(f"Plan actions: {plan_actions}")
         for step_order, action in enumerate(plan_actions):
             # Parse action string to extract action name and parameters
             action_parts = action.strip().split()

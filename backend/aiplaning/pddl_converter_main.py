@@ -20,6 +20,8 @@ from backend.aiplaning import pddl_converter_initial_state
 from backend.aiplaning import pddl_converter_help
 from backend.aiplaning.pddl_converter_execution import PlanerTag, pddl_actions_to_execution_mapper
 from backend.aiplaning.utils.updateActuators import updateActuators
+from backend.aiplaning.utils.dbUtils import save_to_database
+from backend.models.models import PlanScope
 
 
 def create(input_dictionary):
@@ -107,22 +109,29 @@ def main():
     json_text = '{"excludeActions": ["detect_all_activitys","fulfill_all_activitys","detect_no_possible_activity_sleep","detect_no_possible_activity_read","fulfill_activity_no_sleep","fulfill_activity_no_read"]}'
     pddl_converter_help.write_out_pddl_visualisation_hints(output_path, domaine_file_name + ".planviz.json", json_text)
 
-def run_planner_with_db_data(sensor_goal_values: Optional[Dict[str, int]] = [],
-                            sensor_initial_locked: Optional[List[str]] = []):
+def run_planner_with_db_data(sensor_goal_values: Optional[Dict[str, int]] = {},
+                            sensor_initial_locked: Optional[List[str]] = [],
+                            room_number: str = None):
+    planner = "dual-bfws-ffparser"
     pddl_converter_help.check_lib_versions()
 
-    input_dictionary = pddl_converter_input.query_input_over_db(sensor_goal_values, sensor_initial_locked)
+    input_dictionary = pddl_converter_input.query_input_over_db(sensor_goal_values, sensor_initial_locked, room_number)
     logging.info("Gets here")
     # logging.info(input_dictionary)
     
     d, p, execution_mapper = create(input_dictionary)
     pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "d" + ".pddl", d)
     pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "p" + ".pddl", p)
-    solve_result = pddl_service.solve_planning_problem(str(d), str(p), "dual-bfws-ffparser")
-    logging.info(f"Plan: {solve_result.get('plan')}")
+    solve_result = pddl_service.solve_planning_problem(str(d), str(p), planner, False)
+    
     filtered_plan, cleaning_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans = execution_mapper.filter_plan(solve_result.get('plan'))
+    
     updateActuators(increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans)
     # Todo: save cleaning plan and parsed plan
+    if room_number is None:
+        save_to_database(solve_result, planner, cleaning_plan, filtered_plan)
+    else:
+        save_to_database(solve_result, planner, cleaning_plan, filtered_plan, PlanScope.ROOM, None, room_number)
     logging.info(f"Filtered Plan: {filtered_plan}")
 
     return increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans
