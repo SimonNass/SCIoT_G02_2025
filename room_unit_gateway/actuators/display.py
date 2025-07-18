@@ -96,5 +96,5 @@ class VirtualActuator_textual(AbstractActuator_textual):
     def __del__(self):
         pass
 
-    def write_internal_actuator(self, write_value: int):
+    def write_internal_actuator(self, write_value: str):
         return write_value

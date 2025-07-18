@@ -8,7 +8,7 @@ from iot_info import IoT_Info
 logger = logging.getLogger(__name__)
 
 class ArdoinoActuator(ActuatorInterface):
-    def __init__(self, general_iot_device: IoT_Info, initial_value: int, off_value: int, impact_step_size: float, ardoino_serial: ArdoinoReverseProxy, type_name_ardoino: str):
+    def __init__(self, general_iot_device: IoT_Info, initial_value: float, off_value: float, impact_step_size: float, ardoino_serial: ArdoinoReverseProxy, type_name_ardoino: str):
         #if connector_types != Connectortype.Analog:
         #    raise ValueError("Connector_type is not Analog.")
         super().__init__(general_iot_device=general_iot_device,initial_value=initial_value,off_value=off_value, impact_step_size=impact_step_size)
@@ -25,6 +25,6 @@ class ArdoinoActuator(ActuatorInterface):
             #print (e)
             logger.error(f"closing ardoino_serial was unsucesful {e}")
 
-    def write_internal_actuator(self, write_value: int):
+    def write_internal_actuator(self, write_value: float):
         self.ardoino_serial.remote_call(self.type_name_ardoino, write_value)
         return 0
