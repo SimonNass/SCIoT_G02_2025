@@ -85,8 +85,12 @@ class Virtual_environment():
                 print (e, flush=True)
                 logger.error(f"{e}")
 
-            actuator_uuid = self.find_uuid(actuator_name, self.actuators)
-            sensor_uuid = self.find_uuid(sensor_name, self.sensors)
+            try:
+                actuator_uuid = self.find_uuid(actuator_name, self.actuators)
+                sensor_uuid = self.find_uuid(sensor_name, self.sensors)
+            except LookupError as e:
+                logger.error(f"{e}")
+                continue
             key_pair = (actuator_uuid,sensor_uuid)
             self.mapping.update({key_pair:{'impact_factor':impact_factor,'actuator_can_increases_sensor':actuator_can_increases_sensor,'actuator_can_decreases_sensor':actuator_can_decreases_sensor,'only_physical':only_physical, 'active_influences':0}})
 
