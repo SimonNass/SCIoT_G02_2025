@@ -4,6 +4,7 @@
 # pip install pddl==0.4.3
 import sys
 import json
+import time
 from typing import List, Dict, Optional
 from pddl.logic import variables
 from pddl.core import Domain, Problem
@@ -41,7 +42,7 @@ def create(input_dictionary):
 
         # define the domain object.
         requirements = [Requirements.STRIPS, Requirements.TYPING, Requirements.ADL]
-        domain = Domain(input_dictionary['domain_name'],
+        domain = Domain(input_dictionary['domain_name']+ f'Time{str(time.time()).replace('.','')}',
                         requirements=requirements,
                         types=type_dict,
                         predicates=list(predicates_dict.values()),
