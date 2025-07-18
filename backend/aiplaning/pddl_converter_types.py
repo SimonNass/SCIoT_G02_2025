@@ -29,9 +29,14 @@ def create_type_variables():
                   "humidity_s": 1,
                   "light_s": 1,
                   "sound_s": 1,
-                  "motion_s": 1,
                   "window_rotation_s": 1,
+                  "power_consumption_s": 1,
+                  "TV_volume_s": 1,
+                  "motion_s": 1,
                   "button_s": 1,
+                  "bed_s": 1,
+                  "chair_s": 1,
+                  "shower_s": 1,
                   }
 
     pddl_variables = {}
@@ -64,12 +69,19 @@ def create_type_dict():
 
         "button_s_type": "binary_s_type",
         "motion_s_type": "binary_s_type",
+        "pressure_s_type": "binary_s_type",
 
         "temperature_s_type": "numerical_s_type",
         "humidity_s_type": "numerical_s_type",
         "light_s_type": "numerical_s_type",
         "sound_s_type": "numerical_s_type",
         "window_rotation_s_type": "numerical_s_type",
+        "power_consumption_s_type": "numerical_s_type",
+        "TV_volume_s_type": "numerical_s_type",
+
+        "bed_s_type": "pressure_s_type",
+        "chair_s_type": "pressure_s_type",
+        "shower_s_type": "pressure_s_type",
 
         "switch_a_type": "binary_a_type",
         "light_switch_a_type": "binary_a_type",

@@ -3,6 +3,8 @@
 
 # pip install pddl==0.4.3
 import sys
+import json
+import time
 from typing import List, Dict, Optional
 from pddl.logic import variables
 from pddl.core import Domain, Problem
@@ -43,7 +45,7 @@ def create(input_dictionary):
 
         # define the domain object.
         requirements = [Requirements.STRIPS, Requirements.TYPING, Requirements.ADL]
-        domain = Domain(input_dictionary['domain_name'],
+        domain = Domain(input_dictionary['domain_name']+ f'Time{str(time.time()).replace('.','')}',
                         requirements=requirements,
                         types=type_dict,
                         predicates=list(predicates_dict.values()),
@@ -52,7 +54,7 @@ def create(input_dictionary):
         #print(domain)
         
         all_objects, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_sensors,uid_to_pddl_variable_actuators, uid_to_pddl_variable_elevators, uid_to_pddl_variable_cleaning_teams, uid_to_pddl_variable_room_positions = pddl_converter_objects.create_all_obbjects(input_dictionary)
-        
+
         # create initial state
         initial_state = pddl_converter_initial_state.create_initial_state(predicates_dict, input_dictionary, uid_to_pddl_variable_floor, uid_to_pddl_variable_rooms, uid_to_pddl_variable_sensors,uid_to_pddl_variable_actuators, uid_to_pddl_variable_elevators, uid_to_pddl_variable_cleaning_teams, uid_to_pddl_variable_room_positions)
 
@@ -87,10 +89,12 @@ def main():
 
     over_config_file = False
     config_file_name = ''
-    if len(sys.argv) > 2:
-        print ("Chosen system arguments: " + str(sys.argv))
+    use_local_pddl_service = False
+    if len(sys.argv) > 3:
         over_config_file = sys.argv[1]
         config_file_name = sys.argv[2]
+        use_local_pddl_service = bool(sys.argv[3] in ["True"])
+        print (f"Chosen system arguments: over_config_file {over_config_file}, config_file_name {config_file_name}, use_local_pddl_service {use_local_pddl_service}")
 
     input_dictionary = pddl_converter_input.query_input(over_config_file,config_file_name)
 
@@ -100,14 +104,27 @@ def main():
     problem_file_name = input_dictionary['problem_file_name']
 
     d, p, execution_mapper = create(input_dictionary)
-    # Use PDDL Service to plan: pddl_service.solve_planning_problem(d, p)
-    execution_mapper.filter_plan(None)
+    
+    # Use PDDL Service to plan
+    plan = None
+    #if use_local_pddl_service:
+    #    from backend.services.pddl_service import PDDLPlannerService
+    #    from flask import Flask
+    #    from backend.config import Config
+    #    pddl_service = PDDLPlannerService()
+    #    app = Flask(__name__)
+    #    app.config.from_object(Config)
+    #    pddl_service.init_app(app)
+    #    solve_result = pddl_service.solve_planning_problem(str(d), str(p), "dual-bfws-ffparser")
+    #    plan = solve_result.get('plan')
+    execution_mapper.filter_plan(plan)
 
     pddl_converter_help.write_out_pddl(output_path, domaine_file_name + ".pddl", d)
     pddl_converter_help.write_out_pddl(output_path, problem_file_name + ".pddl", p)
-    #json_text = '{"excludeActions": []}'
-    json_text = '{"excludeActions": ["detect_all_activitys","fulfill_all_activitys","detect_no_possible_activity_sleep","detect_no_possible_activity_read","fulfill_activity_no_sleep","fulfill_activity_no_read"]}'
-    pddl_converter_help.write_out_pddl_visualisation_hints(output_path, domaine_file_name + ".planviz.json", json_text)
+
+    helper_action_names = execution_mapper.calculate_helper_actions()
+    json_text = {'excludeActions': helper_action_names}
+    pddl_converter_help.write_out_pddl(output_path, domaine_file_name + ".planviz.json", json.dumps(json_text))
 
 def run_planner_with_db_data(sensor_goal_values: Optional[Dict[str, int]] = {},
                             sensor_initial_locked: Optional[List[str]] = [],
