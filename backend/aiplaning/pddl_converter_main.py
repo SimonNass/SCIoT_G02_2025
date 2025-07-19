@@ -126,13 +126,14 @@ def main():
     json_text = {'excludeActions': helper_action_names}
     pddl_converter_help.write_out_pddl(output_path, domaine_file_name + ".planviz.json", json.dumps(json_text))
 
-def run_planner_with_db_data(sensor_goal_values: Optional[Dict[str, int]] = {},
+def run_planner_with_db_data(plan_cleaning = False,
+                            sensor_goal_values: Optional[Dict[str, int]] = {},
                             sensor_initial_locked: Optional[List[str]] = [],
                             room_number: str = None):
     planner = "dual-bfws-ffparser"
     pddl_converter_help.check_lib_versions()
 
-    input_dictionary = pddl_converter_input.query_input_over_db(sensor_goal_values, sensor_initial_locked, room_number)
+    input_dictionary = pddl_converter_input.query_input_over_db(sensor_goal_values, sensor_initial_locked, room_number, plan_cleaning)
     # logging.info(input_dictionary)
     
     d, p, execution_mapper = create(input_dictionary)

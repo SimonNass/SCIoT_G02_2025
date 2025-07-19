@@ -9,7 +9,7 @@ from backend.aiplaning.utils.dbUtils import get_floor_uids, get_room_uids_per_fl
 from backend.mqtt.utils.mappingParserUtils import get_actuator_sensor_matrices
 from typing import List, Dict, Optional
 
-def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, sensor_initial_locked: Optional[List[str]] = [], room_number: str = None):
+def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, sensor_initial_locked: Optional[List[str]] = [], room_number: str = None, plan_cleaning: bool = False):
     domain_name = "test_SCIoT_G02_2025"
     problem_name = 'test'
     output_path = 'auto_generated/'
@@ -118,7 +118,7 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
             'domaine_file_name':domaine_file_name,
             'problem_file_name':problem_file_name,
 
-            'plan_cleaning':False,
+            'plan_cleaning': plan_cleaning,
 
             'floor_uids':floor_uids,
             'room_uids_per_floor':room_uids_per_floor,
