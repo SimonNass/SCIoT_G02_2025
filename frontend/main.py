@@ -57,7 +57,7 @@ def add_header(role: str = "Admin") -> None:
         ui.label("SCIoT Hotel").classes("text-h6")
         ui.label(role).classes("ml-auto text-sm text-white opacity-75")
 
-# Room detail pane
+# Room detail area
 async def show_room(summary_column, floor_no:int, room:dict):
     global device_timer
     if device_timer: device_timer.cancel(); device_timer=None
@@ -65,8 +65,19 @@ async def show_room(summary_column, floor_no:int, room:dict):
     devices_known:set[str]=set()
     async def refresh_devices():
             nonlocal devices_known
+
             devs = await backend.list_devices(floor_no, vm.room_number)
-            rows=[DeviceVM.model_validate(d).model_dump() for d in devs]
+            simplified_map = {-1: "Low", 0: "Medium", 1: "High"}
+            rows = []
+            for d in devs:
+                try:
+                    d['last_value'] = f"{float(d['last_value']):.2f}"
+                except (ValueError, TypeError):
+                    pass
+                simplified_numeric = d.get('last_value_simplified')
+                d['last_value_simplified_string'] = simplified_map.get(simplified_numeric, "")
+                rows.append(DeviceVM.model_validate(d).model_dump())
+
             ids={r["device_id"] for r in rows}
             if ids!=devices_known:
                 grid_dev.options["rowData"]=rows; grid_dev.update(); devices_known=ids
@@ -96,7 +107,7 @@ async def show_room(summary_column, floor_no:int, room:dict):
 
                         {"headerName":"Name","field":"name", "width": 150},
                         {"headerName":"Type","field":"type_name", "width": 120},
-                        {"headerName":"Simplified","field":"last_value_simplified", "headerTooltip": "The simplified high/low value (-1, 0, 1)", "width": 120},
+                        {"headerName":"Simplified","field":"last_value_simplified_string", "headerTooltip": "The simplified high/low value (-1, 0, 1)", "width": 120},
                         {"headerName":"AI Type","field":"ai_planing_type", "width": 120},
                         {"headerName":"Online","field":"is_online", "width": 100},
                         {"headerName":"Last Seen","field":"last_seen"},
@@ -138,10 +149,10 @@ async def admin_dashboard():
         with ui.column().style("width:48%") as left_col:   # whole left panel
             with ui.card().props("flat bordered").style("width:100%"):
                 # toggle at very top
-                toggle = ui.toggle(["Building","Floor"],
-                                value="Building" if view_whole_building else "Floor",
-                                on_change=lambda e: asyncio.create_task(toggle_view(e.value))
-                                ).props("dense")
+                # toggle = ui.toggle(["Building","Floor"],
+                #                 value="Building" if view_whole_building else "Floor",
+                #                 on_change=lambda e: asyncio.create_task(toggle_view(e.value))
+                #                 ).props("dense")
 
                 # per-floor sub-panel
                 per_floor_panel = ui.column().style("width:100%")
@@ -328,7 +339,7 @@ async def guest_view(floor: int, room: str):
 
     # The dialog logic remains the same as it already handles both device types.
     async def show_device_dialog(e):
-        ui.notify(e)
+        # ui.notify(e)
         # The event now directly passes the row data dictionary.
         _, device_data, _ = e.args
         device = DeviceVM.model_validate(device_data)
@@ -339,15 +350,19 @@ async def guest_view(floor: int, room: str):
             if device.device_type == 'actuator':
                 ui.label("Set new value:")
                 try:
-                    current_val = float(device.last_value)
+                    current = not device.is_off
                 except (ValueError, TypeError):
-                    current_val = device.min_value or 0.0
+                    # current_val = device.min_value or 0.0
+                    pass
+
 
                 slider = ui.slider(
-                    min=device.min_value or 0.0,
-                    max=device.max_value or 100.0,
-                    value=current_val
+                    min=0.0,
+                    max=1.0,
+                    value=current
                 ).props('label-always')
+
+                # toggle =  ui.switch("Toggle", value=True)
 
                 with ui.row().classes('w-full justify-end'):
                     async def handle_done():
@@ -415,6 +430,7 @@ async def guest_view(floor: int, room: str):
                     {"name": "last_value", "label": "Value", "field": "last_value", "align": "center"},
                     {"name": "is_off", "label": "State", "field": "is_off", "align": "center"},
                     {"name": "is_online", "label": "Online", "field": "is_online", "align": "center"},
+                    {"name": "unit", "label": "unit", "field": "unit", "align": "center"},
                 ],
                 rows=[], row_key="device_id",
             ).classes('w-full')
