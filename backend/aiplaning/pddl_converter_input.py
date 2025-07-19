@@ -33,9 +33,9 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
     # sensor_room_mapping = {'r0':['s1'], 'r2':['s2'], 'r3':['s3', 's4']}
     # actuator_room_mapping = {'r0':['a1'], 'r2':['a2']}
     sensor_room_mapping = get_sensor_room_mapping(room_number)
-    # logging.info(f"sensor_room_mapping: {sensor_room_mapping}")
+    logging.info(f"sensor_room_mapping: {sensor_room_mapping}")
     actuator_room_mapping = get_actuator_room_mapping(room_number)
-    # logging.info(f"actuator_room_mapping: {actuator_room_mapping}")
+    logging.info(f"actuator_room_mapping: {actuator_room_mapping}")
     #for floor in floor_uids:
     #    for room in room_uids_per_floor[floor]:
     #        device_list = db.list_devices_in_room(floor,room)['devices']
@@ -56,8 +56,8 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
     # actuator_increases_sensor_mapping_matrix = {'a1':['s1','s2'], 'a2':['s2']}
     # actuator_decreases_sensor_mapping_matrix = {'a1':['s1']}
     actuator_increases_sensor_mapping_matrix, actuator_decreases_sensor_mapping_matrix = get_actuator_sensor_matrices(None, room_number)
-    # logging.info(f"actuator_increases_sensor_mapping_matrix: {actuator_increases_sensor_mapping_matrix}")
-    # logging.info(f"actuator_decreases_sensor_mapping_matrix: {actuator_decreases_sensor_mapping_matrix}")
+    logging.info(f"actuator_increases_sensor_mapping_matrix: {actuator_increases_sensor_mapping_matrix}")
+    logging.info(f"actuator_decreases_sensor_mapping_matrix: {actuator_decreases_sensor_mapping_matrix}")
 
     # sensor_initial_values = {'s1': -1, 's2':1, 's3':-1}
     sensor_initial_values = get_sensor_initial_values(room_number)
@@ -104,14 +104,14 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
     #                            "bath":{"shower_s":"is_sensing", "chair_s":"~is_sensing", "bed_s":"~is_sensing"},
     #                            "dress":{"chair_s":"~is_sensing", "bed_s":"~is_sensing", "shower_s":"~is_sensing", "motion_s":"is_sensing"},
     #                            "watch_TV":{"TV_volume_s":"is_high", "bed_s":"is_sensing"}}
-    activity_fulfill_mapping = {"read":{"temperature_s":"is_ok", "light_s":"is_high", "sound_s":"is_ok"},
-                                "on_the_phone":{"light_s":"is_high", "sound_s":"is_low"},
-                                "work":{"light_s":"is_high", "sound_s":"is_ok"},
-                                "sleep":{"light_s":"is_low", "sound_s":"is_low"},
-                                "bath":{"temperature_s":"is_high", "humidity_s":"is_low"},
-                                #"bath":{"light_s":"is_ok", "temperature_s":"is_high", "humidity_s":"is_low"}, # TODO not working r_bath with lights inittial 1
-                                "dress":{"light_s":"is_ok"},
-                                "watch_TV":{"light_s":"is_ok", "TV_volume_s":"is_high", "sound_s":"is_high"}}
+    #activity_fulfill_mapping = {"read":{"temperature_s":"is_ok", "light_s":"is_high", "sound_s":"is_ok"},
+    #                            "on_the_phone":{"light_s":"is_high", "sound_s":"is_low"},
+    #                            "work":{"light_s":"is_high", "sound_s":"is_ok"},
+    #                            "sleep":{"light_s":"is_low", "sound_s":"is_low"},
+    #                            "bath":{"temperature_s":"is_high", "humidity_s":"is_low"},
+    #                            #"bath":{"light_s":"is_ok", "temperature_s":"is_high", "humidity_s":"is_low"}, # TODO not working r_bath with lights inittial 1
+    #                            "dress":{"light_s":"is_ok"},
+    #                            "watch_TV":{"light_s":"is_ok", "TV_volume_s":"is_high", "sound_s":"is_high"}}
 
 
     return {'domain_name':domain_name,
