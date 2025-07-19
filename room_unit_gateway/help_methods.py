@@ -113,7 +113,7 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
                 logger.error(f"virtual_environment not ececuting step. {e}")
             cycle = cycle + 1
             #want_to_exit = True
-            time.sleep(1)
+            #time.sleep(1)
 
         except KeyboardInterrupt:
             want_to_exit = True
