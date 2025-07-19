@@ -1,3 +1,5 @@
+ssh pi@raspberrypi
+
 .\ai_planing_code_docu.bat
 .\git\SCIoT_G02_2025\ai_planing_code_docu.bat
 .\room_unit_gateway_code_docu.bat
