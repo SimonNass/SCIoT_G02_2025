@@ -37,7 +37,7 @@ class AbstractActuator_textual(ActuatorInterface):
             self.last_value = write_value
             self.datatype = str(type(self.last_value))
             self.value_has_changed = True
-            print (f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value}")
+            #print (f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value}")
             logger.info(f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value}, type: {self.datatype}")
         except Exception as e:
             print ("write was unsucesful")
