@@ -87,9 +87,9 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
 
     sensor_goal_state_mapping = {"temperature_s":"is_ok",
                                 "humidity_s":"is_ok",
-                                "window_rotation_s":"is_low",
+                                #"window_rotation_s":"is_low",
                                 "light_s":"is_high",
-                                "TV_volume_s":"is_low",
+                                #"TV_volume_s":"is_low",
                                 "sound_s":"is_ok"}
 
     # TODO make 'requests_service':{'button_s':'is_sensing' -> request text displayed

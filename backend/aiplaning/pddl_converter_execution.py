@@ -67,6 +67,7 @@ class pddl_actions_to_execution_mapper():
         #         "0.01900: (FULFILL_ACTIVITY_NO_SLEEP ROOM_R0 ROOM_POSITION_OVERALL_ROOM)",
         #         "0.02000: (FULFILL_ACTIVITY_NO_READ ROOM_R0 ROOM_POSITION_OVERALL_ROOM)",
         #         "0.02100: (FULFILL_ALL_ACTIVITYS ROOM_R0 ROOM_POSITION_OVERALL_ROOM)"]
+        #(REACH-GOAL)
 
             # transform to workable substructure instead of just a streing
             # remove timestamps
@@ -75,6 +76,7 @@ class pddl_actions_to_execution_mapper():
             # filtered_plan = [planed_action.strip().replace('(','').replace(')','').lower() for planed_action in filtered_plan]
             # split action name and parameters into a list
             filtered_plan = [planed_action.lower() for planed_action in plan]
+            filtered_plan = [planed_action for planed_action in filtered_plan if planed_action not in ['REACH-GOAL','(REACH-GOAL)','REACH-GOAL'.lower(),'(REACH-GOAL)'.lower()]]
             filtered_plan = [planed_action.split(' ') for planed_action in filtered_plan]
 
             get_tags = lambda planed_action : self.pddl_actions_to_execution_map[planed_action[0]][1]
