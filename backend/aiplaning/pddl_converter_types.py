@@ -77,7 +77,8 @@ def create_type_dict():
         "sound_s_type": "numerical_s_type",
         "window_rotation_s_type": "numerical_s_type",
         "power_consumption_s_type": "numerical_s_type",
-        "TV_volume_s_type": "numerical_s_type",
+        
+        "TV_volume_s_type": "sound_s_type",
 
         "bed_s_type": "pressure_s_type",
         "chair_s_type": "pressure_s_type",
