@@ -416,7 +416,7 @@ async def guest_view(floor: int, room: str):
                     {"name": "last_value", "label": "Value", "field": "last_value", "align": "center"},
                     {"name": "last_value_simplified", "label": "Status", "field": "last_value_simplified_string", "align": "center"},
                     {"name": "is_online", "label": "Online", "field": "is_online", "align": "center"},
-                    {"name": "unit", "label": "unit", "field": "unit", "align": "center"},
+                    # {"name": "unit", "label": "unit", "field": "unit", "align": "center"},
                 ],
                 rows=[], row_key="device_id",
             ).classes('w-full')
@@ -430,7 +430,7 @@ async def guest_view(floor: int, room: str):
                     {"name": "last_value", "label": "Value", "field": "last_value", "align": "center"},
                     {"name": "is_off", "label": "State", "field": "is_off", "align": "center"},
                     {"name": "is_online", "label": "Online", "field": "is_online", "align": "center"},
-                    {"name": "unit", "label": "unit", "field": "unit", "align": "center"},
+                    # {"name": "unit", "label": "unit", "field": "unit", "align": "center"},
                 ],
                 rows=[], row_key="device_id",
             ).classes('w-full')
@@ -455,6 +455,26 @@ async def guest_view(floor: int, room: str):
             </q-badge>
         </q-td>
     ''')
+
+    online_offline_icon_slot = r'''
+        <q-td :props="props">
+        <q-icon
+            v-if="props.value"
+            name="lens"
+            size="9px"
+            color="green-3"
+        />
+        <q-icon
+            v-else
+            name="lens"
+            size="9px"
+            color="grey-4"
+        />
+        </q-td>
+
+    '''
+    sensor_table.add_slot('body-cell-is_online', online_offline_icon_slot)
+    actuator_table.add_slot('body-cell-is_online', online_offline_icon_slot)
 
 
     # Assign the same event handler to both tables
