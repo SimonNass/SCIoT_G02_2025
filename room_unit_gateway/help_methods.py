@@ -84,6 +84,8 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
     logger.info("max_cycle_time: " + str(max_cycle_time))
     logger.info(f"sleeping_time: {str(sleeping_time)} seconds")
     print ("", flush=True)
+    network_connection.send_delete_ald_IoT()
+    time.sleep(1)
     send_sensors(sensors,network_connection)
     send_actuators(actuators,network_connection)
     send_actuator_sensor_mapping(virtual_environment,network_connection)
