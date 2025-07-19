@@ -249,6 +249,7 @@ def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_
     works_together = lambda s1, p1, r1 : positioned_at(s1, p1) & sensor_is_part_of_room(s1, r1) & ~is_locked(s1)
 
     # for numerical sensors
+    # TODO change order
     params_numerical=[numerical_s_type, actuator_type, room_type, room_position_type]
     sensor_buckets_sortet = ['is_low','is_ok','is_high']
 
@@ -460,6 +461,13 @@ def create_activity_fulfilled_action_x(execution_mapper: pddl_actions_to_executi
         pre = base.And(pre, positioned_at(sensor_object_type, room_position_type))
         pre = base.And(pre, sensor_is_part_of_room(sensor_object_type, room_type))
         pre = base.And(pre, predicates_dict[expected_value](sensor_object_type))
+
+    for sensor_type_x in sensor_type_x_dict.keys():
+        for sensor_type_y in sensor_type_x_dict.keys():
+            if sensor_type_x != sensor_type_y:
+                sensor_variable_x = pddl_variable_types[sensor_type_x][0]
+                sensor_variable_y = pddl_variable_types[sensor_type_y][0]
+                pre = base.And(pre, base.Not(EqualTo(sensor_variable_x, sensor_variable_y)))
 
     eff = predicates_dict[f"fulfilled_activity_{activity_name}"](room_type, room_position_type)
     for sensor_type_x in sensor_type_x_dict.keys():

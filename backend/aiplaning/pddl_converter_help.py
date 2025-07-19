@@ -14,7 +14,10 @@ def iterator_ofer_dict_list_elements(keys: List[str], key_to_element_lists: Dict
 
 def write_out_pddl(output_path, file_name, pddl_structure):
     os.makedirs(output_path, exist_ok=True)
-    with open(os.path.join(output_path, file_name),'w', encoding="utf8") as f:
+    fime_path = os.path.join(output_path, file_name)
+    if os.path.exists(fime_path):
+        os.rename(fime_path, os.path.join(output_path, "old_version_" + file_name ))
+    with open(fime_path,'w', encoding="utf8") as f:
         f.write(str(pddl_structure))
 
 def reading_in_pddl():

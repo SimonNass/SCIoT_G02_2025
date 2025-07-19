@@ -23,6 +23,7 @@ def configure_network_gateway(host: str,
                               timeout: int,
                               base_topic: str,
                               room_info: Room_Info,
+                              sensors: List[SensorInterface],
                               actuators: List[ActuatorInterface]):
     gateway_network = None
     try:
@@ -34,6 +35,7 @@ def configure_network_gateway(host: str,
             timeout=int(timeout),
             base_topic=base_topic,
             room_info=room_info,
+            sensors=sensors,
             actuators=actuators
         )
     except Exception as e:

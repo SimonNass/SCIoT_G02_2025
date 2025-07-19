@@ -17,7 +17,8 @@ def read_general_config(config):
             print ("Error wrong config version")
             logger.warning("Error wrong config version")
         max_cycle_time = config.get('General', 'max_cycle_time', fallback=100)
-        return max_cycle_time
+        sleeping_time = config.get('General', 'sleeping_time', fallback=1)
+        return max_cycle_time, sleeping_time
     except Exception as e:
         logger.error(f"Reading config file was not succesfully in the General section {e}")
         return 100
@@ -121,7 +122,7 @@ def read_config(config_file_name: str, password: str, host: str=None):
         logger.error(f"Reading config file {config_file_name} was not succesfull {e}")
         raise e
 
-    max_cycle_time = read_general_config(config)
+    max_cycle_time, sleeping_time = read_general_config(config)
 
     _, mqtt_host, mqtt_port, mqtt_username, mqtt_base_topic, mqtt_timeout = read_mqtt_config(config)
     if host != None:
@@ -145,11 +146,13 @@ def read_config(config_file_name: str, password: str, host: str=None):
                                                                timeout=mqtt_timeout,
                                                                base_topic=mqtt_base_topic,
                                                                room_info=room_info,
+                                                               sensors=sensor_class_list,
                                                                actuators=actuator_class_list)
 
     # returnobject
     config_values = {
         'max_cycle_time': max_cycle_time,
+        'sleeping_time': sleeping_time,
         'ardoino_serial': ardoino_serial,
         'room_info': room_info,
         'sensor_class_list': sensor_class_list,
