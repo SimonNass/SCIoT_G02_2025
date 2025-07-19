@@ -50,6 +50,22 @@ class SensorInterface(ABC):
             logger.error(f"{self.general_iot_device.name}: read was unsucesful {e}")
             raise e
 
+    def write_sensor(self, value: float):
+        try:
+            roaw_sensor_value = float(value)
+            manipulated_sensor_value = roaw_sensor_value + self.virtual_environment_impact
+            self.last_value = max(self.general_iot_device.min_value,min(self.general_iot_device.max_value,manipulated_sensor_value))
+            self.last_value_timestamp = time.time()
+            self.datatype = str(type(self.last_value))
+            print (f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value} = {roaw_sensor_value} + {self.virtual_environment_impact}")
+            logger.info(f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value} = {roaw_sensor_value} + {self.virtual_environment_impact}, type: {self.datatype}")
+            return self.__dict__()
+        except (Exception, IOError, TypeError) as e:
+            print ("write was unsucesful")
+            #print (e)
+            logger.error(f"{self.general_iot_device.name}: write was unsucesful {e}")
+            raise e
+
     @abstractmethod
     def read_internal_sensor(self):
         pass

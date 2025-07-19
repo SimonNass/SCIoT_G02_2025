@@ -12,9 +12,9 @@ from room_info import Room_Info
 logger = logging.getLogger(__name__)
 
 class GatewayNetwork:
-    def __init__(self, host: str, port: int, username: str, password: str, timeout: int, base_topic: str, room_info: Room_Info, actuators: List[ActuatorInterface]):
+    def __init__(self, host: str, port: int, username: str, password: str, timeout: int, base_topic: str, room_info: Room_Info, sensors: List[SensorInterface], actuators: List[ActuatorInterface]):
         topic_prefix = f"{base_topic}/" + str(room_info.floor_id) + "/" + str(room_info.room_extended_id) + "/"
-        self.gateway_network_reciever = GatewayNetworkReciever(actuators)
+        self.gateway_network_reciever = GatewayNetworkReciever(sensors, actuators)
         self.publisher = MQTTEndpoint(gateway=self.gateway_network_reciever, host=host,port=port,username=username,password=password,timeout=timeout,topic_prefix=topic_prefix)
 
     def send_all_data_sensor(self, sensor: SensorInterface, read_value: bool):

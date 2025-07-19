@@ -145,6 +145,7 @@ def read_config(config_file_name: str, password: str, host: str=None):
                                                                timeout=mqtt_timeout,
                                                                base_topic=mqtt_base_topic,
                                                                room_info=room_info,
+                                                               sensors=sensor_class_list,
                                                                actuators=actuator_class_list)
 
     # returnobject
