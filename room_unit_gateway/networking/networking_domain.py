@@ -48,3 +48,12 @@ class GatewayNetwork:
             self.publisher.send(topic,text)
         except Exception as e:
             logger.warning(f"send_actuator_sensor_mapping failed {e}")
+
+    def send_delete_ald_IoT(self):
+        topic = 'delete/all'
+        text = json.dumps("", ensure_ascii=False).encode('utf8')
+        #print(text)
+        try:
+            self.publisher.send(topic,text)
+        except Exception as e:
+            logger.warning(f"send_delete_ald_IoT failed {e}")
