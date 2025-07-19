@@ -26,16 +26,25 @@ class GatewayNetwork:
         topic = f'sensor/{str(sensor.general_iot_device.id)}/all'
         text = json.dumps(read_dict, ensure_ascii=False).encode('utf8')
         #print(text)
-        self.publisher.send(topic,text)
+        try:
+            self.publisher.send(topic,text)
+        except Exception as e:
+            logger.warning(f"send_all_data_sensor failed {str(sensor.general_iot_device.id)} {sensor.general_iot_device.name} {e}")
 
     def send_all_data_actuator(self, actuator: ActuatorInterface):
         topic = f'actuator/{str(actuator.general_iot_device.id)}/all'
         text = json.dumps(actuator.__dict__(), ensure_ascii=False).encode('utf8')
         #print(text)
-        self.publisher.send(topic,text)
+        try:
+            self.publisher.send(topic,text)
+        except Exception as e:
+            logger.warning(f"send_all_data_actuator failed {str(actuator.general_iot_device.id)} {actuator.general_iot_device.name} {e}")
 
     def send_actuator_sensor_mapping(self, mapping: List[Dict[str,str]]):
         topic = 'mapping/all'
         text = json.dumps(mapping, ensure_ascii=False).encode('utf8')
         #print(text)
-        self.publisher.send(topic,text)
+        try:
+            self.publisher.send(topic,text)
+        except Exception as e:
+            logger.warning(f"send_actuator_sensor_mapping failed {e}")

@@ -38,12 +38,18 @@ def write_all_displays(displays: List[ActuatorInterface], text: str):
         display.write_actuator(text)
 
 def send_sensors(sensors: List[SensorInterface], network_connection: GatewayNetwork):
-    for sensor in sensors:
-        network_connection.send_all_data_sensor(sensor,True)
+    try:
+        for sensor in sensors:
+            network_connection.send_all_data_sensor(sensor,True)
+    except Exception as e:
+        logger.warning(f"send_sensors failed {e}")
 
 def send_actuators(actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
-    for actuator in actuators:
-        network_connection.send_all_data_actuator(actuator)
+    try:
+        for actuator in actuators:
+            network_connection.send_all_data_actuator(actuator)
+    except Exception as e:
+        logger.warning(f"send_actuators failed {e}")
 
 def send_actuator_sensor_mapping(virtual_environment: Virtual_environment, network_connection: GatewayNetwork):
     try:
@@ -58,15 +64,21 @@ def cyclic_read(sensors: List[SensorInterface], displays: List[ActuatorInterface
             old_value = sensor.last_value
             read_dict = sensor.read_sensor()
             if abs(old_value - sensor.last_value) >= sensor.notify_change_precision:
-                network_connection.send_all_data_sensor(sensor,True)
+                try:
+                    network_connection.send_all_data_sensor(sensor,True)
+                except Exception as e:
+                    logger.warning(f"cyclic_read failed {str(sensor.general_iot_device.id)} {sensor.general_iot_device.name} {e}")
             text = f"{sensor.general_iot_device.name}: {str(read_dict['last_value'])}"
             write_all_displays(displays, text)
 
 def cyclic_actuator_read(actuators: List[ActuatorInterface], network_connection: GatewayNetwork):
     for actuator in actuators:
         if actuator.value_has_changed:
-            network_connection.send_all_data_actuator(actuator)
-            actuator.value_has_changed = False
+            try:
+                network_connection.send_all_data_actuator(actuator)
+                actuator.value_has_changed = False
+            except Exception as e:
+                logger.warning(f"cyclic_actuator_read failed {str(actuator.general_iot_device.id)} {actuator.general_iot_device.name} {e}")
 
 def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork, virtual_environment: Virtual_environment, max_cycle_time: int = 100):
     logger.info("max_cycle_time: " + str(max_cycle_time))
