@@ -7,3 +7,5 @@ ssh pi@raspberrypi
 
 C:\Anaconda\envs\SCIoT\python.exe
 .\test_and_present_single_components.py True .\backend\aiplaning\config\ai_planer_test_example.ini False
+
+./room_unit_gateway/main.py .\room_unit_gateway\configs_dir\manual_configs\config_virtual_manual.ini "test"
