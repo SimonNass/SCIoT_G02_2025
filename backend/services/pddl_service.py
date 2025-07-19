@@ -1,7 +1,7 @@
 import requests
 import logging
 from typing import Dict, Optional
-from datetime import datetime
+import time
 from backend.services.utils.plannerParsers import parse_values_lama_first, parse_values_delfi, parse_values_dual_bfws_ffparser
 
 class PDDLPlannerService:
@@ -40,7 +40,7 @@ class PDDLPlannerService:
         """
         # Import inside the function to avoid circular imports
         from backend.models.models import PlanScope
-        logging.info(f"solve_planning_problem called at {datetime.utcnow()}")
+        logging.info(f"solve_planning_problem called")
         
         # Set default scope if not provided
         if scope is None:
