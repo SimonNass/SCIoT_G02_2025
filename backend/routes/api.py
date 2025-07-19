@@ -421,6 +421,7 @@ def list_devices_in_room(floor_number, room_number):
                'initial_value': device.initial_value,
                'off_value': device.off_value,
                'is_off': device.is_off,
+               'unit': device.unit,
                'ai_planing_type': device.ai_planing_type,
                'impact_step_size': device.impact_step_size
            }
