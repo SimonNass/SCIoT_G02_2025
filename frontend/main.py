@@ -16,7 +16,7 @@ from pydantic import BaseModel
 
 # ──────────  CONFIG  ──────────
 load_dotenv()
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost").rstrip("/")
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:81").rstrip("/")
 API_KEY     = os.getenv("API_KEY",     "changeme")
 
 # ──────────  BACKEND CLIENT  ──────────
@@ -30,6 +30,10 @@ class Backend:
 
     async def _get (self, p:str)                -> Any:  r = await self.cli.get (p); r.raise_for_status(); return r.json()
     async def _post(self, p:str, payload:dict)  -> Any:  r = await self.cli.post(p, json=payload); (r.raise_for_status() if r.status_code!=409 else None); return r.json()
+    async def _delete(self, p:str) -> Any:
+            r = await self.cli.delete(p)
+            r.raise_for_status()
+            return r.json()
 
     async def list_floors(self):           return (await self._get("/floors/list"))["floors"]
     async def list_rooms (self, floor:int):return (await self._get(f"/floors/{floor}/rooms/list"))["rooms"]
@@ -64,19 +68,45 @@ class Backend:
                 batch.append({"room_number":rn,"room_type":typ,"capacity":cap})
             await self._post(f"/floors/{n}/rooms/create",{"rooms":batch})
 
+    async def clear_database(self):
+        return await self._delete("/cleardb")
+
 backend = Backend()
 
 # ──────────  DATA MODELS  ──────────
 class RoomVM(BaseModel):
-    id:str|None=None; room_number:str; room_type:str|None=None; capacity:int|None=None
-    is_occupied:bool|None=None; created_at:str|None=None; last_cleaned:str|None=None
-    floor_number:int|None=None; floor_name:str|None=None; devices:list=[]
+    id:str|None=None
+    room_number: str
+    room_type: str | None = None
+    capacity: int| None = None
+    is_occupied: bool| None = None
+    created_at:str| None = None
+    last_cleaned:str| None = None
+    floor_number:int|None = None
+    floor_name:str| None = None
+    devices:list = []
     @property
     def device_count(self): return len(self.devices)
 
 class DeviceVM(BaseModel):
-    id:str; device_id:str; name:str; device_type:str; is_online:bool
-    description:str|None=None; last_seen:str|None=None; created_at:str
+    id: str
+    device_id: str
+    name: str
+    device_type: str
+    is_online: bool
+    description: str | None = None
+    last_seen: str | None = None
+    created_at: str | None = None
+    type_name: str | None = None
+    min_value: float | None = None
+    max_value: float | None = None
+    unit: str | None = None
+    last_value: str | None = None
+    last_value_simplified: int | None = None
+    last_value_simplified_string: str | None = None
+    is_off: bool | None = None
+    ai_planing_type: str | None = None
+
 
 # ──────────  GLOBAL STATE  ──────────
 current_floor:int|None=None
@@ -108,16 +138,9 @@ async def show_room(summary_column, floor_no:int, room:dict):
                 for row in rows:
                     for k,v in row.items():
                         grid_dev.run_row_method(row["device_id"],"setDataValue",k,v)
-    # simple
-    # async def refresh_devices():
-    #     devs=await backend.list_devices(floor_no, vm.room_number)
-    #     rows=[DeviceVM.model_validate(d).model_dump() for d in devs]
-    #     grid_dev.options["rowData"]=rows; grid_dev.update()
 
     with summary_column.style("width:50%"):
         with ui.card().props("flat bordered").style("width:100%"):
-            # ui.label(f"Room {vm.room_number}").classes("text-h6 text-primary")
-            # ui.label("Planner").classes("text-h6 text-primary")
             ui.markdown(f"###### Room {vm.room_number}").classes("text-primary text-md")
             with ui.row().classes("gap-2"):
                 ui.chip("Occupied", icon="hotel",
@@ -130,21 +153,43 @@ async def show_room(summary_column, floor_no:int, room:dict):
                         color="purple").props("outline square")
 
             ui.markdown("###### Devices").classes("text-primary text-md")
+            # =================================================================
+            # MODIFIED SECTION START: Expanded the grid to show more device details
+            # =================================================================
+            # =================================================================
+            # MODIFIED SECTION: Admin grid with all possible columns (commented out)
+            # =================================================================
             grid_dev = ui.aggrid(
                 {
                     "columnDefs":[
-                        {"headerName":"ID","field":"device_id"},
-                        {"headerName":"Name","field":"name"},
-                        {"headerName":"Type","field":"device_type"},
-                        {"headerName":"Description","field":"description"},
-                        {"headerName":"Online","field":"is_online"},
+                        # --- Active Columns (Metadata + Simplified Value) ---
+                        {"headerName":"Name","field":"name", "width": 150},
+                        {"headerName":"Type","field":"type_name", "width": 120},
+                        {"headerName":"Simplified","field":"last_value_simplified", "headerTooltip": "The simplified high/low value (-1, 0, 1)", "width": 120},
+                        {"headerName":"AI Type","field":"ai_planing_type", "width": 120},
+                        {"headerName":"Online","field":"is_online", "width": 100},
                         {"headerName":"Last Seen","field":"last_seen"},
+                        {"headerName":"Device ID","field":"device_id"},
+
+                        # --- Optional Columns (uncomment any you want to add) ---
+                        # {"headerName":"Raw Value", "field":"last_value"},
+                        # {"headerName":"Unit", "field":"unit"},
+                        {"headerName":"Is Off", "field":"is_off"},
+                        {"headerName":"Description", "field":"description"},
+                        # {"headerName":"Min Value", "field":"min_value"},
+                        # {"headerName":"Max Value", "field":"max_value"},
+                        # {"headerName":"Created On", "field":"created_at"},
+                        # {"headerName":"Category", "field":"device_type"},
+                        # {"headerName":"Internal ID", "field":"id"},
                     ],
-                    "defaultColDef":{"flex":1,"resizable":True},
+                    "defaultColDef":{"flex":1,"resizable":True, "sortable": True},
                     "rowData":[],
                     ":getRowId":"(p)=>p.data.device_id",
                 }
             ).style("min-height:300px")
+            # =================================================================
+            # MODIFIED SECTION END
+            # =================================================================
 
         device_timer = ui.timer(10.0, lambda: asyncio.create_task(refresh_devices()))
     await refresh_devices()
@@ -159,7 +204,7 @@ async def admin_dashboard():
     floors=await backend.list_floors(); floors.sort(key=lambda f:f["floor_number"])
 
     rows_known.clear()
-
+    ui.button('Wipe DB', on_click = backend.clear_database)
     # ───── layout scaffold ─────
     with ui.row().style("width:100%") as main_row:
 
@@ -229,29 +274,13 @@ async def admin_dashboard():
                         ui.chip('No rooms selected',
                         color='grey-5',
                         text_color='white').props('outline square')
-                # -- place chips in chips_row if you have any --
+
 
                 # Action buttons below chips_row
                 with ui.row().classes("gap-2 mt-4"):
                     # Cleaning Actions
                     ui.button('Send Cleaning Team', on_click=lambda: None)
                     ui.button('Clean Rooms', on_click=lambda: None)
-
-                    # Assignment Actions
-                    # ui.button('Assign Room to Floor', on_click=lambda: None)
-                    # ui.button('Assign Device to Room Position', on_click=lambda: None)
-
-                    # Actuator/Sensor Controls
-                    # ui.button('Turn On Actuator', on_click=lambda: None)
-                    # ui.button('Turn Off Actuator', on_click=lambda: None)
-                    # ui.button('Turn On (Inverted)', on_click=lambda: None)
-                    # ui.button('Turn Off (Inverted)', on_click=lambda: None)
-                    # ui.button('Increase Sensor Value', on_click=lambda: None)
-                    # ui.button('Decrease Sensor Value', on_click=lambda: None)
-
-                    # Activity/State Recognition
-
-
                     # Energy Optimization Actions
                     ui.button('Save Energy', on_click=lambda: None)
                     ui.button('Cancel Out Actuators', on_click=lambda: None)
@@ -367,71 +396,70 @@ async def admin_dashboard():
     ui.timer(25.0, lambda: asyncio.create_task(poll()))
 
 # ──────────  GUEST VIEW  ──────────
-import asyncio, json
-from aiomqtt import Client as MQTT           # ← new import
-# ... any other imports (DeviceVM, backend, add_header, ui) ...
-
-BROKER_HOST = "localhost"
-BROKER_PORT = 1883
 
 @ui.page("/guest/{floor:int}/{room}")
 async def guest_view(floor: int, room: str):
     add_header("Guest")
     ui.label(f"Room {room} (Floor {floor})")
 
-    # metadata + live-value table
     tbl = ui.table(
         columns=[
-            {"name": "device_id",   "label": "ID",        "field": "device_id"},
-            {"name": "device_type", "label": "Type",      "field": "device_type"},
-            {"name": "is_online",   "label": "Online",    "field": "is_online"},
-            {"name": "last_seen",   "label": "Last seen", "field": "last_seen"},
-            {"name": "value",       "label": "Live",      "field": "value"},
+            {"name": "name",        "label": "Device",    "field": "name", "align": "left"},
+            {"name": "type_name",   "label": "Type",      "field": "type_name", "align": "left"},
+            {"name": "last_value",  "label": "Value",     "field": "last_value", "align": "center"},
+            # {"name": "unit",        "label": "Unit",      "field": "unit"},
+            {"name": "is_online",   "label": "Online",    "field": "is_online", "align": "center"},
+            {"name": "last_seen",   "label": "Last seen", "field": "last_seen",  "align": "center"},
+            # {"name": "last_value_simplified", "label": "SimplifiedNumeric", "field": "last_value_simplified"},
+            {"name": "last_value_simplified", "label": "Simplified", "field": "last_value_simplified_string",  "align": "center"},
+
+            {"name": "is_off", "label": "Is Off", "field": "is_off",  "align": "center"},
+            {"name": "ai_planing_type", "label": "AI Type", "field": "ai_planing_type",  "align": "left"},
+            # {"name": "description", "label": "Description", "field": "description"},
+            {"name": "min_value", "label": "Min Value", "field": "min_value"},
+            {"name": "max_value", "label": "Max Value", "field": "max_value"},
+            # {"name": "device_id", "label": "Device ID", "field": "device_id"},
+            # {"name": "created_at", "label": "Created On", "field": "created_at"},
+            # {"name": "device_type", "label": "Category", "field": "device_type"},
+            # {"name": "id", "label": "Internal ID", "field": "id"},
         ],
         rows=[], row_key="device_id",
     )
+    tbl.add_slot('body-cell-last_value_simplified', '''
+        <q-td key="last_value_simplified_string" :props="props">
+            <!-- Only show a colored badge if the value is Low, Medium, or High -->
+            <q-badge v-if="['Low', 'Medium', 'High'].includes(props.value)"
+                     :color="props.value === 'Low' ? 'green-6' : (props.value === 'High' ? 'red-6' : 'orange-6')">
+                {{ props.value }}
+            </q-badge>
+            <!-- Otherwise, just show the plain text (e.g., "N/A") -->
+            <span v-else>
+                {{ props.value }}
+            </span>
+        </q-td>
+    ''')
 
-    # periodically refresh static info
-    async def refresh_meta():
+    async def refresh_guest_devices():
         devs = await backend.list_devices(floor, room)
+        processed_rows = []
+        simplified_map = {-1: "Low", 0: "Medium", 1: "High"}
         for d in devs:
-            d["value"] = "—"                       # placeholder
-        tbl.rows = [DeviceVM.model_validate(d).model_dump() for d in devs]
+            try:
+                # round to 2 decimal places
+                d['last_value'] = f"{float(d['last_value']):.2f}"
+            except (ValueError, TypeError):
+                pass
+            simplified_numeric = d.get('last_value_simplified')
+            d['last_value_simplified_string'] = simplified_map.get(simplified_numeric, "")
+
+            processed_rows.append(DeviceVM.model_validate(d).model_dump(exclude_none=True))
+
+        tbl.rows = processed_rows
+
         tbl.update()
-        return [d["device_id"] for d in devs]      # return list of IDs
 
-    device_ids = await refresh_meta()
-    ui.timer(10.0, lambda: asyncio.create_task(refresh_meta()))
-
-    # ── live MQTT listener ────────────────────────────────────────────────
-    async def mqtt_listener(ids: list[str]):
-        async with MQTT(BROKER_HOST, BROKER_PORT) as client:
-
-            # subscribe once for every device topic
-            for did in ids:
-                await client.subscribe(f"devices/{did}/status")
-
-            # ← NEW: iterate directly over client.messages
-            async for msg in client.messages:
-                try:
-                    ui.notify(msg)
-                    data = json.loads(msg.payload.decode())
-                except Exception:
-
-                    continue
-
-                device_id = msg.topic.split("/")[1]
-                value     = data.get("value", "—")
-
-                tbl.run_method(
-                    "updateCell",
-                    {"rowKey": device_id, "field": "value", "value": value},
-                )
-
-
-
-
-    asyncio.create_task(mqtt_listener(device_ids))
+    await refresh_guest_devices()
+    ui.timer(3.0, lambda: asyncio.create_task(refresh_guest_devices()))
 
 # ──────────  LAUNCH APP  ──────────
 ui.run(title="SCIoT Hotel UI")
