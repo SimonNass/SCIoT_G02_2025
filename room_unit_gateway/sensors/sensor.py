@@ -41,7 +41,8 @@ class SensorInterface(ABC):
             self.last_value = max(self.general_iot_device.min_value,min(self.general_iot_device.max_value,manipulated_sensor_value))
             self.last_value_timestamp = time.time()
             self.datatype = str(type(self.last_value))
-            print (f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value} = {roaw_sensor_value} + {self.virtual_environment_impact}")
+            print (f"{self.general_iot_device.id} : {self.general_iot_device.name} : {self.last_value} = {roaw_sensor_value} + {self.virtual_environment_impact}")
+            #print (f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value} = {roaw_sensor_value} + {self.virtual_environment_impact}")
             logger.info(f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value} = {roaw_sensor_value} + {self.virtual_environment_impact}, type: {self.datatype}")
             return self.__dict__()
         except (Exception, IOError, TypeError) as e:
