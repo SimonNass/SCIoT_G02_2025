@@ -60,7 +60,7 @@ class ArdoinoReverseProxy():
         except (Exception, KeyboardInterrupt) as e:
             print("Stopping")
             print(e)
-        raise RuntimeError("Ardoino remote call unsucessfull")
+        raise KeyboardInterrupt("Ardoino remote call unsucessfull")
 
 def remove_line_ending(string: str):
     return string.strip()
