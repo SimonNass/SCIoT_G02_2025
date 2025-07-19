@@ -271,30 +271,30 @@ def set_room_occupancy(floor_number, room_number):
         "is_occupied": true
     }
     """
-    try: 
+    try:
         # Check if floor exists
         floor = models.Floor.query.filter_by(floor_number=floor_number).first()
         if not floor:
             return jsonify({'error': f'Floor {floor_number} does not exist'}), 404
-        
+
         # Check if room exists
         room = models.Room.query.filter_by(
-            room_number=room_number, 
+            room_number=room_number,
             floor_id=floor.id
         ).first()
         if not room:
             return jsonify({'error': f'Room {room_number} does not exist on floor {floor_number}'}), 404
-        
+
         # Get request data
         data = request.get_json()
         if not data or 'is_occupied' not in data:
             return jsonify({'error': 'is_occupied is required'}), 400
-        
+
         is_occupied = data['is_occupied']
-        
+
         room.is_occupied = is_occupied
         db.session.commit()
-        
+
         return jsonify({
             'message': f'Room {room_number} occupancy status updated successfully',
             'floor_number': floor_number,
@@ -305,7 +305,7 @@ def set_room_occupancy(floor_number, room_number):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@api.route('/rooms/occupancy/list/set', methods=['POST'])   
+@api.route('/rooms/occupancy/list/set', methods=['POST'])
 @require_api_key
 def bulk_update_room_occupancy():
     """
@@ -324,49 +324,49 @@ def bulk_update_room_occupancy():
         ]
     }
     """
-    try:    
+    try:
         # Get request data
         data = request.get_json()
         if not data or 'rooms' not in data:
             return jsonify({'error': 'rooms array is required'}), 400
-        
+
         rooms_data = data['rooms']
         if not isinstance(rooms_data, list) or len(rooms_data) == 0:
             return jsonify({'error': 'rooms must be a non-empty array'}), 400
-        
+
         rooms_to_update = []
         # Check if rooms exist
         for room_data in rooms_data:
             if 'room_number' not in room_data or 'is_occupied' not in room_data:
                 return jsonify({'error': 'room_number and is_occupied are required for each room'}), 400
-            
+
             room = models.Room.query.filter_by(room_number=room_data['room_number']).first()
             if not room:
                 return jsonify({'error': f'Room {room_data["room_number"]} does not exist'}), 404
             rooms_to_update.append(room)
-        
+
         updated_rooms = []
         if not rooms_to_update:
             return jsonify({'error': 'No rooms to update'}), 400
-        
+
         for room in rooms_to_update:
             room.is_occupied = room_data['is_occupied']
             db.session.add(room)
-            
+
             updated_rooms.append({
                 'room_number': room.room_number,
                 'is_occupied': room.is_occupied
             })
         db.session.commit()
-        
+
         return jsonify({
             'message': f'{len(updated_rooms)} rooms occupancy status updated successfully',
             'updated_rooms': updated_rooms
         }), 200
-        
+
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500  
+        return jsonify({'error': str(e)}), 500
 
 @api.route('/devices/list', methods=['GET'])
 @require_api_key
@@ -600,7 +600,7 @@ def list_type_name_configs():
     """
     try:
         configs = models.TypeNameConfig.query.all()
-        
+
         result = []
         for config in configs:
             config_data = {
@@ -614,12 +614,12 @@ def list_type_name_configs():
                 'unit': config.unit,
             }
             result.append(config_data)
-        
+
         return jsonify({
             'configs': result,
             'total_configs': len(result)
         }), 200
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -628,7 +628,7 @@ def list_type_name_configs():
 def set_type_name_configs():
     """
     Update existing type name config lower_mid and upper_mid values.
-    
+
     Expected JSON format:
     {
         "device_type": "sensor",
@@ -636,7 +636,7 @@ def set_type_name_configs():
         "lower_mid_limit": 20.0,
         "upper_mid_limit": 80.0,
     }
-    
+
     """
     try:
         data = request.get_json()
@@ -678,9 +678,9 @@ def get_mapping_matrices():
             'decreases_matrix': decreases_matrix,
             'impact_factors': impact_factors
         }
-        
+
         return jsonify(response_data), 200
-        
+
     except Exception as e:
         return jsonify({'error - Failed to retrieve mapping matrices:': str(e)}), 500
 
@@ -693,7 +693,7 @@ def list_floor_uids():
         return jsonify(floor_ids), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
+
 # Device offline/deletion endpoints
 @api.route('/devices/<string:device_id>/offline/set', methods=['POST'])
 @require_api_key
@@ -706,16 +706,16 @@ def set_device_offline(device_id):
         device = models.Device.query.filter_by(device_id=device_id).first()
         if not device:
             return jsonify({'error': f'Device {device_id} does not exist'}), 404
-        
+
         device.is_online = False
         db.session.commit()
-        
+
         return jsonify({
             'message': f'Device {device_id} set to offline successfully',
             'device_id': device_id,
             'is_online': False
         }), 200
-        
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -731,15 +731,15 @@ def delete_device(device_id):
         device = models.Device.query.filter_by(device_id=device_id).first()
         if not device:
             return jsonify({'error': f'Device {device_id} does not exist'}), 404
-        
+
         db.session.delete(device)
         db.session.commit()
-        
+
         return jsonify({
             'message': f'Device {device_id} deleted successfully',
             'device_id': device_id
         }), 200
-        
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -759,30 +759,30 @@ def bulk_set_devices_offline():
         data = request.get_json()
         if not data or 'minutes' not in data:
             return jsonify({'error': 'minutes parameter is required'}), 400
-        
+
         minutes = data['minutes']
         cutoff_time = datetime.utcnow() - timedelta(minutes=minutes)
-        
+
         devices = models.Device.query.filter(
             and_(
                 models.Device.last_seen < cutoff_time,
                 models.Device.is_online == True
             )
         ).all()
-        
+
         updated_count = 0
         for device in devices:
             device.is_online = False
             updated_count += 1
-        
+
         db.session.commit()
-        
+
         return jsonify({
             'message': f'{updated_count} devices set to offline',
             'minutes_threshold': minutes,
             'devices_affected': updated_count
         }), 200
-        
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -801,29 +801,29 @@ def bulk_delete_devices():
         data = request.get_json()
         if not data or 'minutes' not in data:
             return jsonify({'error': 'minutes parameter is required'}), 400
-        
+
         minutes = data['minutes']
         cutoff_time = datetime.utcnow() - timedelta(minutes=minutes)
-        
+
         devices = models.Device.query.filter(
             models.Device.last_seen < cutoff_time
         ).all()
-        
+
         deleted_count = len(devices)
         device_ids = [device.device_id for device in devices]
-        
+
         for device in devices:
             db.session.delete(device)
-        
+
         db.session.commit()
-        
+
         return jsonify({
             'message': f'{deleted_count} devices deleted',
             'minutes_threshold': minutes,
             'devices_deleted': deleted_count,
             'deleted_device_ids': device_ids
         }), 200
-        
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -844,24 +844,24 @@ def get_device_sensor_data(device_id):
         device = models.Device.query.filter_by(device_id=device_id).first()
         if not device:
             return jsonify({'error': f'Device {device_id} does not exist'}), 404
-        
+
         if device.device_type != 'sensor':
             return jsonify({'error': f'Device {device_id} is not a sensor'}), 400
-        
+
         data = request.get_json()
         interval = data.get('interval', 1) if data else 1
-        
+
         if interval < 1:
             return jsonify({'error': 'interval must be at least 1'}), 400
-        
+
         # Get all sensor data for this device
         all_sensor_data = models.SensorData.query.filter_by(
             device_id=device.id
         ).order_by(models.SensorData.timestamp.asc()).all()
-        
+
         # Apply interval sampling - take every nth datapoint
         sampled_data = all_sensor_data[::interval]
-        
+
         result = []
         for data_point in sampled_data:
             result.append({
@@ -870,7 +870,7 @@ def get_device_sensor_data(device_id):
                 'simplified_value': data_point.simplified_value,
                 'timestamp': data_point.timestamp.isoformat()
             })
-        
+
         return jsonify({
             'device_id': device_id,
             'device_name': device.name,
@@ -881,7 +881,7 @@ def get_device_sensor_data(device_id):
             'sampled_datapoints': len(result),
             'sensor_data': result
         }), 200
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -900,30 +900,30 @@ def get_recent_sensor_data(device_id):
         device = models.Device.query.filter_by(device_id=device_id).first()
         if not device:
             return jsonify({'error': f'Device {device_id} does not exist'}), 404
-        
+
         if device.device_type != 'sensor':
             return jsonify({'error': f'Device {device_id} is not a sensor'}), 400
-        
+
         data = request.get_json()
         minutes = data.get('minutes', 60) if data else 60
         interval = data.get('interval', 1) if data else 1
-        
+
         if interval < 1:
             return jsonify({'error': 'interval must be at least 1'}), 400
-        
+
         cutoff_time = datetime.utcnow() - timedelta(minutes=minutes)
         logging.info(cutoff_time)
-        
+
         sensor_data = models.SensorData.query.filter(
             and_(
                 models.SensorData.device_id == device.id,
                 models.SensorData.timestamp >= cutoff_time
             )
         ).order_by(models.SensorData.timestamp.asc()).all()
-        
+
         # Apply interval sampling
         sampled_data = sensor_data[::interval]  # Take every nth value
-        
+
         result = []
         for data in sampled_data:
             result.append({
@@ -932,7 +932,7 @@ def get_recent_sensor_data(device_id):
                 'simplified_value': data.simplified_value,
                 'timestamp': data.timestamp.isoformat()
             })
-        
+
         return jsonify({
             'device_id': device_id,
             'device_name': device.name,
@@ -944,6 +944,20 @@ def get_recent_sensor_data(device_id):
             'sampled_datapoints': len(result),
             'sensor_data': result
         }), 200
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@api.route('/cleardb', methods=['DELETE'])
+@require_api_key
+def clear_database():
+
+    try:
+        db.session.remove()        # close any pending sessions
+        db.drop_all()
+        db.create_all()
+
+        return jsonify({'message': 'Database wiped successfully'}), 200
+    except Exception as exc:
+        return jsonify({'error': f'Failed to wipe database: {exc}'}), 500
