@@ -344,17 +344,20 @@ def _get_matrices(room_number=None):
             logging.warning(f"Room with number {room_number} not found")
             return {}, {}
         
+        # Create aliases for the Device table since we need to join it twice
+        ActuatorDevice = models.Device.__table__.alias('actuator_device')
+        SensorDevice = models.Device.__table__.alias('sensor_device')
+        
         # Get all active mappings where both actuator and sensor are in the specified room
         mappings = models.SensorActuatorMapping.query.join(
-            models.Device, models.SensorActuatorMapping.actuator_device_id == models.Device.id
+            ActuatorDevice, models.SensorActuatorMapping.actuator_device_id == ActuatorDevice.c.id
         ).join(
-            models.Device, models.SensorActuatorMapping.sensor_device_id == models.Device.id,
-            aliased=True
+            SensorDevice, models.SensorActuatorMapping.sensor_device_id == SensorDevice.c.id
         ).filter(
             models.SensorActuatorMapping.actuator_device_id.isnot(None),
             models.SensorActuatorMapping.sensor_device_id.isnot(None),
-            models.Device.room_id == room.id,  # Actuator in the room
-            models.Device.room_id == room.id   # Sensor in the room
+            ActuatorDevice.c.room_id == room.id,  # Actuator in the room
+            SensorDevice.c.room_id == room.id     # Sensor in the room
         ).all()
     else:
         # Get all active mappings with linked devices

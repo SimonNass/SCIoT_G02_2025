@@ -30,7 +30,7 @@ def request_actuator_update(device_id: str, new_value: Any) -> bool:
             return False
         
         # Check if new_value is in range
-        if device.datatype is not 'str':
+        if device.datatype != 'str':
             new_value = safe_float_conversion_for_sensor_data(new_value)
             if new_value is not None and not (safe_float_conversion_for_sensor_data(device.min_value) <= new_value <= safe_float_conversion_for_sensor_data(device.max_value)):
                 logging.error(f'New value {new_value} for device {device_id} is out of range ({device.min_value}, {device.max_value})')
@@ -100,7 +100,7 @@ def request_sensor_update(device_id: str, new_value: Any) -> bool:
             return False
         
         # Check if new_value is in range
-        if device.datatype is not 'str':
+        if device.datatype != 'str':
             new_value = safe_float_conversion_for_sensor_data(new_value)
             if new_value is not None and not (safe_float_conversion_for_sensor_data(device.min_value) <= new_value <= safe_float_conversion_for_sensor_data(device.max_value)):
                 logging.error(f'New value {new_value} for device {device_id} is out of range ({device.min_value}, {device.max_value})')
