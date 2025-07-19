@@ -80,8 +80,9 @@ def cyclic_actuator_read(actuators: List[ActuatorInterface], network_connection:
             except Exception as e:
                 logger.warning(f"cyclic_actuator_read failed {str(actuator.general_iot_device.id)} {actuator.general_iot_device.name} {e}")
 
-def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork, virtual_environment: Virtual_environment, max_cycle_time: int = 100):
+def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInterface], network_connection: GatewayNetwork, virtual_environment: Virtual_environment, max_cycle_time: int = 100, sleeping_time: int = 1):
     logger.info("max_cycle_time: " + str(max_cycle_time))
+    logger.info(f"sleeping_time: {str(sleeping_time)} seconds")
     print ("", flush=True)
     send_sensors(sensors,network_connection)
     send_actuators(actuators,network_connection)
@@ -113,7 +114,7 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
                 logger.error(f"virtual_environment not ececuting step. {e}")
             cycle = cycle + 1
             #want_to_exit = True
-            #time.sleep(1)
+            time.sleep(sleeping_time)
 
         except KeyboardInterrupt:
             want_to_exit = True
@@ -147,6 +148,7 @@ def run_gateway_for_config(config_file_name: str, password: str, host: str=None)
         logger.error(f"Reading config file {config_file_name} was not succesfull {config_values}, {e}")
 
     max_cycle_time = 100
+    sleeping_time = 1
     sensors = []
     actuators = []
     gateway_network = None
@@ -155,6 +157,7 @@ def run_gateway_for_config(config_file_name: str, password: str, host: str=None)
     virtual_environment = None
     try:
         max_cycle_time: int = int(config_values['max_cycle_time'])
+        sleeping_time: int = int(config_values['sleeping_time'])
         sensors: List[SensorInterface] = config_values['sensor_class_list']
         actuators: List[ActuatorInterface] = config_values['actuator_class_list']
         room_info: Room_Info = config_values['room_info']
@@ -167,7 +170,7 @@ def run_gateway_for_config(config_file_name: str, password: str, host: str=None)
         logger.error(f"Reading config_values {config_file_name} was not succesfull {config_values}, {e}")
 
     logger.info(f"Starting execution cycle for floor {room_info.floor_id}, room {room_info.room_id}")
-    execution_cycle(sensors,actuators,gateway_network, virtual_environment, max_cycle_time)
+    execution_cycle(sensors,actuators,gateway_network, virtual_environment, max_cycle_time, sleeping_time)
     logger.info("Execution cycle ended.")
 
     del ardoino_serial
