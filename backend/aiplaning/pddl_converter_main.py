@@ -133,7 +133,6 @@ def run_planner_with_db_data(sensor_goal_values: Optional[Dict[str, int]] = {},
     pddl_converter_help.check_lib_versions()
 
     input_dictionary = pddl_converter_input.query_input_over_db(sensor_goal_values, sensor_initial_locked, room_number)
-    logging.info("Gets here")
     # logging.info(input_dictionary)
     
     d, p, execution_mapper = create(input_dictionary)

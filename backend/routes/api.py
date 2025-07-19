@@ -431,7 +431,8 @@ def list_devices_in_room(floor_number, room_number):
            'floor_number': floor_number,
            'room_number': room_number,
            'devices': devices,
-           'total_devices': len(devices)
+           'total_devices': len(devices),
+           'is_occupied': room.is_occupied
        }), 200
 
    except Exception as e:
