@@ -40,6 +40,7 @@ class PDDLPlannerService:
         """
         # Import inside the function to avoid circular imports
         from backend.models.models import PlanScope
+        logging.info(f"solve_planning_problem called at {time.time()}")
         
         # Set default scope if not provided
         if scope is None:
