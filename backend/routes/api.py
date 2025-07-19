@@ -4,7 +4,7 @@ from backend.extensions import db
 from backend.models import models
 from sqlalchemy.exc import IntegrityError
 from backend.routes.auth.simple_auth import require_api_key
-from backend.mqtt.utils.mqttPublish import request_actuator_update, request_current_sensor_value
+from backend.mqtt.utils.mqttPublish import request_actuator_update, request_current_sensor_value, request_sensor_update
 from backend.mqtt.utils.mappingParserUtils import get_actuator_sensor_matrices, get_mapping_impact_factors
 from datetime import datetime, timedelta
 from sqlalchemy import and_
@@ -527,6 +527,44 @@ def set_actuator_value(device_id):
     except Exception as e:
         return jsonify({'error': 'An error occurred while processing your request'}), 500
 
+@api.route('/devices/sensor/<string:device_id>/set', methods=['POST'])
+# Todo: Add authentication decorator
+def set_sensor_value(device_id):
+    """
+    Set sensor value for a specific device
+
+    Expected JSON format:
+    {
+        "new_value": "value_to_set"
+    }
+
+    Path: /devices/sensor/{device_id}/set
+    """
+    try:
+        # Get request data
+        data = request.get_json()
+        if not data or 'new_value' not in data:
+            return jsonify({'error': 'new_value is required'}), 400
+
+        new_value = data['new_value']
+
+        # Use device.id (UUID) for MQTT communication
+        success = request_sensor_update(device_id, new_value)
+
+        if success:
+            return jsonify({
+                'message': f'Sensor update request sent successfully',
+                'device_id': device_id,
+                'device_uuid': device_id,
+                'new_value': new_value
+            }), 200
+        else:
+            return jsonify({
+                'error': 'Failed to send sensor update request. Please refer to server logs for more details.'
+            }), 500
+
+    except Exception as e:
+        return jsonify({'error': 'An error occurred while processing your request'}), 500
 
 @api.route('/devices/<string:device_id>/get', methods=['POST'])
 # Todo: Add authentication decorator

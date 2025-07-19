@@ -22,8 +22,8 @@ def parse_mqtt_topic(topic, app_instance):
             _, floor_str, room_number, mapping, _ = parts
             floor_number = floor_str_to_int_converter(floor_str)
             return floor_number, room_number, mapping
-        if len(parts) == 6 and parts[0] == expected_prefix and parts[5] != "all":
-            logging.info(f"Detected message publish for request to gateway")
+        if len(parts) == 6 and parts[0] == expected_prefix and parts[5] == "UPDATE":
+            logging.info(f"Detected message publish for request to gateway, skipping message")
             return None
         if len(parts) != 6 or parts[0] != expected_prefix and parts[5] != "all":
             logging.warning(f"Invalid topic format: {topic}")
