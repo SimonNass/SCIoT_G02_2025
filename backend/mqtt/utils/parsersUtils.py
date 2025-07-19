@@ -1,5 +1,7 @@
 import logging
 import json
+from backend.extensions import db
+from backend.models.models import Device
 
 def parse_mqtt_topic(topic, app_instance):
     """
@@ -22,6 +24,18 @@ def parse_mqtt_topic(topic, app_instance):
             _, floor_str, room_number, mapping, _ = parts
             floor_number = floor_str_to_int_converter(floor_str)
             return floor_number, room_number, mapping
+        if len(parts) == 6 and parts[0] == expected_prefix and parts[5] == "delete":
+            try:
+                # Delete all devices from the database
+                deleted_count = db.session.query(Device).delete()
+                db.session.commit()
+                logging.info(f"Successfully deleted {deleted_count} devices from database")
+
+                return None
+            except Exception as e:
+                db.session.rollback()
+                logging.error(f"Error deleting devices from database: {str(e)}")
+                return None
         if len(parts) == 6 and parts[0] == expected_prefix and parts[5] == "UPDATE":
             logging.info(f"Detected message publish for request to gateway, skipping message")
             return None
