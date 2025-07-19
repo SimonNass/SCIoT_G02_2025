@@ -95,13 +95,15 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
     # TODO make 'requests_service':{'button_s':'is_sensing' -> request text displayed
     # TODO in r_dress > assign_lock_for_sensor TV_volume_s_s6_TV_volume_s
     # TODO activity sleep do the blinds not work decrease mapping
-    activity_detect_mapping = {"read":{"chair_s":"is_sensing", "power_consumption_s":"is_low"},
-                                "on_the_phone":{"chair_s":"is_sensing", "power_consumption_s":"is_ok"},
-                                "work":{"chair_s":"is_sensing", "power_consumption_s":"is_high"},
-                                "sleep":{"bed_s":"is_sensing", "TV_volume_s":"~is_high"},
-                                "bath":{"shower_s":"is_sensing", "chair_s":"~is_sensing", "bed_s":"~is_sensing"},
-                                "dress":{"chair_s":"~is_sensing", "bed_s":"~is_sensing", "shower_s":"~is_sensing", "motion_s":"is_sensing"},
-                                "watch_TV":{"TV_volume_s":"is_high", "bed_s":"is_sensing"}}
+    activity_detect_mapping = {}
+    activity_fulfill_mapping = {}
+    #activity_detect_mapping = {"read":{"chair_s":"is_sensing", "power_consumption_s":"is_low"},
+    #                            "on_the_phone":{"chair_s":"is_sensing", "power_consumption_s":"is_ok"},
+    #                            "work":{"chair_s":"is_sensing", "power_consumption_s":"is_high"},
+    #                            "sleep":{"bed_s":"is_sensing", "TV_volume_s":"~is_high"},
+    #                            "bath":{"shower_s":"is_sensing", "chair_s":"~is_sensing", "bed_s":"~is_sensing"},
+    #                            "dress":{"chair_s":"~is_sensing", "bed_s":"~is_sensing", "shower_s":"~is_sensing", "motion_s":"is_sensing"},
+    #                            "watch_TV":{"TV_volume_s":"is_high", "bed_s":"is_sensing"}}
     activity_fulfill_mapping = {"read":{"temperature_s":"is_ok", "light_s":"is_high", "sound_s":"is_ok"},
                                 "on_the_phone":{"light_s":"is_high", "sound_s":"is_low"},
                                 "work":{"light_s":"is_high", "sound_s":"is_ok"},
