@@ -105,10 +105,11 @@ class pddl_actions_to_execution_mapper():
             
             logging.info(f"Cleaning plan: {cleaning_plan}")
             logging.info(f"Detected activitys plan: {detected_activity_plan}")
+            print(f"Detected activitys plan: {detected_activity_plan}")
             logging.info(f"Increase actuator plans: {increse_actuator_plans}")
             logging.info(f"Turn off actuator plans: {turn_off_actuator_plans}")
             logging.info(f"Decrese Actuator actuator plans: {decrese_actuator_plans}")
             logging.info(f"Two Actuators Involved Actioin Plans: {two_actuators_involved_actioin_plans}")
-            return filtered_plan, cleaning_plan, detected_activity_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans
+            return filtered_plan, cleaning_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans
         except Exception as e:
             logging.error({'Error parsing plan to usable information': str(e)})

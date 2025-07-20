@@ -174,7 +174,6 @@ def save_to_database(
         plan_data: Dict,
         planner_used: str,
         cleaning_plan: list,
-        detected_activity_plan: list,
         filtered_plan: list,
         scope: PlanScope = PlanScope.BUILDING,
         target_room_number: Optional[str] = None,

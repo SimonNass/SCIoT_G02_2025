@@ -141,13 +141,13 @@ def run_planner_with_db_data(plan_cleaning = False,
     pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "p" + ".pddl", p)
     solve_result = pddl_service.solve_planning_problem(str(d), str(p), planner, False)
     
-    filtered_plan, cleaning_plan, detected_activity_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans = execution_mapper.filter_plan(solve_result.get('plan'))
+    filtered_plan, cleaning_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans = execution_mapper.filter_plan(solve_result.get('plan'))
     
     updateActuators(increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans)
     if room_number is None:
-        plan = save_to_database(solve_result, planner, cleaning_plan, detected_activity_plan, filtered_plan)
+        plan = save_to_database(solve_result, planner, cleaning_plan, filtered_plan)
     else:
-        plan = save_to_database(solve_result, planner, cleaning_plan, detected_activity_plan, filtered_plan, PlanScope.ROOM, room_number)
+        plan = save_to_database(solve_result, planner, cleaning_plan, filtered_plan, PlanScope.ROOM, room_number)
 
     return plan
 
