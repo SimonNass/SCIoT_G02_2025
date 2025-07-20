@@ -8,6 +8,7 @@ import logging
 class PlanerTag(Enum):
     """Class representing the possible planer tags given to actions during the creation."""
     Helper = 11 # helper actions can be ignored
+    Detected_Activity = 12 # helper actions can be ignored
 
     # specifies the intention of an action
     Clean_Intent = 21
@@ -84,7 +85,9 @@ class pddl_actions_to_execution_mapper():
             filter_plans_negative = lambda filtered_plan, filter : [planed_action for planed_action in filtered_plan if filter not in get_tags(planed_action)]
             
             # remove all helper methodes
+            detected_activity_plan = filter_plans_positive(filtered_plan, PlanerTag.Detected_Activity)
             filtered_plan = filter_plans_negative(filtered_plan, PlanerTag.Helper)
+            filtered_plan = filter_plans_negative(filtered_plan, PlanerTag.Detected_Activity)
             #print (list(filtered_plan))
 
             # make a list of all cleaning actions without other actions in between
@@ -100,11 +103,13 @@ class pddl_actions_to_execution_mapper():
             # make a list of all two actuator actions without other actions in between
             two_actuators_involved_actioin_plans = filter_plans_positive(filtered_plan, PlanerTag.Actuator_Cancle_Out)
             
-            logging.info(f"Cleaning plan:{cleaning_plan}")
+            logging.info(f"Cleaning plan: {cleaning_plan}")
+            logging.info(f"Detected activitys plan: {detected_activity_plan}")
+            print(f"Detected activitys plan: {detected_activity_plan}")
             logging.info(f"Increase actuator plans: {increse_actuator_plans}")
             logging.info(f"Turn off actuator plans: {turn_off_actuator_plans}")
             logging.info(f"Decrese Actuator actuator plans: {decrese_actuator_plans}")
             logging.info(f"Two Actuators Involved Actioin Plans: {two_actuators_involved_actioin_plans}")
-            return filtered_plan, cleaning_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans
+            return filtered_plan, cleaning_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans, detected_activity_plan
         except Exception as e:
             logging.error({'Error parsing plan to usable information': str(e)})
