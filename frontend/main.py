@@ -60,9 +60,9 @@ class PlanVM(BaseModel):
     planner_used: Optional[str] = None
     raw_plan: Optional[List[str] | str] = None
     created_at: str
-    filtered_plan: Optional[List[str]] = None
-    cleaning_plan: Optional[List[str]] = None
-    detected_activity_plan: Optional[List[str]] = None
+    filtered_plan: Optional[List[List[str]]] = None
+    cleaning_plan: Optional[List[List[str]]] = None
+    detected_activity_plan: Optional[List[List[str]]] = None
     steps: List[StepVM]
 
 
