@@ -723,5 +723,8 @@ async def guest_view(floor: int, room: str):
     await refresh_guest_devices()
     ui.timer(3.0, lambda: asyncio.create_task(refresh_guest_devices()))
 
+@ui.page('/')
+def index_page():
+    ui.navigate.to('/admin')
 
 ui.run(title="SCIoT Hotel UI")
