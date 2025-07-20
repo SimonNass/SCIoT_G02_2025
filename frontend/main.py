@@ -551,70 +551,78 @@ async def guest_view(floor: int, room: str):
     ui.label(f"Room {room} (Floor {floor})").classes("text-h5 q-ma-md")
 
     async def show_device_dialog(e):
-        # ui.notify(e)
         _, device_data, _ = e.args
         device = DeviceVM.model_validate(device_data)
 
         with ui.dialog() as dialog, ui.card():
             ui.label(f"Device: {device.name}").classes("text-h6")
-
             if device.device_type == 'actuator':
                 ui.label("Set new value:")
                 try:
                     current = not device.is_off
                 except (ValueError, TypeError):
-                    # current_val = device.min_value or 0.0
                     pass
-
-
-                slider = ui.slider(
-                    min=0.0,
-                    max=1.0,
-                    value=current
-                ).props('label-always')
-
-
+                slider = ui.slider(min=0.0, max=1.0, value=current).props('label-always')
                 with ui.row().classes('w-full justify-end'):
                     async def handle_done():
                         await backend.set_actuator_value(device.device_id, slider.value)
-                        # ui.notify(f"Setting {device.name} to {slider.value:.2f}")
-                        await refresh_guest_devices() # Refresh to see the change
+                        ui.notify(f"Setting {device.name} to {slider.value:.2f}")
+                        await refresh_guest_devices()
                         dialog.close()
-
                     ui.button("Done", on_click=handle_done)
                     ui.button("Cancel", on_click=dialog.close)
             else:
-
                 ui.label("Set new value:")
                 try:
                     current_val = float(device.last_value)
                 except (ValueError, TypeError):
                     current_val = device.min_value or 0.0
-
-                slider = ui.slider(
-                    min=device.min_value or 0.0,
-                    max=device.max_value or 100.0,
-                    value=current_val
-                ).props('label-always')
-
+                slider = ui.slider(min=device.min_value or 0.0, max=device.max_value or 100.0, value=current_val).props('label-always')
                 with ui.row().classes('w-full justify-end'):
                     async def handle_done():
                         await backend.set_sensor_value(device.device_id, slider.value)
-                        # await backend.set_actuator_value(device.device_id, slider.value)
-                        # ui.notify(f"Setting {device.name} to {slider.value:.2f}")
-                        await refresh_guest_devices() # Refresh to see the change
+                        ui.notify(f"Setting {device.name} to {slider.value:.2f}")
+                        await refresh_guest_devices()
                         dialog.close()
-
                     ui.button("Done", on_click=handle_done)
                     ui.button("Cancel", on_click=dialog.close)
-
-
         await dialog
 
-    # sensors and actuator tables
-    with ui.row().classes('w-full justify-around'):
+    async def show_trend_chart(e):
+        sensor = e.args
+        sensor_id = sensor['device_id']
+        sensor_name = sensor['name']
+        sensor_unit = sensor.get('unit', '')
 
-        # Sensors Column
+        with ui.dialog() as dialog, ui.card().style('min-width: 700px'):
+            ui.label(f"Recent History for {sensor_name}").classes('text-h6')
+
+            chart_options = {
+                'tooltip': {'trigger': 'axis'},
+                'xAxis': {'type': 'time'},
+                'yAxis': {'type': 'value', 'name': sensor_unit},
+                'series': [{'name': sensor_unit, 'data': [], 'type': 'line', 'smooth': True}],
+            }
+            # using ui.echart
+            chart = ui.echart(chart_options).classes('w-full h-64')
+
+            dialog.open()
+            try:
+                # fetch recent data from the backend
+                res = await backend.get_recent_sensor_data(sensor_id, minutes=5, interval=1)
+                sensor_data = res.get('sensor_data', [])
+
+                # process the data into a format ECharts can understand
+                chart_data = [[item['timestamp'], item['value']] for item in sensor_data]
+
+                # update the echart with the fetched data
+                chart.options['series'][0]['data'] = chart_data
+                chart.update()
+
+            except Exception as ex:
+                ui.notify(f"Could not load history: {ex}", color='negative')
+
+    with ui.row().classes('w-full justify-around'):
         with ui.row():
             with ui.column():
                 ui.label('Sensors').classes('text-h6')
@@ -623,13 +631,11 @@ async def guest_view(floor: int, room: str):
                         {"name": "name", "label": "Device", "field": "name", "align": "left"},
                         {"name": "last_value", "label": "Value", "field": "last_value", "align": "center"},
                         {"name": "last_value_simplified", "label": "Status", "field": "last_value_simplified_string", "align": "center"},
+                        {"name": "trend", "label": "Trend", "field": "trend", "align": "center"},
                         {"name": "is_online", "label": "Online", "field": "is_online", "align": "center"},
-                        # {"name": "unit", "label": "unit", "field": "unit", "align": "center"},
                     ],
                     rows=[], row_key="device_id",
                 ).classes('w-full')
-
-            # Actuators Column
             with ui.column():
                 ui.label('Actuators').classes('text-h6')
                 actuator_table = ui.table(
@@ -638,7 +644,6 @@ async def guest_view(floor: int, room: str):
                         {"name": "last_value", "label": "Value", "field": "last_value", "align": "center"},
                         {"name": "is_off", "label": "State", "field": "is_off", "align": "center"},
                         {"name": "is_online", "label": "Online", "field": "is_online", "align": "center"},
-                        # {"name": "unit", "label": "unit", "field": "unit", "align": "center"},
                     ],
                     rows=[], row_key="device_id",
                 ).classes('w-full')
@@ -654,8 +659,6 @@ async def guest_view(floor: int, room: str):
                     <span v-else>{{ props.value }}</span>
                 </q-td>
             ''')
-
-
             actuator_table.add_slot('body-cell-is_off', r'''
                 <q-td :props="props">
                     <q-badge :color="props.value ? 'grey-5' : 'light-green-5'">
@@ -663,60 +666,44 @@ async def guest_view(floor: int, room: str):
                     </q-badge>
                 </q-td>
             ''')
-
             online_offline_icon_slot = r'''
                 <q-td :props="props">
-                <q-icon
-                    v-if="props.value"
-                    name="lens"
-                    size="9px"
-                    color="green-3"
-                />
-                <q-icon
-                    v-else
-                    name="lens"
-                    size="9px"
-                    color="grey-4"
-                />
+                <q-icon v-if="props.value" name="lens" size="9px" color="green-3" />
+                <q-icon v-else name="lens" size="9px" color="grey-4" />
                 </q-td>
-
             '''
             sensor_table.add_slot('body-cell-is_online', online_offline_icon_slot)
             actuator_table.add_slot('body-cell-is_online', online_offline_icon_slot)
+            sensor_table.add_slot('body-cell-trend', r'''
+                <q-td :props="props">
+                    <q-btn flat dense round icon="show_chart" @click="$parent.$emit('show-trend', props.row)" />
+                </q-td>
+            ''')
 
-
-            # Assign the same event handler to both tables
+            sensor_table.on('show-trend', show_trend_chart)
             sensor_table.on('row-dblclick',  show_device_dialog)
             actuator_table.on('row-dblclick', show_device_dialog)
-
         ui.space()
 
     async def refresh_guest_devices():
         devs = await backend.list_devices(floor, room)
-
         sensor_rows = []
         actuator_rows = []
         simplified_map = {-1: "Low", 0: "Medium", 1: "High"}
-
         for d in devs:
             try:
                 d['last_value'] = f"{float(d['last_value']):.2f}"
             except (ValueError, TypeError):
                 pass
-
             simplified_numeric = d.get('last_value_simplified')
             d['last_value_simplified_string'] = simplified_map.get(simplified_numeric, "N/A")
-
             device_data = DeviceVM.model_validate(d).model_dump(exclude_none=True)
-
             if device_data['device_type'] == 'sensor':
                 sensor_rows.append(device_data)
             else:
                 actuator_rows.append(device_data)
-
         sensor_table.rows = sensor_rows
         actuator_table.rows = actuator_rows
-
         sensor_table.update()
         actuator_table.update()
 
