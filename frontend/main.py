@@ -43,6 +43,27 @@ class DeviceVM(BaseModel):
     is_off: bool | None = None
     ai_planing_type: str | None = None
 
+class StepVM(BaseModel):
+    id: int
+    step_order: int
+    action_name: str
+    raw_step: str
+    target_device_ids: List[str]
+
+class PlanVM(BaseModel):
+    id: int
+    scope: str
+    target_floor_id: int
+    target_room_id: str
+    total_cost: float
+    planning_time: float
+    planner_used: Optional[str]
+    raw_plan: List[str]
+    created_at: str
+    filtered_plan: Optional[List[str]] = None
+    cleaning_plan: Optional[List[str]] = None
+    steps: List[StepVM]
+
 
 # State
 current_floor:int|None=None
@@ -57,7 +78,7 @@ def add_header(role: str = "Admin") -> None:
         ui.label("SCIoT Hotel").classes("text-h6")
         ui.label(role).classes("ml-auto text-sm text-white opacity-75")
 
-# Room detail pane
+# Room detail area
 async def show_room(summary_column, floor_no:int, room:dict):
     global device_timer
     if device_timer: device_timer.cancel(); device_timer=None
@@ -65,8 +86,19 @@ async def show_room(summary_column, floor_no:int, room:dict):
     devices_known:set[str]=set()
     async def refresh_devices():
             nonlocal devices_known
+
             devs = await backend.list_devices(floor_no, vm.room_number)
-            rows=[DeviceVM.model_validate(d).model_dump() for d in devs]
+            simplified_map = {-1: "Low", 0: "Medium", 1: "High"}
+            rows = []
+            for d in devs:
+                try:
+                    d['last_value'] = f"{float(d['last_value']):.2f}"
+                except (ValueError, TypeError):
+                    pass
+                simplified_numeric = d.get('last_value_simplified')
+                d['last_value_simplified_string'] = simplified_map.get(simplified_numeric, "")
+                rows.append(DeviceVM.model_validate(d).model_dump())
+
             ids={r["device_id"] for r in rows}
             if ids!=devices_known:
                 grid_dev.options["rowData"]=rows; grid_dev.update(); devices_known=ids
@@ -96,7 +128,7 @@ async def show_room(summary_column, floor_no:int, room:dict):
 
                         {"headerName":"Name","field":"name", "width": 150},
                         {"headerName":"Type","field":"type_name", "width": 120},
-                        {"headerName":"Simplified","field":"last_value_simplified", "headerTooltip": "The simplified high/low value (-1, 0, 1)", "width": 120},
+                        {"headerName":"Simplified","field":"last_value_simplified_string", "headerTooltip": "The simplified high/low value (-1, 0, 1)", "width": 120},
                         {"headerName":"AI Type","field":"ai_planing_type", "width": 120},
                         {"headerName":"Online","field":"is_online", "width": 100},
                         {"headerName":"Last Seen","field":"last_seen"},
@@ -120,6 +152,12 @@ async def show_room(summary_column, floor_no:int, room:dict):
         device_timer = ui.timer(10.0, lambda: asyncio.create_task(refresh_devices()))
     await refresh_devices()
 
+async def show_latest_plan_for_room(room_number: str):
+    res = await backend.get_latest_plan_for_room(room_number)
+    # validate and notify each step…
+    plan_vm = PlanVM.model_validate(res['latest_plan'])
+    for step in plan_vm.steps:
+        ui.notify(f"Step {step.step_order}: {step.action_name}", timeout=2.0)
 
 # Admin page
 @ui.page("/admin")
@@ -193,6 +231,18 @@ async def admin_dashboard():
 
             # planning card
             with ui.card().props("flat bordered").style("width:100%"):
+
+                async def run_plan_for_room(room_number):
+
+                    sel = await grid_building.run_grid_method('getSelectedRows') or await grid_per_floor.run_grid_method('getSelectedRows')
+                    room_number = sel[0]['room_number']
+                    ui.notify(f'Running planner for room {room_number}…')
+                    res = await backend.run_planner_for_room(room_number)
+                    if 'error' in res:
+                        ui.notify(f"Planner error: {res['error']}", color='negative')
+                    else:
+                        ui.notify('Planner started', color='positive')
+
                 with ui.row().classes("items-center"):
                     ui.icon("auto_awesome").classes("text-primary")
                     ui.label("Planner").classes("text-h6 text-primary")
@@ -201,20 +251,25 @@ async def admin_dashboard():
                         ui.chip('No rooms selected',
                         color='grey-5',
                         text_color='white').props('outline square')
-
-
                 # Action buttons below chips_row
                 with ui.row().classes("gap-2 mt-4"):
                     # Cleaning Actions
-                    ui.button('Send Cleaning Team', on_click=lambda: None)
-                    ui.button('Clean Rooms', on_click=lambda: None)
-                    # Energy Optimization Actions
-                    ui.button('Save Energy', on_click=lambda: None)
-                    ui.button('Cancel Out Actuators', on_click=lambda: None)
+                     ui.button('Run Planner for Selected Room', on_click=run_plan_for_room)
+
+                    # ui.button('Send Cleaning Team', on_click=lambda: None)
+                    # ui.button('Clean Rooms', on_click=lambda: None)
+                    # # Energy Optimization Actions
+                    # ui.button('Save Energy', on_click=lambda: None)
+                    # ui.button('Cancel Out Actuators', on_click=lambda: None)
 
         summary_column = ui.column()   # right pane
 
+
     # helper refresh routines
+
+
+
+
     async def refresh_building():
         global rows_known
         data = await backend.list_all_rooms()
@@ -316,6 +371,7 @@ async def admin_dashboard():
     async def poll():
         if grid_building.visible: await refresh_building()
         else:                     await refresh_per_floor()
+
     ui.timer(25.0, lambda: asyncio.create_task(poll()))
 
 
@@ -328,7 +384,7 @@ async def guest_view(floor: int, room: str):
 
     # The dialog logic remains the same as it already handles both device types.
     async def show_device_dialog(e):
-        ui.notify(e)
+        # ui.notify(e)
         # The event now directly passes the row data dictionary.
         _, device_data, _ = e.args
         device = DeviceVM.model_validate(device_data)
@@ -339,15 +395,19 @@ async def guest_view(floor: int, room: str):
             if device.device_type == 'actuator':
                 ui.label("Set new value:")
                 try:
-                    current_val = float(device.last_value)
+                    current = not device.is_off
                 except (ValueError, TypeError):
-                    current_val = device.min_value or 0.0
+                    # current_val = device.min_value or 0.0
+                    pass
+
 
                 slider = ui.slider(
-                    min=device.min_value or 0.0,
-                    max=device.max_value or 100.0,
-                    value=current_val
+                    min=0.0,
+                    max=1.0,
+                    value=current
                 ).props('label-always')
+
+                # toggle =  ui.switch("Toggle", value=True)
 
                 with ui.row().classes('w-full justify-end'):
                     async def handle_done():
@@ -393,57 +453,90 @@ async def guest_view(floor: int, room: str):
     with ui.row().classes('w-full justify-around'):
 
         # --- Sensors Column ---
-        with ui.column().classes('w-1/2 p-2'):
-            ui.label('Sensors').classes('text-h6')
-            sensor_table = ui.table(
-                columns=[
-                    {"name": "name", "label": "Device", "field": "name", "align": "left"},
-                    {"name": "last_value", "label": "Value", "field": "last_value", "align": "center"},
-                    {"name": "last_value_simplified", "label": "Status", "field": "last_value_simplified_string", "align": "center"},
-                    {"name": "is_online", "label": "Online", "field": "is_online", "align": "center"},
-                    {"name": "unit", "label": "unit", "field": "unit", "align": "center"},
-                ],
-                rows=[], row_key="device_id",
-            ).classes('w-full')
+        with ui.row():
+            with ui.column():
+                ui.label('Sensors').classes('text-h6')
+                sensor_table = ui.table(
+                    columns=[
+                        {"name": "name", "label": "Device", "field": "name", "align": "left"},
+                        {"name": "last_value", "label": "Value", "field": "last_value", "align": "center"},
+                        {"name": "last_value_simplified", "label": "Status", "field": "last_value_simplified_string", "align": "center"},
+                        {"name": "is_online", "label": "Online", "field": "is_online", "align": "center"},
+                        # {"name": "unit", "label": "unit", "field": "unit", "align": "center"},
+                    ],
+                    rows=[], row_key="device_id",
+                ).classes('w-full')
 
-        # --- Actuators Column ---
-        with ui.column().classes('w-1/2 p-2'):
-            ui.label('Actuators').classes('text-h6')
-            actuator_table = ui.table(
-                columns=[
-                    {"name": "name", "label": "Device", "field": "name", "align": "left"},
-                    {"name": "last_value", "label": "Value", "field": "last_value", "align": "center"},
-                    {"name": "is_off", "label": "State", "field": "is_off", "align": "center"},
-                    {"name": "is_online", "label": "Online", "field": "is_online", "align": "center"},
-                ],
-                rows=[], row_key="device_id",
-            ).classes('w-full')
+            # --- Actuators Column ---
+            with ui.column():
+                ui.label('Actuators').classes('text-h6')
+                actuator_table = ui.table(
+                    columns=[
+                        {"name": "name", "label": "Device", "field": "name", "align": "left"},
+                        {"name": "last_value", "label": "Value", "field": "last_value", "align": "center"},
+                        {"name": "is_off", "label": "State", "field": "is_off", "align": "center"},
+                        {"name": "is_online", "label": "Online", "field": "is_online", "align": "center"},
+                        # {"name": "unit", "label": "unit", "field": "unit", "align": "center"},
+                    ],
+                    rows=[], row_key="device_id",
+                ).classes('w-full')
+        #                     # planning card
 
-    sensor_table.add_slot('body-cell-last_value_simplified', r'''
-        <q-td :props="props">
-            <q-badge v-if="['Low','Medium','High'].includes(props.value)"
-                    :color="props.value==='Low'  ? 'green-6'
-                            :props.value==='High' ? 'red-6'
-                                                : 'orange-6'">
-                {{ props.value }}
-            </q-badge>
-            <span v-else>{{ props.value }}</span>
-        </q-td>
-    ''')
-
-
-    actuator_table.add_slot('body-cell-is_off', r'''
-        <q-td :props="props">
-            <q-badge :color="props.value ? 'grey-5' : 'light-green-5'">
-                {{ props.value ? 'Off' : 'On' }}
-            </q-badge>
-        </q-td>
-    ''')
+            sensor_table.add_slot('body-cell-last_value_simplified', r'''
+                <q-td :props="props">
+                    <q-badge v-if="['Low','Medium','High'].includes(props.value)"
+                            :color="props.value==='Low'  ? 'green-6'
+                                    :props.value==='High' ? 'red-6'
+                                                        : 'orange-6'">
+                        {{ props.value }}
+                    </q-badge>
+                    <span v-else>{{ props.value }}</span>
+                </q-td>
+            ''')
 
 
-    # Assign the same event handler to both tables
-    sensor_table.on('row-dblclick',  show_device_dialog)
-    actuator_table.on('row-dblclick', show_device_dialog)
+            actuator_table.add_slot('body-cell-is_off', r'''
+                <q-td :props="props">
+                    <q-badge :color="props.value ? 'grey-5' : 'light-green-5'">
+                        {{ props.value ? 'Off' : 'On' }}
+                    </q-badge>
+                </q-td>
+            ''')
+
+            online_offline_icon_slot = r'''
+                <q-td :props="props">
+                <q-icon
+                    v-if="props.value"
+                    name="lens"
+                    size="9px"
+                    color="green-3"
+                />
+                <q-icon
+                    v-else
+                    name="lens"
+                    size="9px"
+                    color="grey-4"
+                />
+                </q-td>
+
+            '''
+            sensor_table.add_slot('body-cell-is_online', online_offline_icon_slot)
+            actuator_table.add_slot('body-cell-is_online', online_offline_icon_slot)
+
+
+            # Assign the same event handler to both tables
+            sensor_table.on('row-dblclick',  show_device_dialog)
+            actuator_table.on('row-dblclick', show_device_dialog)
+    #         with ui.column():
+    # # Action buttons below chips_row
+    #             with ui.row().classes("gap-2 mt-4"):
+    #                 # Cleaning Actions
+    #                 ui.button('Send Cleaning Team', on_click=lambda: None)
+    #                 ui.button('Clean Rooms', on_click=lambda: None)
+    #                 # Energy Optimization Actions
+    #                 ui.button('Save Energy', on_click=lambda: None)
+    #                 ui.button('Cancel Out Actuators', on_click=lambda: None)
+        ui.space()
 
     async def refresh_guest_devices():
         devs = await backend.list_devices(floor, room)

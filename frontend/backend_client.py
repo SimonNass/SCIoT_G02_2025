@@ -5,12 +5,11 @@ import httpx
 from dotenv import load_dotenv
 import random
 
-# ──────────  CONFIG  ──────────
+
 load_dotenv()
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:81").rstrip("/")
 API_KEY     = os.getenv("API_KEY",     "changeme")
 
-# ──────────  BACKEND CLIENT  ──────────
 class Backend:
     def __init__(self) -> None:
         self.cli = httpx.AsyncClient(
@@ -27,7 +26,7 @@ class Backend:
             return r.json()
 
     async def list_floors(self):           return (await self._get("/floors/list"))["floors"]
-    async def list_rooms (self, floor:int):return (await self._get(f"/floors/{floor}/rooms/list"))["rooms"]
+    async def list_rooms (self, floor:int): return (await self._get(f"/floors/{floor}/rooms/list"))["rooms"]
     async def list_devices(self, floor:int, room:str): return (await self._get(f"/floors/{floor}/rooms/{room}/devices/list"))["devices"]
 
     async def list_all_rooms(self)->list[dict]:
@@ -42,7 +41,7 @@ class Backend:
 
     # demo data
     async def seed_if_needed(self)->None:
-        # if await self.list_floors(): return
+        if await self.list_floors(): return
         meta=[(1,"Ground","Lobby / conf.",8),
               (2,"North","Std queen rooms",10),
               (3,"South","Deluxe / suite",6),
@@ -85,7 +84,6 @@ class Backend:
 
     async def set_device_offline(self, device_id: str):
         """Sets a specific device to offline status."""
-        # This endpoint doesn't require a body, so we send an empty payload.
         return await self._post(f"/devices/{device_id}/offline/set", {})
 
     async def set_bulk_devices_offline(self, minutes: int):
@@ -98,3 +96,43 @@ class Backend:
 
     async def clear_database(self):
         return await self._delete("/cleardb")
+
+    # PDDL plans retrieval
+
+    async def list_all_plans(self) -> dict:
+        """GET /api/planning/plans/list → {'plans': [...], 'total_plans': N}"""
+        return await self._get('/api/planning/plans/list')
+
+    async def list_plans_for_floor(self, floor_number: int) -> dict:
+        """GET /api/planning/floors/{floor_number}/plans/list"""
+        return await self._get(f'/api/planning/floors/{floor_number}/plans/list')
+
+    async def list_plans_for_room(self, room_number: str) -> dict:
+        """GET /api/planning/rooms/{room_number}/plans/list"""
+        return await self._get(f'/api/planning/rooms/{room_number}/plans/list')
+
+    async def get_latest_plan(self) -> dict:
+        """GET /api/planning/plans/latest → most recent plan object"""
+        return await self._get('/api/planning/plans/latest')
+
+    async def get_latest_plan_for_floor(self, floor_number: int) -> dict:
+        """GET /api/planning/floors/{floor_number}/plans/latest"""
+        return await self._get(f'/api/planning/floors/{floor_number}/plans/latest')
+
+    async def get_latest_plan_for_room(self, room_number: str) -> dict:
+        """GET /api/planning/rooms/{room_number}/plans/latest"""
+        return await self._get(f'/api/planning/rooms/{room_number}/plans/latest')
+
+    # Run planner on demand
+
+    async def run_planner_all(self) -> dict:
+        """GET /api/planning/run_planner → plan for entire building"""
+        return await self._get('/api/planning/run_planner')
+
+    async def run_planner_for_room(self, room_number: str) -> dict:
+        """GET /api/planning/run_planner/room/{room_number}"""
+        return await self._get(f'/api/planning/run_planner/room/{room_number}')
+
+    async def run_planner_for_room(self, room_number: str) -> dict:
+        """GET /api/planning/run_planner/room/{room_number}"""
+        return await self._get(f'/api/planning/run_planner/room/{room_number}')
