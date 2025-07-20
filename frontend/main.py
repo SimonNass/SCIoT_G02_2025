@@ -72,6 +72,7 @@ view_whole_building:bool=True
 rows_known:set[str]=set()
 device_timer=None
 plan_timer=None
+selected_rows=[]
 # Header
 def add_header(role: str = "Admin") -> None:
     with ui.header(elevated=False).classes("bg-primary text-white items-center"):
@@ -80,8 +81,8 @@ def add_header(role: str = "Admin") -> None:
         ui.label(role).classes("ml-auto text-sm text-white opacity-75")
 
 # Room detail area
-async def show_room(summary_column, floor_no:int, room:dict):
-    global device_timer, plan_timer
+async def show_room(summary_column, floor_no:int, room:dict, fetch_plan_on_load: bool = False):
+    global device_timer, plan_timer, selected_rows
     if device_timer: device_timer.cancel()
     if plan_timer: plan_timer.cancel()
 
@@ -117,11 +118,14 @@ async def show_room(summary_column, floor_no:int, room:dict):
 
     async def refresh_plan(container: ui.column):
         # We must enter the container's context before manipulating it or creating notifications.
+
         with container:
-            ui.notify("starting planning")
+            # ui.notify("starting planning")
             try:
-                res = await backend.get_latest_plan_for_room(vm.room_number)
-                ui.notify(res)
+
+                room_number = selected_rows[0]['room_number']
+                res = await backend.get_latest_plan_for_room(room_number)
+                ui.notify(f"Latest plan for room: {res}")
                 plan_vm = PlanVM.model_validate(res['latest_plan'])
 
                 container.clear()
@@ -190,7 +194,6 @@ async def show_room(summary_column, floor_no:int, room:dict):
                          ui.item_label("Plan found, but it contains no actions or instructions.").classes('q-pa-md')
 
             except Exception as e:
-                ui.notify(f"Error fetching plan: {e}", color='negative', multi_line=True)
                 container.clear()
                 ui.label("No plan available for this room.").classes("text-grey q-pa-md")
 
@@ -241,15 +244,17 @@ async def show_room(summary_column, floor_no:int, room:dict):
             ui.markdown("###### Latest AI Plan").classes("text-primary text-md")
             plan_container = ui.column().style("width:100%")
 
-        device_timer = ui.timer(10.0, lambda: refresh_devices(grid_dev))
-        plan_timer = ui.timer(15.0, lambda: refresh_plan(plan_container))
 
-    # Set up the device grid
+
+    with summary_column:
+        device_timer = ui.timer(10.0, lambda: refresh_devices(grid_dev))
+        if fetch_plan_on_load:
+            plan_timer = ui.timer(10.0, lambda: asyncio.create_task(refresh_plan(plan_container)), immediate=False)
+            # inital plan
+            await refresh_plan(plan_container)
+
     # Perform initial load
     await refresh_devices(grid_dev)
-    await refresh_plan(plan_container)
-
-    # Set up the timers, passing the UI elements into the callbacks using lambdas.
 
 
 
@@ -337,7 +342,9 @@ async def admin_dashboard():
                     if 'error' in res:
                         ui.notify(f"Planner error: {res['error']}", color='negative')
                     else:
-                        ui.notify('Planner started', color='positive')
+                        ui.notify(f"Planner finished: {res}", color='positive')
+                        floor_number = sel[0].get('floor_number') or current_floor
+                        await show_room(summary_column, floor_number, sel[0], fetch_plan_on_load=True)
 
                 async def toggle_occupancy():
                     # Get all selected rooms
@@ -469,8 +476,9 @@ async def admin_dashboard():
 
     # chip helper
     async def update_chips(grid):
+        global selected_rows
         sel = await grid.run_grid_method('getSelectedRows')
-
+        selected_rows = sel
         chips_row.clear()
         if not sel:
             with chips_row:
