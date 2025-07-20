@@ -24,7 +24,6 @@ class SensorInterface(ABC):
         self.last_value = self.general_iot_device.min_value
         self.last_value_timestamp = time.time()
         self.virtual_environment_impact = 0
-        self.roaw_sensor_value = 0
 
     def __str__(self):
         return str(self.__dict__())
@@ -37,14 +36,14 @@ class SensorInterface(ABC):
 
     def read_sensor(self):
         try:
-            self.roaw_sensor_value = self.read_internal_sensor()
-            manipulated_sensor_value = self.roaw_sensor_value + self.virtual_environment_impact
+            roaw_sensor_value = self.read_internal_sensor()
+            manipulated_sensor_value = roaw_sensor_value + self.virtual_environment_impact
             self.last_value = max(self.general_iot_device.min_value,min(self.general_iot_device.max_value,manipulated_sensor_value))
             self.last_value_timestamp = time.time()
             self.datatype = str(type(self.last_value))
-            print (f"{self.general_iot_device.id} : {self.general_iot_device.name} : {self.last_value} = {self.roaw_sensor_value} + {self.virtual_environment_impact}")
+            print (f"{self.general_iot_device.id} : {self.general_iot_device.name} : {self.last_value} = {roaw_sensor_value} + {self.virtual_environment_impact}")
             #print (f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value} = {roaw_sensor_value} + {self.virtual_environment_impact}")
-            logger.info(f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value} = {self.roaw_sensor_value} + {self.virtual_environment_impact}, type: {self.datatype}")
+            logger.info(f"uuid: {self.general_iot_device.id}, device name: {self.general_iot_device.name}, value: {self.last_value} = {roaw_sensor_value} + {self.virtual_environment_impact}, type: {self.datatype}")
             return self.__dict__()
         except (Exception, IOError, TypeError) as e:
             print ("read was unsucesful")
@@ -136,7 +135,7 @@ class VirtualSensor_numerical(SensorInterface):
     def read_internal_sensor(self):
         value = self.last_value
         if self.rng_selector == 0:
-            value = rng.constant(last_value=self.roaw_sensor_value, min_value=self.general_iot_device.min_value, max_value=self.general_iot_device.max_value)
+            value = rng.constant(last_value=self.last_value, min_value=self.general_iot_device.min_value, max_value=self.general_iot_device.max_value)
         elif self.rng_selector == 1:
             value = rng.simple_random(min_value=self.general_iot_device.min_value, max_value=self.general_iot_device.max_value)
         elif self.rng_selector == 2:
@@ -168,5 +167,5 @@ class VirtualSensor_binary(SensorInterface):
         if self.use_random:
             value = rng.binary_random()
         else:
-            value = rng.constant(last_value=self.roaw_sensor_value, min_value=self.general_iot_device.min_value, max_value=self.general_iot_device.max_value)
+            value = rng.constant(last_value=self.last_value, min_value=self.general_iot_device.min_value, max_value=self.general_iot_device.max_value)
         return value
