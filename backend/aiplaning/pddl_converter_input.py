@@ -61,12 +61,12 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
 
     # sensor_initial_values = {'s1': -1, 's2':1, 's3':-1}
     sensor_initial_values = get_sensor_initial_values(room_number)
-    # logging.info(f"sensor_initial_values: {sensor_initial_values}")
+    logging.info(f"sensor_initial_values: {sensor_initial_values}")
     # sensor_goal_values = {'s1': -1, 's2':1}
 
     # actuator_initial_values = {'a1': True, 'a2':False}
     actuator_initial_values = get_actuator_initial_values(room_number)
-    # logging.info(f"sensor_initial_values: {sensor_initial_values}")
+    logging.info(f"actuator_initial_values: {actuator_initial_values}")
     #for floor in floor_uids:
     #    for room in room_uids_per_floor[floor]:
     #        for device in sensor_room_mapping[room]:

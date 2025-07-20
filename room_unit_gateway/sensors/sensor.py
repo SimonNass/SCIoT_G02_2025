@@ -127,7 +127,7 @@ class VirtualSensor_numerical(SensorInterface):
         super().__init__(general_iot_device=general_iot_device, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
         self.rng_selector = rng_selector
         self.seed = seed
-        print(f'rng_selector : {self.rng_selector}, seed: {self.seed}')
+        #print(f'rng_selector : {self.rng_selector}, seed: {self.seed}')
         self.index = 0
         self.next_decrease = False
         _ = self.read_sensor()

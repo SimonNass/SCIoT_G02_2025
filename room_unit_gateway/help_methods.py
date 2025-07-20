@@ -25,7 +25,7 @@ def read_all_sensors(sensors: List[SensorInterface]):
 
 def read_all_actuators(actuators: List[ActuatorInterface]):
     for actuator in actuators:
-        print (f'{actuator.general_iot_device.name} has value {actuator.last_value}', flush=True)
+        print (f'{actuator.general_iot_device.id} : actuator {actuator.general_iot_device.name} = {actuator.last_value}', flush=True)
 
 def write_all_actuators(actuators: List[ActuatorInterface], value: int):
     for actuator in actuators:
@@ -98,7 +98,7 @@ def execution_cycle(sensors: List[SensorInterface],actuators: List[ActuatorInter
             #read_all_sensors(sensors)
             #write_all_actuators(actuators, cycle % 2)
             #write_all_displays(actuators,"12345678910131517192123252729313335")
-            #read_all_actuators(actuators)
+            read_all_actuators(actuators)
             cyclic_read(sensors,actuators,cycle,network_connection)
             cyclic_actuator_read(actuators, network_connection)
 
