@@ -142,6 +142,7 @@ def create_actuator_actions_binary_sensors(execution_mapper: pddl_actions_to_exe
     is_activated = predicates_dict["is_activated"]
     is_changed = predicates_dict["is_changed"]
     is_locked = predicates_dict["is_locked"]
+    has_initial_state = predicates_dict["has_initial_state"]
 
     # construct compound predicates
     works_together = lambda s1, p1, r1 : positioned_at(s1, p1) & sensor_is_part_of_room(s1, r1) & ~is_locked(s1)
@@ -153,7 +154,7 @@ def create_actuator_actions_binary_sensors(execution_mapper: pddl_actions_to_exe
         action_name = ("increase" if increase ^ (not activated_a) else "decrease")
         action_name = action_name + "_s_binary_by"
         action_name = action_name + ("_activating" if activated_a else "_deactivating")
-        pre = base.And(works_together(binary_s_type, room_position_type, room_type), ~is_changed(actuator_type))
+        pre = base.And(works_together(binary_s_type, room_position_type, room_type), ~is_changed(actuator_type), has_initial_state(actuator_type))
         if increase:
             pre = base.And(pre, actuator_increases_sensor(actuator_type, binary_s_type))
         else:
@@ -170,7 +171,7 @@ def create_actuator_actions_binary_sensors(execution_mapper: pddl_actions_to_exe
         else:
             pre = base.And(pre, is_activated(actuator_type))
             eff = base.And(eff, ~is_activated(actuator_type))
-        eff = base.And(eff, base.Not(predicates_dict["has_initial_state"](binary_s_type)))
+        eff = base.And(eff, base.Not(has_initial_state(binary_s_type)), base.Not(has_initial_state(actuator_type)))
 
         binary_sensor_actuator_change = Action(
             action_name,
@@ -209,7 +210,7 @@ def create_actuator_actions_binary_sensors(execution_mapper: pddl_actions_to_exe
         else:
             pre = base.And(pre, is_changed(actuator_type))
             eff = base.And(eff, ~is_changed(actuator_type))
-        eff = base.And(eff, base.Not(predicates_dict["has_initial_state"](binary_s_type)))
+        eff = base.And(eff, base.Not(has_initial_state(binary_s_type)), base.Not(has_initial_state(actuator_type)))
 
         binary_sensor_actuator_change = Action(
             action_name,
@@ -219,9 +220,7 @@ def create_actuator_actions_binary_sensors(execution_mapper: pddl_actions_to_exe
         )
         actions_list.append(binary_sensor_actuator_change)
         planer_tags = [PlanerTag.Change_Sensor_Intent]
-        if not activated_a:
-            planer_tags.append(PlanerTag.Actuator_Off)
-        elif increase:
+        if increase:
             planer_tags.append(PlanerTag.Actuator_Increse)
         else:
             planer_tags.append(PlanerTag.Actuator_Decrese)
@@ -244,6 +243,7 @@ def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_
     is_activated = predicates_dict["is_activated"]
     is_changed = predicates_dict["is_changed"]
     is_locked = predicates_dict["is_locked"]
+    has_initial_state = predicates_dict["has_initial_state"]
 
     # construct compound predicates
     works_together = lambda s1, p1, r1 : positioned_at(s1, p1) & sensor_is_part_of_room(s1, r1) & ~is_locked(s1)
@@ -261,7 +261,7 @@ def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_
             action_name = action_name + "_s_numerical"
             action_name = action_name + f"_{sensor_buckets_sortet[i]}_to_{sensor_buckets_sortet[i + 1]}"
             action_name = action_name + ("_activating" if activated_a else "_deactivating")
-            pre = base.And(works_together(numerical_s_type, room_position_type, room_type), ~is_changed(actuator_type))
+            pre = base.And(works_together(numerical_s_type, room_position_type, room_type), ~is_changed(actuator_type), has_initial_state(actuator_type))
             if increase:
                 pre = base.And(pre, actuator_increases_sensor(actuator_type, numerical_s_type))
             else:
@@ -278,7 +278,7 @@ def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_
             else:
                 pre = base.And(pre, is_activated(actuator_type))
                 eff = base.And(eff, ~is_activated(actuator_type))
-            eff = base.And(eff, base.Not(predicates_dict["has_initial_state"](numerical_s_type)))
+            eff = base.And(eff, base.Not(has_initial_state(numerical_s_type)), base.Not(has_initial_state(actuator_type)))
 
             numerical_sensor_actuator_change = Action(
                 action_name,
@@ -321,7 +321,7 @@ def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_
             else:
                 pre = base.And(pre, is_changed(actuator_type))
                 eff = base.And(eff, ~is_changed(actuator_type))
-            eff = base.And(eff, base.Not(predicates_dict["has_initial_state"](numerical_s_type)))
+            eff = base.And(eff, base.Not(has_initial_state(numerical_s_type)), base.Not(has_initial_state(actuator_type)))
 
             numerical_sensor_actuator_change = Action(
                 action_name,
@@ -331,9 +331,7 @@ def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_
             )
             actions_list.append(numerical_sensor_actuator_change)
             planer_tags = [PlanerTag.Change_Sensor_Intent]
-            if not activated_a:
-                planer_tags.append(PlanerTag.Actuator_Off)
-            elif increase:
+            if increase:
                 planer_tags.append(PlanerTag.Actuator_Increse)
             else:
                 planer_tags.append(PlanerTag.Actuator_Decrese)
@@ -346,6 +344,7 @@ def create_actuator_actions_numerical_sensors(execution_mapper: pddl_actions_to_
         effect=base.Not(is_changed(actuator_type))
     )
     actions_list.append(remove_actuator_change_flag)
+    execution_mapper.add_action("remove_actuator_change_flag", [actuator_type], [PlanerTag.Change_Sensor_Intent, PlanerTag.Helper])
 
     return actions_list
 

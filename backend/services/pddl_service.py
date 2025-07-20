@@ -86,7 +86,9 @@ class PDDLPlannerService:
             
             if result.get('status') == 'ok':
                 self.logger.info(f"Planning problem solved successfully")
+
                 plan_result = result.get('result', {})
+                self.logger.info(plan_result)
                 
                 if planner == "lama-first":
                     plan_actions, cost, planner_time, raw_plan = parse_values_lama_first(plan_result)
@@ -97,6 +99,8 @@ class PDDLPlannerService:
                 else:
                     # Default to lama-first parser for unknown planners
                     plan_actions, cost, planner_time, raw_plan = parse_values_lama_first(plan_result)
+
+                self.logger.info(plan_actions)
 
                 result_data = {
                     'success': True,

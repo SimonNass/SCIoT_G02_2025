@@ -90,9 +90,11 @@ def create_predicates_variables_sensors(pddl_variable_types: Dict[str,List[varia
 
     sensor_type = pddl_variable_types["sensor"][0]
     numerical_s_type = pddl_variable_types["numerical_s"][0]
+    iot_type = pddl_variable_types["iot"][0]
 
-    has_initial_state = Predicate("has_initial_state", sensor_type)
+    has_initial_state = Predicate("has_initial_state", iot_type)
     predicates_dict.update({"has_initial_state":has_initial_state})
+
     is_locked = Predicate("is_locked", sensor_type)
     predicates_dict.update({"is_locked":is_locked})
 

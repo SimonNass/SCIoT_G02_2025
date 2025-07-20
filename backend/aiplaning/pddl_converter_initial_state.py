@@ -205,6 +205,8 @@ def create_actuator_values(predicates_dict: Dict[str,variables], floor_uids: Lis
             if object_state:
                 state = is_activated(actuator_object)
             initial_state.append(state)
+            has_initial_state = predicates_dict["has_initial_state"](actuator_object)
+            initial_state.append(has_initial_state)
 
     return initial_state
 

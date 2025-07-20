@@ -80,6 +80,10 @@ class pddl_actions_to_execution_mapper():
             filtered_plan = [planed_action for planed_action in filtered_plan if planed_action not in ['REACH-GOAL','(REACH-GOAL)','REACH-GOAL'.lower(),'(REACH-GOAL)'.lower()]]
             filtered_plan = [planed_action.split(' ') for planed_action in filtered_plan]
 
+        except Exception as e:
+            logging.error({'Error parsing plan to usable information transform to workable substructure instead of just a streing': str(e)})
+
+        try: 
             get_tags = lambda planed_action : self.pddl_actions_to_execution_map[planed_action[0]][1]
             filter_plans_positive = lambda filtered_plan, filter : [planed_action for planed_action in filtered_plan if filter in get_tags(planed_action)]
             filter_plans_negative = lambda filtered_plan, filter : [planed_action for planed_action in filtered_plan if filter not in get_tags(planed_action)]
@@ -105,7 +109,6 @@ class pddl_actions_to_execution_mapper():
             
             logging.info(f"Cleaning plan: {cleaning_plan}")
             logging.info(f"Detected activitys plan: {detected_activity_plan}")
-            print(f"Detected activitys plan: {detected_activity_plan}")
             logging.info(f"Increase actuator plans: {increse_actuator_plans}")
             logging.info(f"Turn off actuator plans: {turn_off_actuator_plans}")
             logging.info(f"Decrese Actuator actuator plans: {decrese_actuator_plans}")
