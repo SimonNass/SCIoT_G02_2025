@@ -542,41 +542,39 @@ def create_energy_saving_actions(execution_mapper: pddl_actions_to_execution_map
     is_activated = predicates_dict["is_activated"]
     is_changed = predicates_dict["is_changed"]
 
-    # TODO these will never trigger since it makes the kost optimisation worse without a benefit the planer can see
-    cancel_out_actuator = Action(
-        "cancel_out_actuator_off",
-        parameters=[sensor_type, actuator_type, actuator2_type, room_type],
-        precondition= base.Not(EqualTo(actuator_type, actuator2_type))
-                        & sensor_is_part_of_room(sensor_type, room_type)
-                        & actuator_increases_sensor(actuator_type, sensor_type)
-                        & actuator_decreases_sensor(actuator2_type, sensor_type)
-                        & is_activated(actuator_type)
-                        & is_activated(actuator2_type)
-                        & ~is_changed(actuator_type)
-                        & ~is_changed(actuator2_type),
-        effect= ~is_activated(actuator_type)
-                & ~is_activated(actuator2_type)
-    )
-    actions_list.append(cancel_out_actuator)
-    execution_mapper.add_action("cancel_out_actuator_off", [sensor_type, actuator_type, actuator2_type, room_type], [PlanerTag.Save_Energy_Intent, PlanerTag.Actuator_Cancle_Out, PlanerTag.Actuator_Off])
+    #cancel_out_actuator = Action(
+    #    "cancel_out_actuator_off",
+    #    parameters=[sensor_type, actuator_type, actuator2_type, room_type],
+    #    precondition= base.Not(EqualTo(actuator_type, actuator2_type))
+    #                    & sensor_is_part_of_room(sensor_type, room_type)
+    #                    & actuator_increases_sensor(actuator_type, sensor_type)
+    #                    & actuator_decreases_sensor(actuator2_type, sensor_type)
+    #                    & is_activated(actuator_type)
+    #                    & is_activated(actuator2_type)
+    #                    & ~is_changed(actuator_type)
+    #                    & ~is_changed(actuator2_type),
+    #    effect= ~is_activated(actuator_type)
+    #            & ~is_activated(actuator2_type)
+    #)
+    #actions_list.append(cancel_out_actuator)
+    #execution_mapper.add_action("cancel_out_actuator_off", [sensor_type, actuator_type, actuator2_type, room_type], [PlanerTag.Save_Energy_Intent, PlanerTag.Actuator_Cancle_Out, PlanerTag.Actuator_Off])
 
-    # TODO these will never trigger since it makes the kost optimisation worse without a benefit the planer can see
-    cancel_out_actuator = Action(
-        "cancel_out_actuator_changed",
-        parameters=[sensor_type, actuator_type, actuator2_type, room_type],
-        precondition= base.Not(EqualTo(actuator_type, actuator2_type))
-                        & sensor_is_part_of_room(sensor_type, room_type)
-                        & actuator_increases_sensor(actuator_type, sensor_type)
-                        & actuator_decreases_sensor(actuator2_type, sensor_type)
-                        & is_activated(actuator_type)
-                        & is_activated(actuator2_type)
-                        & is_changed(actuator_type)
-                        & is_changed(actuator2_type),
-        effect= ~is_changed(actuator_type)
-                & ~is_changed(actuator2_type)
-    )
-    actions_list.append(cancel_out_actuator)
-    execution_mapper.add_action("cancel_out_actuator_changed", [sensor_type, actuator_type, actuator2_type, room_type], [PlanerTag.Save_Energy_Intent, PlanerTag.Actuator_Cancle_Out, PlanerTag.Actuator_Increse, PlanerTag.Actuator_Decrese])
+    #cancel_out_actuator = Action(
+    #    "cancel_out_actuator_changed",
+    #    parameters=[sensor_type, actuator_type, actuator2_type, room_type],
+    #    precondition= base.Not(EqualTo(actuator_type, actuator2_type))
+    #                    & sensor_is_part_of_room(sensor_type, room_type)
+    #                    & actuator_increases_sensor(actuator_type, sensor_type)
+    #                    & actuator_decreases_sensor(actuator2_type, sensor_type)
+    #                    & is_activated(actuator_type)
+    #                    & is_activated(actuator2_type)
+    #                    & is_changed(actuator_type)
+    #                    & is_changed(actuator2_type),
+    #    effect= ~is_changed(actuator_type)
+    #            & ~is_changed(actuator2_type)
+    #)
+    #actions_list.append(cancel_out_actuator)
+    #execution_mapper.add_action("cancel_out_actuator_changed", [sensor_type, actuator_type, actuator2_type, room_type], [PlanerTag.Save_Energy_Intent, PlanerTag.Actuator_Cancle_Out, PlanerTag.Actuator_Increse, PlanerTag.Actuator_Decrese])
 
     save_energy = Action(
         "save_energy",

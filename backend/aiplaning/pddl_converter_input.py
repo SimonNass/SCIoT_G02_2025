@@ -105,7 +105,7 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
     if use_activity_sensor_goals:
         activity_detect_mapping = {"read":{"chair_s":"is_sensing", "power_consumption_s":"is_low"},
                                     "on_the_phone":{"chair_s":"is_sensing", "power_consumption_s":"is_ok"},
-                                    "work":{"chair_s":"is_sensing", "power_consumption_s":"is_high"},
+                                    "work":{"chair_s":"is_sensing", "power_consumption_s":"is_high", "bed_s":"~is_sensing"},
                                     "sleep":{"bed_s":"is_sensing", "TV_volume_s":"~is_high"},
                                     "bath":{"shower_s":"is_sensing", "chair_s":"~is_sensing", "bed_s":"~is_sensing"},
                                     "dress":{"chair_s":"~is_sensing", "bed_s":"~is_sensing", "shower_s":"~is_sensing", "motion_s":"is_sensing"},
