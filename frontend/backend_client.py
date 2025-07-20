@@ -41,6 +41,7 @@ class Backend:
 
     # demo data
     async def seed_if_needed(self)->None:
+        # await self.clear_database()
         if await self.list_floors(): return
         meta=[(1,"Ground","Lobby / conf.",8),
               (2,"North","Std queen rooms",10),
@@ -93,6 +94,20 @@ class Backend:
     async def delete_device(self, device_id: str):
         """Deletes a specific device."""
         return await self._delete(f"/devices/{device_id}/delete")
+
+    async def list_type_name_configs(self):
+        """Gets all type name configurations."""
+        return (await self._get("/type_name_configs/list"))["configs"]
+
+    async def set_type_name_config(self, device_type: str, type_name: str, lower_mid_limit: float, upper_mid_limit: float):
+        """Sets the threshold values for a specific type name config."""
+        payload = {
+            "device_type": device_type,
+            "type_name": type_name,
+            "lower_mid_limit": lower_mid_limit,
+            "upper_mid_limit": upper_mid_limit
+        }
+        return await self._post("/type_name_configs/set", payload)
 
     async def clear_database(self):
         return await self._delete("/cleardb")
