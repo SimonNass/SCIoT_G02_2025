@@ -175,6 +175,7 @@ def save_to_database(
         planner_used: str,
         cleaning_plan: list,
         filtered_plan: list,
+        detected_activity_plan: list,
         scope: PlanScope = PlanScope.BUILDING,
         target_room_number: Optional[str] = None,
         ):
@@ -214,7 +215,8 @@ def save_to_database(
                 planner_used=planner_used,
                 raw_plan=plan_data.get('raw_plan', ''),
                 cleaning_plan=cleaning_plan,
-                filtered_plan=filtered_plan
+                filtered_plan=filtered_plan,
+                detected_activity_plan=detected_activity_plan
             )
 
             db.session.add(plan)
