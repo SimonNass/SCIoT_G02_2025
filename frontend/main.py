@@ -170,7 +170,7 @@ async def show_room(summary_column, floor_no:int, room:dict):
                                 with ui.item_section().props("avatar"):
                                     ui.icon("visibility", color="accent")
                                 with ui.item_section():
-                                    ui.item_label(activity.replace('_', ' ').title())
+                                    ui.item_label(" ".join(activity).replace('_', ' ').title())
 
                 # cleaning plan
                 if plan_vm.cleaning_plan:
@@ -182,7 +182,8 @@ async def show_room(summary_column, floor_no:int, room:dict):
                                 with ui.item_section().props("avatar"):
                                     ui.icon("cleaning_services", color="info")
                                 with ui.item_section():
-                                    ui.item_label(instruction.replace('_', ' ').title())
+                                    ui.item_label(" ".join(instruction).replace('_', ' ').title())
+
 
                 if not has_any_content:
                     with ui.list().props("bordered"):
