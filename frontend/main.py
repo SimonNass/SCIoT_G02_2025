@@ -121,7 +121,8 @@ async def show_room(summary_column, floor_no:int, room:dict):
             ui.notify("starting planning")
             try:
                 res = await backend.get_latest_plan_for_room(vm.room_number)
-                ui.notify(res)
+                #ui.notify(res)
+                ui.notify("received plan")
                 plan_vm = PlanVM.model_validate(res['latest_plan'])
 
                 container.clear()
@@ -163,24 +164,24 @@ async def show_room(summary_column, floor_no:int, room:dict):
                 # detected activities
                 if plan_vm.detected_activity_plan:
                     has_any_content = True
-                    ui.markdown("###### Detected Activities").classes("text-accent text-md mt-4")
+                    ui.markdown("###### Detected Activities").classes("text-primary text-md mt-4")
                     with ui.list().props("bordered separator"):
                         for activity in plan_vm.detected_activity_plan:
                             with ui.item():
                                 with ui.item_section().props("avatar"):
-                                    ui.icon("visibility", color="accent")
+                                    ui.icon("visibility", color="primary")
                                 with ui.item_section():
                                     ui.item_label(" ".join(activity).replace('_', ' ').title())
 
                 # cleaning plan
                 if plan_vm.cleaning_plan:
                     has_any_content = True
-                    ui.markdown("###### Cleaning Instructions").classes("text-info text-md mt-4")
+                    ui.markdown("###### Cleaning Instructions").classes("text-primary text-md mt-4")
                     with ui.list().props("bordered separator"):
                         for instruction in plan_vm.cleaning_plan:
                             with ui.item():
                                 with ui.item_section().props("avatar"):
-                                    ui.icon("cleaning_services", color="info")
+                                    ui.icon("cleaning_services", color="primary")
                                 with ui.item_section():
                                     ui.item_label(" ".join(instruction).replace('_', ' ').title())
 
