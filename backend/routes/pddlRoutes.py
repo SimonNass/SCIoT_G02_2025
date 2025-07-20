@@ -383,6 +383,7 @@ def run_planner_all():
             'created_at': plan.created_at.isoformat(),
             'filtered_plan': plan.filtered_plan,
             'cleaning_plan': plan.cleaning_plan,
+            'detected_activity_plan': plan.detected_activity_plan,
             'steps': []
         }
         
@@ -418,6 +419,7 @@ def run_planner_specific_room(room_number):
             'created_at': plan.created_at.isoformat(),
             'filtered_plan': plan.filtered_plan,
             'cleaning_plan': plan.cleaning_plan,
+            'detected_activity_plan': plan.detected_activity_plan,
             'steps': []
         }
         
