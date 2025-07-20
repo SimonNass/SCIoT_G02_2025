@@ -97,7 +97,7 @@ class Backend:
     async def clear_database(self):
         return await self._delete("/cleardb")
 
-       # PDDL plans retrieval
+    # PDDL plans retrieval
 
     async def list_all_plans(self) -> dict:
         """GET /api/planning/plans/list → {'plans': [...], 'total_plans': N}"""
