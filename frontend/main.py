@@ -21,8 +21,7 @@ class RoomVM(BaseModel):
     floor_number:int|None = None
     floor_name:str| None = None
     devices:list = []
-    @property
-    def device_count(self): return len(self.devices)
+    device_count: int
 
 class DeviceVM(BaseModel):
     id: str
@@ -73,6 +72,7 @@ rows_known:set[str]=set()
 device_timer=None
 plan_timer=None
 selected_rows=[]
+viewed_room_number: str | None = None
 # Header
 def add_header(role: str = "Admin") -> None:
     with ui.header(elevated=False).classes("bg-primary text-white items-center"):
@@ -82,9 +82,10 @@ def add_header(role: str = "Admin") -> None:
 
 # Room detail area
 async def show_room(summary_column, floor_no:int, room:dict, fetch_plan_on_load: bool = False):
-    global device_timer, plan_timer, selected_rows
+    global device_timer, plan_timer, selected_rows, viewed_room_number
     if device_timer: device_timer.cancel()
     if plan_timer: plan_timer.cancel()
+    viewed_room_number = room['room_number']
 
     summary_column.clear()
     vm = RoomVM.model_validate(room)
@@ -143,7 +144,7 @@ async def show_room(summary_column, floor_no:int, room:dict, fetch_plan_on_load:
                     has_any_content = True
                     ui.markdown("###### Steps").classes("text-primary text-md mt-4")
                     with ui.list().props("bordered separator"):
-                        ui.notify(plan_vm.steps)
+                        # ui.notify(plan_vm.steps)
                         for step in sorted(plan_vm.steps, key=lambda s: s.step_order):
                             with ui.item():
                                 with ui.item_section().props("avatar"):
@@ -202,7 +203,8 @@ async def show_room(summary_column, floor_no:int, room:dict, fetch_plan_on_load:
         with ui.card().props("flat bordered").style("width:100%"):
             ui.markdown(f"###### Room {vm.room_number}").classes("text-primary text-md")
             with ui.row().classes("gap-2"):
-                ui.chip("Occupied", icon="hotel",
+                ui.chip(f"{'Occupied' if vm.is_occupied else 'Vacant'}",
+                        icon=f"{'person' if vm.is_occupied else 'person_outline'}",
                         color="red" if vm.is_occupied else "green").props("outline square")
                 ui.chip(vm.room_type or "-", icon="info",
                         color="cyan").props("outline square")
@@ -301,6 +303,11 @@ async def admin_dashboard():
                                 {"headerName":"Type","field":"room_type","width":100},
                                 {"headerName":"Capacity","field":"capacity","width":100},
                                 # {"headerName":"Occupancy","field":"is_occupied","width":120},
+                                {
+                                    "headerName": "Occupancy", "field": "is_occupied", "width": 120,
+                                    "editable": True, # Make the cell interactive
+                                    "cellRenderer": 'agCheckboxCellRenderer' # Tell it to render as a checkbox
+                                },
                                 # {"headerName":"Last Cleaned","field":"last_cleaned","width":130},
                                 # {"headerName":"Created","field":"created_at","width":130},
                             ],
@@ -313,7 +320,7 @@ async def admin_dashboard():
                 # building grid
                 grid_building = ui.aggrid(
                     {
-                        "rowSelection":"multiple",
+                        "rowSelection":"single",
                         "suppressRowClickSelection":True,
                         "columnDefs":[
                             {"headerName":"Floor","field":"floor_number","checkboxSelection":True,"width":90,"sortable":True},
@@ -321,6 +328,11 @@ async def admin_dashboard():
                             {"headerName":"Type","field":"room_type","width":100},
                             {"headerName":"Capacity","field":"capacity","width":100},
                             # {"headerName":"Occupancy","field":"is_occupied","width":120},
+                            {
+                                "headerName": "Occupancy", "field": "is_occupied", "width": 120,
+                                "editable": True, # Make the cell interactive
+                                "cellRenderer": 'agCheckboxCellRenderer' # Tell it to render as a checkbox
+                            },
                             # {"headerName":"#Devices","field":"device_count","width":120},
                             # {"headerName":"Created","field":"created_at","width":130},
                         ],
@@ -346,42 +358,6 @@ async def admin_dashboard():
                         floor_number = sel[0].get('floor_number') or current_floor
                         await show_room(summary_column, floor_number, sel[0], fetch_plan_on_load=True)
 
-                async def toggle_occupancy():
-                    # Get all selected rooms
-                    sel = await grid_building.run_grid_method('getSelectedRows') or await grid_per_floor.run_grid_method('getSelectedRows')
-                    if not sel:
-                        ui.notify('Please select a room to toggle occupancy.', color='warning')
-                        return
-                    room_data = sel[0]
-                    room_number = room_data['room_number']
-                    floor_number = room_data.get('floor_number') or current_floor
-                    new_status = not room_data['is_occupied']
-
-                    ui.notify(f'Toggling room {room_number} occupancy', spinner=True)
-                    try:
-                        await backend.set_room_occupancy(floor_number, room_number, new_status)
-                        ui.notify('Occupancy updated successfully.', color='positive')
-                    except Exception as e:
-                        ui.notify(f"Error updating room {room_number}: {e}", color='negative')
-                        return
-                    # refresh the main grid on the left
-                    if grid_building.visible:
-                        await refresh_building()
-                    else:
-                        await refresh_per_floor()
-                    # refresh the detail view on the right
-                    # Fetch the latest data for all rooms on that floor to get the new is_occupied
-                    all_rooms_on_floor = await backend.list_rooms(floor_number)
-                    # Find the specific room we just updated
-                    fresh_room_data = next((r for r in all_rooms_on_floor if r['room_number'] == room_number), None)
-                    if fresh_room_data:
-                        # run show_room to rebuild the right pane
-                        await show_room(summary_column, floor_number, fresh_room_data)
-                    # refresh the grid to show the new state
-                    if grid_building.visible:
-                        await refresh_building()
-                    else:
-                        await refresh_per_floor()
 
                 with ui.row().classes("items-center"):
                     # ui.icon("auto_awesome").classes("text-primary")
@@ -394,8 +370,8 @@ async def admin_dashboard():
                         text_color='white').props('outline square')
 
                 with ui.row().classes("gap-2 mt-4"):
-                     ui.button('Run Planner for Selected Room', on_click=run_plan_for_room)
-                     ui.button('Toggle Occupancy', on_click=toggle_occupancy, color='secondary')
+                     ui.button('Run Planner', on_click=run_plan_for_room)
+                    #  ui.button('Toggle Occupancy', on_click=toggle_occupancy, color='secondary')
            # Thresholds card
             with ui.card().props("flat bordered").style("width:100%"):
                 with ui.row().classes("items-center"):
@@ -405,7 +381,7 @@ async def admin_dashboard():
                 async def save_changes(e):
                     # When a cell value is changed, this event is fired
                     row = e.args['data']
-                    ui.notify(f"Updating thresholds for {row['type_name']}...")
+                    # ui.notify(f"Updating thresholds for {row['type_name']}...")
                     try:
                         await backend.set_type_name_config(
                             row['device_type'],
@@ -413,7 +389,7 @@ async def admin_dashboard():
                             float(row['lower_mid_limit']),
                             float(row['upper_mid_limit'])
                         )
-                        ui.notify(f"Successfully updated {row['type_name']}.", color='positive')
+                        # ui.notify(f"Successfully updated {row['type_name']}.", color='positive')
                     except Exception as ex:
                         ui.notify(f"Error updating: {ex}", color='negative')
 
@@ -441,7 +417,21 @@ async def admin_dashboard():
         summary_column = ui.column()
 
 
+    async def handle_occupancy_edit(e):
+        global viewed_room_number # Access the global state
+        try:
+            row_data = e.args['data']
+            new_status = row_data['is_occupied']
+            room_number = row_data['room_number']
+            floor_number = row_data.get('floor_number') or current_floor
+            await backend.set_room_occupancy(floor_number, room_number, new_status)
+            if room_number == viewed_room_number:
+                 await show_room(summary_column, floor_number, row_data)
 
+        except Exception as ex:
+            # ui.notify(f"Error updating occupancy: {ex}", color='negative')
+            if grid_building.visible: await refresh_building()
+            else: await refresh_per_floor()
 
 
     async def refresh_building():
@@ -498,6 +488,8 @@ async def admin_dashboard():
     # grid event wiring
     grid_building.on("selectionChanged", lambda e: asyncio.create_task(update_chips(grid_building)))
     grid_building.on('cellDoubleClicked', on_cell_double_clicked)
+    grid_building.on('cellValueChanged', handle_occupancy_edit)
+
 
     grid_per_floor.on("selectionChanged", lambda e: asyncio.create_task(update_chips(grid_per_floor)))
     grid_per_floor.on('cellDoubleClicked', on_cell_double_clicked)
@@ -506,6 +498,7 @@ async def admin_dashboard():
         lambda e: asyncio.create_task(show_room(summary_column, e.args["data"]["floor_number"], e.args["data"])))
     grid_per_floor.on("cellClicked",
         lambda e: asyncio.create_task(show_room(summary_column, current_floor, e.args["data"])))
+    grid_per_floor.on('cellValueChanged', handle_occupancy_edit)
 
     # pager behaviour
     async def load_floor(page:int):
@@ -584,7 +577,7 @@ async def guest_view(floor: int, room: str):
                 with ui.row().classes('w-full justify-end'):
                     async def handle_done():
                         await backend.set_actuator_value(device.device_id, slider.value)
-                        ui.notify(f"Setting {device.name} to {slider.value:.2f}")
+                        # ui.notify(f"Setting {device.name} to {slider.value:.2f}")
                         await refresh_guest_devices() # Refresh to see the change
                         dialog.close()
 
@@ -608,7 +601,7 @@ async def guest_view(floor: int, room: str):
                     async def handle_done():
                         await backend.set_sensor_value(device.device_id, slider.value)
                         # await backend.set_actuator_value(device.device_id, slider.value)
-                        ui.notify(f"Setting {device.name} to {slider.value:.2f}")
+                        # ui.notify(f"Setting {device.name} to {slider.value:.2f}")
                         await refresh_guest_devices() # Refresh to see the change
                         dialog.close()
 
