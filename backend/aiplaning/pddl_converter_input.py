@@ -9,7 +9,7 @@ from backend.aiplaning.utils.dbUtils import get_floor_uids, get_room_uids_per_fl
 from backend.mqtt.utils.mappingParserUtils import get_actuator_sensor_matrices
 from typing import List, Dict, Optional
 
-def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, sensor_initial_locked: Optional[List[str]] = [], room_number: str = None, plan_cleaning: bool = False):
+def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, sensor_initial_locked: Optional[List[str]] = [], room_number: str = None, plan_cleaning: bool = False, plan_activitys: bool = True):
     domain_name = "test_SCIoT_G02_2025"
     problem_name = 'test'
     output_path = 'auto_generated/'
@@ -87,6 +87,7 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
 
     use_defoult_sensor_goals = True
     use_activity_sensor_goals = True
+
     sensor_goal_state_mapping = {}
     if use_defoult_sensor_goals:
         sensor_goal_state_mapping = {"temperature_s":"is_ok",
@@ -126,6 +127,7 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
             'problem_file_name':problem_file_name,
 
             'plan_cleaning': plan_cleaning,
+            'plan_activitys': plan_activitys,
 
             'floor_uids':floor_uids,
             'room_uids_per_floor':room_uids_per_floor,
@@ -170,7 +172,8 @@ def query_input_over_config_file(config_file_name: os.path = "aiplaning/config/a
     output_path = str(config.get('General', 'output_path', fallback="auto_generated/"))
     domaine_file_name = str(config.get('General', 'domaine_file_name', fallback="test_domain"))
     problem_file_name = str(config.get('General', 'problem_file_name', fallback="test_problem"))
-    plan_cleaning = bool(config.get('General', 'plan_cleaning', fallback=False) in [True, 'True'])
+    plan_cleaning = bool(config.get('General', 'plan_cleaning', fallback=True) in [True, 'True'])
+    plan_activitys = bool(config.get('General', 'plan_activitys', fallback=True) in [True, 'True'])
 
     # Topology
     floor_uids = json.loads(config.get('Topology', 'floor_uids', fallback='[]'))
@@ -206,6 +209,7 @@ def query_input_over_config_file(config_file_name: os.path = "aiplaning/config/a
             'problem_file_name':problem_file_name,
 
             'plan_cleaning':plan_cleaning,
+            'plan_activitys':plan_activitys,
 
             'floor_uids':floor_uids,
             'room_uids_per_floor':room_uids_per_floor,
@@ -250,6 +254,7 @@ def query_input(over_config_file: bool = False, config_file_name: os.path = ''):
 #   'domaine_file_name':domaine_file_name, > str
 #   'problem_file_name':problem_file_name, > str
 #   'plan_cleaning':False, > bool
+#   'plan_activitys':False, > bool
 #   'floor_uids':floor_uids, > List[uuid as str]
 #   'room_uids_per_floor':room_uids_per_floor, > Dict[uuid as str, List[uuid as str]]
 #   'elevator_uids':elevator_uids, > List[uuid as str]
