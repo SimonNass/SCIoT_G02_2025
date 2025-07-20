@@ -41,6 +41,10 @@ class ActuatorInterface(ABC):
         return return_dict
 
     def write_actuator(self, value: float):
+        time_now = time.time()
+        if time_now - self.last_value_timestamp < 5:
+            print("time to close")
+            return
         write_value = max(self.general_iot_device.min_value,min(self.general_iot_device.max_value,value))
         if not self.is_valid(write_value):
             text = f"value {value} is out of the allowed interval [{self.general_iot_device.min_value},{self.general_iot_device.max_value}] for this actuator"
