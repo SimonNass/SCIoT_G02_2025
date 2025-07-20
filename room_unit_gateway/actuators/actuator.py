@@ -50,7 +50,8 @@ class ActuatorInterface(ABC):
             text = f"value {value} is out of the allowed interval [{self.general_iot_device.min_value},{self.general_iot_device.max_value}] for this actuator"
             raise ValueError(text)
         try:
-            _ = self.write_internal_actuator(write_value)
+            analog_set_value = self.write_internal_actuator(write_value)
+            print(f'set to {analog_set_value}')
             self.last_value_timestamp = time.time()
             self.last_value = write_value
             self.general_iot_device.datatype = str(type(self.last_value))
@@ -99,6 +100,7 @@ class AnalogActuator(ActuatorInterface):
             logger.error(f"{self.general_iot_device.name}: write was unsucesful {e}")
 
     def write_internal_actuator(self, write_value: float):
+        print(f'{write_value} to {int(write_value)}')
         return grovepi.analogWrite(self.general_iot_device.i2c_connector,int(write_value))
 
 class DigitalActuator(ActuatorInterface):
