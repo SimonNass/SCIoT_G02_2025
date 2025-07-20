@@ -167,6 +167,10 @@ def get_actuator_initial_values(room_number=None):
             if is_off is None:
                 is_off = True
             actuator_values[device_id] = is_off
+
+        # invert from is_off in db and gateway to is activated in ai planner
+        for device_id, is_off in actuator_values.items():
+            actuator_values[device_id] = not is_off
         
         return actuator_values
     
