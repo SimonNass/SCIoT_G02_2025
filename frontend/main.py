@@ -67,6 +67,7 @@ class PlanVM(BaseModel):
 
 # State
 current_floor:int|None=None
+current_rooom_dbclick = None
 view_whole_building:bool=True
 rows_known:set[str]=set()
 device_timer=None
@@ -317,6 +318,8 @@ async def admin_dashboard():
                 ui.chip(f"Room {r['room_number']}").props('outline square')
 
     def on_cell_double_clicked(e):
+        global current_rooom_dbclick
+        current_rooom_dbclick = e.args['data']['is_occupied']
         # ui.notify(e.args['data'])
         ui.navigate.to(f"/guest/{e.args['data']['floor_number'] or current_floor}/{e.args['data']['room_number']}", new_tab=True)
 
@@ -372,15 +375,22 @@ async def admin_dashboard():
         if grid_building.visible: await refresh_building()
         else:                     await refresh_per_floor()
 
-    ui.timer(25.0, lambda: asyncio.create_task(poll()))
+    ui.timer(5.0, lambda: asyncio.create_task(poll()))
 
 
 
 # Guest page
 @ui.page("/guest/{floor:int}/{room}")
-async def guest_view(floor: int, room: str):
-    add_header("Guest")
+async def guest_view(floor: int, room: str, ):
+    global current_rooom_dbclick
+    # add_header("Guest")
     ui.label(f"Room {room} (Floor {floor})").classes("text-h5 q-ma-md")
+    async def handle_switch():
+        global current_rooom_dbclick
+        await backend.set_room_occupancy(floor, room, not current_rooom_dbclick)
+        current_rooom_dbclick = not current_rooom_dbclick
+
+    ui.switch("Occupied", value=current_rooom_dbclick, on_change=handle_switch)
 
     # The dialog logic remains the same as it already handles both device types.
     async def show_device_dialog(e):
