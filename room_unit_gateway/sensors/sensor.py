@@ -121,12 +121,13 @@ class DigitalMultipleSensor(SensorInterface):
         return return_value
 
 class VirtualSensor_numerical(SensorInterface):
-    def __init__(self, general_iot_device: IoT_Info, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
+    def __init__(self, general_iot_device: IoT_Info, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int, rng_selector: int = 5, seed: int = 0):
         if general_iot_device.connector_type != Connectortype.Virtual_numerical:
             raise ValueError("connector_type is not Digital.")
         super().__init__(general_iot_device=general_iot_device, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=notify_change_precision)
-        self.rng_selector = 5
-        self.seed = 0
+        self.rng_selector = rng_selector
+        self.seed = seed
+        print(f'rng_selector : {self.rng_selector}, seed: {self.seed}')
         self.index = 0
         self.next_decrease = False
         _ = self.read_sensor()
@@ -154,12 +155,17 @@ class VirtualSensor_numerical(SensorInterface):
         return value
 
 class VirtualSensor_binary(SensorInterface):
-    def __init__(self, general_iot_device: IoT_Info, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int):
+    def __init__(self, general_iot_device: IoT_Info, read_interval: int, notify_interval: Notifyinterval, notify_change_precision: int, use_random: bool = False):
         if general_iot_device.connector_type != Connectortype.Virtual_binary:
             raise ValueError("connector_type is not Digital.")
         super().__init__(general_iot_device=general_iot_device, read_interval=read_interval, notify_interval=notify_interval, notify_change_precision=1)
+        self.use_random = use_random
+        #print(self.use_random)
         _ = self.read_sensor()
 
     def read_internal_sensor(self):
-        value = rng.binary_random()
+        if self.use_random:
+            value = rng.binary_random()
+        else:
+            value = rng.constant(last_value=self.last_value, min_value=self.general_iot_device.min_value, max_value=self.general_iot_device.max_value)
         return value

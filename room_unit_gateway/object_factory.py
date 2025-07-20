@@ -126,9 +126,12 @@ def choose_sensor_class(iot_info: IoT_Info, read_interval: int, notify_interval:
         elif iot_info.connector_type == Connectortype.Digital_multiple_1:
             sensor_object = DigitalMultipleSensor(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,i=1)
         elif iot_info.connector_type == Connectortype.Virtual_numerical:
-            sensor_object = VirtualSensor_numerical(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            rng_selector = iot_info.i2c_connector % 10
+            seed = iot_info.i2c_connector % 100
+            sensor_object = VirtualSensor_numerical(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision, rng_selector=rng_selector, seed=seed)
         elif iot_info.connector_type == Connectortype.Virtual_binary:
-            sensor_object = VirtualSensor_binary(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision)
+            use_random = iot_info.i2c_connector < 150
+            sensor_object = VirtualSensor_binary(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision, use_random=use_random)
         elif iot_info.connector_type == Connectortype.Ardoino_temperature:
             sensor_object = ArdoinoSensor(general_iot_device=iot_info,read_interval=read_interval,notify_interval=notify_interval,notify_change_precision=notify_change_precision,ardoino_serial=ardoino_serial,type_name_ardoino="temperature")
         elif iot_info.connector_type == Connectortype.Ardoino_humidity:
