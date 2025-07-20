@@ -393,7 +393,7 @@ def create_activity_detection_actions_x(execution_mapper: pddl_actions_to_execut
         effect=base.And(eff, is_doing_x_at)
     )
     actions_list.append(detect_activity_x)
-    execution_mapper.add_action(f"detect_activity_{activity_name}", param, [PlanerTag.Detect_Activity_Intent, PlanerTag.Helper])
+    execution_mapper.add_action(f"detect_activity_{activity_name}", param, [PlanerTag.Detect_Activity_Intent, PlanerTag.Detected_Activity, PlanerTag.Helper])
 
     detect_no_activity_x = Action(
         f"detect_no_activity_{activity_name}",
