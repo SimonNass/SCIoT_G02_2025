@@ -224,7 +224,7 @@ class PDDLPlan(db.Model):
     raw_plan: Mapped[str] = mapped_column(Text, nullable=False)
     cleaning_plan: Mapped[Optional[List[List[str]]]] = mapped_column(JSON)
     filtered_plan: Mapped[Optional[List[List[str]]]] = mapped_column(JSON)
-    detected_activity_plan: Mapped[Optional[List[str]]] = mapped_column(JSON)
+    detected_activity_plan: Mapped[Optional[List[List[str]]]] = mapped_column(JSON)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 

@@ -186,6 +186,7 @@ def save_to_database(
         plan_data: Dictionary containing plan data from solve_planning_problem
         scope: The scope of the plan (building, floor, or room)
         cleaning_plan: cleaning plan parsed from pddl_converter_execution
+        detected_activity_plan: cleaning plan parsed from pddl_converter_execution
         filtered_plan: filtered plan pared frompddl_converter_execution
         planner_used: Name of the planner that was used
         target_floor_id: Optional floor ID if scope is floor or room
