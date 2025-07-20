@@ -1,6 +1,6 @@
 from __future__ import annotations
 import asyncio
-from typing import Any
+from typing import Any, List, Optional
 
 from nicegui import ui
 from pydantic import BaseModel
@@ -51,14 +51,14 @@ class StepVM(BaseModel):
     target_device_ids: List[str]
 
 class PlanVM(BaseModel):
-    id: int
+    id: str
     scope: str
-    target_floor_id: int
-    target_room_id: str
-    total_cost: float
-    planning_time: float
-    planner_used: Optional[str]
-    raw_plan: List[str]
+    target_floor_id: Optional[str] = None
+    target_room_id: Optional[str] = None
+    total_cost: Optional[float] = None
+    planning_time: Optional[float] = None
+    planner_used: Optional[str] = None
+    raw_plan: Optional[List[str] | str] = None
     created_at: str
     filtered_plan: Optional[List[str]] = None
     cleaning_plan: Optional[List[str]] = None
@@ -68,11 +68,10 @@ class PlanVM(BaseModel):
 
 # State
 current_floor:int|None=None
-current_rooom_dbclick = None
 view_whole_building:bool=True
 rows_known:set[str]=set()
 device_timer=None
-
+plan_timer=None
 # Header
 def add_header(role: str = "Admin") -> None:
     with ui.header(elevated=False).classes("bg-primary text-white items-center"):
@@ -82,32 +81,84 @@ def add_header(role: str = "Admin") -> None:
 
 # Room detail area
 async def show_room(summary_column, floor_no:int, room:dict):
-    global device_timer
-    if device_timer: device_timer.cancel(); device_timer=None
-    summary_column.clear(); vm=RoomVM.model_validate(room)
-    devices_known:set[str]=set()
-    async def refresh_devices():
-            nonlocal devices_known
+    global device_timer, plan_timer
+    if device_timer: device_timer.cancel()
+    if plan_timer: plan_timer.cancel()
 
-            devs = await backend.list_devices(floor_no, vm.room_number)
-            simplified_map = {-1: "Low", 0: "Medium", 1: "High"}
-            rows = []
-            for d in devs:
-                try:
-                    d['last_value'] = f"{float(d['last_value']):.2f}"
-                except (ValueError, TypeError):
-                    pass
-                simplified_numeric = d.get('last_value_simplified')
-                d['last_value_simplified_string'] = simplified_map.get(simplified_numeric, "")
-                rows.append(DeviceVM.model_validate(d).model_dump())
+    summary_column.clear()
+    vm = RoomVM.model_validate(room)
+    devices_known: set[str] = set()
 
-            ids={r["device_id"] for r in rows}
-            if ids!=devices_known:
-                grid_dev.options["rowData"]=rows; grid_dev.update(); devices_known=ids
-            else:
-                for row in rows:
-                    for k,v in row.items():
-                        grid_dev.run_row_method(row["device_id"],"setDataValue",k,v)
+    # The refresh functions now accept the UI element they need to modify.
+    async def refresh_devices(grid: ui.aggrid):
+        nonlocal devices_known
+        devs = await backend.list_devices(floor_no, vm.room_number)
+        simplified_map = {-1: "Low", 0: "Medium", 1: "High"}
+        rows = []
+        for d in devs:
+            try:
+                d['last_value'] = f"{float(d['last_value']):.2f}"
+            except (ValueError, TypeError):
+                pass
+            simplified_numeric = d.get('last_value_simplified')
+            d['last_value_simplified_string'] = simplified_map.get(simplified_numeric, "")
+            rows.append(DeviceVM.model_validate(d).model_dump())
+
+        ids = {r["device_id"] for r in rows}
+        if ids != devices_known:
+            # We don't need `with grid:` here because we are calling a method on the element itself.
+            grid.options["rowData"] = rows
+            grid.update()
+            devices_known = ids
+        else:
+            for row in rows:
+                for k, v in row.items():
+                    grid.run_row_method(row["device_id"], "setDataValue", k, v)
+
+    async def refresh_plan(container: ui.column):
+        # We must enter the container's context before manipulating it or creating notifications.
+        with container:
+            ui.notify("Refreshing plan...")
+            try:
+                res = await backend.get_latest_plan_for_room(vm.room_number)
+                ui.notify(res)
+                plan_vm = PlanVM.model_validate(res['latest_plan'])
+
+                container.clear()
+                with ui.row().classes("gap-2"):
+                    ui.chip(f"Planner: {plan_vm.planner_used or 'N/A'}", icon="memory", color="blue").props("outline square")
+                    ui.chip(f"Time: {plan_vm.planning_time or 0:.2f}s", icon="timer", color="green").props("outline square")
+                    ui.chip(f"Cost: {plan_vm.total_cost or 0}", icon="paid", color="orange").props("outline square")
+                    ui.chip(f"Created: {plan_vm.created_at[11:19]}", icon="today", color="purple").props("outline square")
+
+                ui.markdown("###### Steps").classes("text-primary text-md mt-4")
+                with ui.list().props("bordered separator"):
+                    ui.notify(plan_vm.steps)
+                    if not plan_vm.steps:
+                        ui.item_label("Plan found, but it contains no steps.").classes('q-pa-md')
+                    for step in sorted(plan_vm.steps, key=lambda s: s.step_order):
+                        with ui.item():
+                            with ui.item_section().props("avatar"):
+                                ui.chip(f"{step.step_order}", color="primary", text_color="white")
+                            with ui.item_section():
+                                ui.item_label(step.action_name.replace('_', ' ').title())
+                                ui.item_label(f"({step.raw_step})").props("caption")
+
+                if plan_vm.detected_activity_plan:
+                    ui.markdown("###### Detected Activities").classes("text-accent text-md mt-4")
+                    with ui.list().props("bordered separator"):
+                        for activity in plan_vm.detected_activity_plan:
+                            with ui.item():
+                                with ui.item_section().props("avatar"):
+                                    ui.icon("sensors", color="accent")
+                                with ui.item_section():
+                                    ui.item_label(activity.replace('_', ' ').title())
+
+            except Exception as e:
+                ui.notify(f"Error fetching plan: {e}", color='negative')
+                container.clear()
+                ui.label("No plan available for this room.").classes("text-grey q-pa-md")
+
 
     with summary_column.style("width:50%"):
         with ui.card().props("flat bordered").style("width:100%"):
@@ -122,44 +173,50 @@ async def show_room(summary_column, floor_no:int, room:dict):
                 ui.chip(f"Devices: {vm.device_count}", icon="devices",
                         color="purple").props("outline square")
 
+
             ui.markdown("###### Devices").classes("text-primary text-md")
-
             grid_dev = ui.aggrid(
-                {
-                    "columnDefs":[
+                    {
+                        "columnDefs":[
 
-                        {"headerName":"Name","field":"name", "width": 150},
-                        {"headerName":"Type","field":"type_name", "width": 120},
-                        {"headerName":"Simplified","field":"last_value_simplified_string", "headerTooltip": "The simplified high/low value (-1, 0, 1)", "width": 120},
-                        {"headerName":"AI Type","field":"ai_planing_type", "width": 120},
-                        {"headerName":"Online","field":"is_online", "width": 100},
-                        {"headerName":"Last Seen","field":"last_seen"},
-                        {"headerName":"Device ID","field":"device_id"},
-                        # {"headerName":"Raw Value", "field":"last_value"},
-                        # {"headerName":"Unit", "field":"unit"},
-                        {"headerName":"Is Off", "field":"is_off"},
-                        {"headerName":"Description", "field":"description"},
-                        # {"headerName":"Min Value", "field":"min_value"},
-                        # {"headerName":"Max Value", "field":"max_value"},
-                        # {"headerName":"Created On", "field":"created_at"},
-                        # {"headerName":"Category", "field":"device_type"},
-                        # {"headerName":"Internal ID", "field":"id"},
-                    ],
-                    "defaultColDef":{"flex":1,"resizable":True, "sortable": True},
-                    "rowData":[],
-                    ":getRowId":"(p)=>p.data.device_id",
-                }
-            ).style("min-height:300px")
+                            {"headerName":"Name","field":"name", "width": 150},
+                            {"headerName":"Type","field":"type_name", "width": 120},
+                            {"headerName":"Simplified","field":"last_value_simplified_string", "headerTooltip": "The simplified high/low value (-1, 0, 1)", "width": 120},
+                            {"headerName":"AI Type","field":"ai_planing_type", "width": 120},
+                            {"headerName":"Online","field":"is_online", "width": 100},
+                            {"headerName":"Last Seen","field":"last_seen"},
+                            {"headerName":"Device ID","field":"device_id"},
+                            # {"headerName":"Raw Value", "field":"last_value"},
+                            # {"headerName":"Unit", "field":"unit"},
+                            {"headerName":"Is Off", "field":"is_off"},
+                            {"headerName":"Description", "field":"description"},
+                            # {"headerName":"Min Value", "field":"min_value"},
+                            # {"headerName":"Max Value", "field":"max_value"},
+                            # {"headerName":"Created On", "field":"created_at"},
+                            # {"headerName":"Category", "field":"device_type"},
+                            # {"headerName":"Internal ID", "field":"id"},
+                        ],
+                        "defaultColDef":{"flex":1,"resizable":True, "sortable": True},
+                        "rowData":[],
+                        ":getRowId":"(p)=>p.data.device_id",
+                    }
+                ).style("min-height:300px")
 
-        device_timer = ui.timer(10.0, lambda: asyncio.create_task(refresh_devices()))
-    await refresh_devices()
+        with ui.card().props("flat bordered").style("width:100%"):
+            ui.markdown("###### Latest AI Plan").classes("text-primary text-md")
+            plan_container = ui.column().style("width:100%")
 
-async def show_latest_plan_for_room(room_number: str):
-    res = await backend.get_latest_plan_for_room(room_number)
-    # validate and notify each step…
-    plan_vm = PlanVM.model_validate(res['latest_plan'])
-    for step in plan_vm.steps:
-        ui.notify(f"Step {step.step_order}: {step.action_name}", timeout=2.0)
+        device_timer = ui.timer(10.0, lambda: refresh_devices(grid_dev))
+        plan_timer = ui.timer(15.0, lambda: refresh_plan(plan_container))
+
+    # Set up the device grid
+    # Perform initial load
+    await refresh_devices(grid_dev)
+    await refresh_plan(plan_container)
+
+    # Set up the timers, passing the UI elements into the callbacks using lambdas.
+
+
 
 # Admin page
 @ui.page("/admin")
@@ -167,11 +224,13 @@ async def admin_dashboard():
     global view_whole_building, current_floor, rows_known
 
     add_header()
-    await backend.seed_if_needed()
+    # await backend.seed_if_needed()
     floors=await backend.list_floors(); floors.sort(key=lambda f:f["floor_number"])
 
     rows_known.clear()
     ui.button('Wipe DB', on_click = backend.clear_database)
+
+    ui.button('Seed DB', on_click = backend.seed_if_needed)
 
     with ui.row().style("width:100%") as main_row:
 
@@ -246,7 +305,7 @@ async def admin_dashboard():
                         ui.notify('Planner started', color='positive')
 
                 with ui.row().classes("items-center"):
-                    ui.icon("auto_awesome").classes("text-primary")
+                    # ui.icon("auto_awesome").classes("text-primary")
                     ui.label("Planner").classes("text-h6 text-primary")
                 chips_row = ui.row().classes('gap-2 mt-2 rounded-lg border border-primary').style('padding: 0.5rem')
                 with chips_row:
@@ -255,19 +314,52 @@ async def admin_dashboard():
                         text_color='white').props('outline square')
                 # Action buttons below chips_row
                 with ui.row().classes("gap-2 mt-4"):
-                    # Cleaning Actions
                      ui.button('Run Planner for Selected Room', on_click=run_plan_for_room)
 
-                    # ui.button('Send Cleaning Team', on_click=lambda: None)
-                    # ui.button('Clean Rooms', on_click=lambda: None)
-                    # # Energy Optimization Actions
-                    # ui.button('Save Energy', on_click=lambda: None)
-                    # ui.button('Cancel Out Actuators', on_click=lambda: None)
+           # Thresholds card
+            with ui.card().props("flat bordered").style("width:100%"):
+                with ui.row().classes("items-center"):
+                    ui.icon("tune").classes("text-primary")
+                    ui.label("Sensor Thresholds").classes("text-h6 text-primary")
 
-        summary_column = ui.column()   # right pane
+                async def save_changes(e):
+                    # When a cell value is changed, this event is fired
+                    row = e.args['data']
+                    ui.notify(f"Updating thresholds for {row['type_name']}...")
+                    try:
+                        await backend.set_type_name_config(
+                            row['device_type'],
+                            row['type_name'],
+                            float(row['lower_mid_limit']),
+                            float(row['upper_mid_limit'])
+                        )
+                        ui.notify(f"Successfully updated {row['type_name']}.", color='positive')
+                    except Exception as ex:
+                        ui.notify(f"Error updating: {ex}", color='negative')
 
+                threshold_grid = ui.aggrid({
+                    "columnDefs": [
+                        {"headerName": "Sensor Type", "field": "type_name", "width": 150, "editable": False},
+                        {"headerName": "Low-Mid Threshold", "field": "lower_mid_limit", "editable": True},
+                        {"headerName": "Mid-High Threshold", "field": "upper_mid_limit", "editable": True},
+                        {"headerName": "Unit", "field": "unit", "editable": False},
+                    ],
+                    "defaultColDef": {"flex": 1},
+                    "rowData": [],
+                    ":getRowId": "(p) => p.data.id",
+                }).on('cellValueChanged', save_changes)
 
-    # helper refresh routines
+            async def refresh_thresholds():
+                configs = await backend.list_type_name_configs()
+                threshold_grid.options['rowData'] = configs
+                threshold_grid.update()
+
+            # Add a timer to periodically refresh the thresholds
+            ui.timer(60.0, refresh_thresholds)
+            await refresh_thresholds()
+
+        summary_column = ui.column()
+
 
 
 
@@ -319,8 +411,6 @@ async def admin_dashboard():
                 ui.chip(f"Room {r['room_number']}").props('outline square')
 
     def on_cell_double_clicked(e):
-        global current_rooom_dbclick
-        current_rooom_dbclick = e.args['data']['is_occupied']
         # ui.notify(e.args['data'])
         ui.navigate.to(f"/guest/{e.args['data']['floor_number'] or current_floor}/{e.args['data']['room_number']}", new_tab=True)
 
@@ -376,22 +466,15 @@ async def admin_dashboard():
         if grid_building.visible: await refresh_building()
         else:                     await refresh_per_floor()
 
-    ui.timer(5.0, lambda: asyncio.create_task(poll()))
+    ui.timer(25.0, lambda: asyncio.create_task(poll()))
 
 
 
 # Guest page
 @ui.page("/guest/{floor:int}/{room}")
-async def guest_view(floor: int, room: str, ):
-    global current_rooom_dbclick
-    # add_header("Guest")
+async def guest_view(floor: int, room: str):
+    add_header("Guest")
     ui.label(f"Room {room} (Floor {floor})").classes("text-h5 q-ma-md")
-    async def handle_switch():
-        global current_rooom_dbclick
-        await backend.set_room_occupancy(floor, room, not current_rooom_dbclick)
-        current_rooom_dbclick = not current_rooom_dbclick
-
-    ui.switch("Occupied", value=current_rooom_dbclick, on_change=handle_switch)
 
     # The dialog logic remains the same as it already handles both device types.
     async def show_device_dialog(e):
@@ -463,7 +546,7 @@ async def guest_view(floor: int, room: str, ):
     # sensors and actuator tables
     with ui.row().classes('w-full justify-around'):
 
-        # --- Sensors Column ---
+        # Sensors Column
         with ui.row():
             with ui.column():
                 ui.label('Sensors').classes('text-h6')
@@ -478,7 +561,7 @@ async def guest_view(floor: int, room: str, ):
                     rows=[], row_key="device_id",
                 ).classes('w-full')
 
-            # --- Actuators Column ---
+            # Actuators Column
             with ui.column():
                 ui.label('Actuators').classes('text-h6')
                 actuator_table = ui.table(
@@ -491,7 +574,6 @@ async def guest_view(floor: int, room: str, ):
                     ],
                     rows=[], row_key="device_id",
                 ).classes('w-full')
-        #                     # planning card
 
             sensor_table.add_slot('body-cell-last_value_simplified', r'''
                 <q-td :props="props">
@@ -538,15 +620,7 @@ async def guest_view(floor: int, room: str, ):
             # Assign the same event handler to both tables
             sensor_table.on('row-dblclick',  show_device_dialog)
             actuator_table.on('row-dblclick', show_device_dialog)
-    #         with ui.column():
-    # # Action buttons below chips_row
-    #             with ui.row().classes("gap-2 mt-4"):
-    #                 # Cleaning Actions
-    #                 ui.button('Send Cleaning Team', on_click=lambda: None)
-    #                 ui.button('Clean Rooms', on_click=lambda: None)
-    #                 # Energy Optimization Actions
-    #                 ui.button('Save Energy', on_click=lambda: None)
-    #                 ui.button('Cancel Out Actuators', on_click=lambda: None)
+
         ui.space()
 
     async def refresh_guest_devices():
