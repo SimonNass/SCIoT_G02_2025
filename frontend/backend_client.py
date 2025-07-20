@@ -39,7 +39,26 @@ class Backend:
                 flat.append(r)
         return flat
 
+    # demo data
+    async def seed_if_needed(self)->None:
+        # await self.clear_database()
+        if await self.list_floors(): return
+        meta=[(1,"Ground","Lobby / conf.",8),
+              (2,"North","Std queen rooms",10),
+              (3,"South","Deluxe / suite",6),
+              (4,"Exec","Suites & lounge",8)]
+        for n,name,desc,_ in meta:
+            await self._post("/floors/create",{"floor_number":n,"floor_name":name,"description":desc,"rooms":[]})
+        for n,_,_,cnt in meta:
+            batch=[]
+            for i in range(1,cnt+1):
+                rn=f"{n}{i:02d}"
+                if i%5==0: typ,cap="Suite",4
+                elif i%3==0: typ,cap="Deluxe",3
+                else: typ,cap="Standard",1 if random.random()<.3 else 2
+                batch.append({"room_number":rn,"room_type":typ,"capacity":cap})
 
+            await self._post(f"/floors/{n}/rooms/create",{"rooms":batch})
 
     async def set_room_occupancy(self, floor_number: int, room_number: str, is_occupied: bool):
         """Sets the occupancy status for a specific room."""
@@ -76,29 +95,23 @@ class Backend:
         """Deletes a specific device."""
         return await self._delete(f"/devices/{device_id}/delete")
 
+    async def list_type_name_configs(self):
+        """Gets all type name configurations."""
+        return (await self._get("/type_name_configs/list"))["configs"]
+
+    async def set_type_name_config(self, device_type: str, type_name: str, lower_mid_limit: float, upper_mid_limit: float):
+        """Sets the threshold values for a specific type name config."""
+        payload = {
+            "device_type": device_type,
+            "type_name": type_name,
+            "lower_mid_limit": lower_mid_limit,
+            "upper_mid_limit": upper_mid_limit
+        }
+        return await self._post("/type_name_configs/set", payload)
+
     async def clear_database(self):
         return await self._delete("/cleardb")
 
-    # demo data
-    async def seed_if_needed(self)->None:
-        # if await self.list_floors(): return
-        await self.clear_database()
-        meta=[(1,"Ground","Lobby / conf.",8),
-              (2,"North","Std queen rooms",10),
-              (3,"South","Deluxe / suite",6),
-              (4,"Exec","Suites & lounge",8)]
-        for n,name,desc,_ in meta:
-            await self._post("/floors/create",{"floor_number":n,"floor_name":name,"description":desc,"rooms":[]})
-        for n,_,_,cnt in meta:
-            batch=[]
-            for i in range(1,cnt+1):
-                rn=f"{n}{i:02d}"
-                if i%5==0: typ,cap="Suite",4
-                elif i%3==0: typ,cap="Deluxe",3
-                else: typ,cap="Standard",1 if random.random()<.3 else 2
-                batch.append({"room_number":rn,"room_type":typ,"capacity":cap})
-
-            await self._post(f"/floors/{n}/rooms/create",{"rooms":batch})
     # PDDL plans retrieval
 
     async def list_all_plans(self) -> dict:
