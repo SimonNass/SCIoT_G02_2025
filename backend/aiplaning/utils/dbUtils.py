@@ -244,7 +244,7 @@ def save_to_database(
                     target_device_ids=parameter_list 
                 )
                 
-                db.session.add(plan)
+                db.session.add(plan_step)
 
             db.session.commit()
 
