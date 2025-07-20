@@ -118,44 +118,65 @@ async def show_room(summary_column, floor_no:int, room:dict):
     async def refresh_plan(container: ui.column):
         # We must enter the container's context before manipulating it or creating notifications.
         with container:
-            ui.notify("Refreshing plan...")
+            ui.notify("starting planning")
             try:
                 res = await backend.get_latest_plan_for_room(vm.room_number)
                 ui.notify(res)
                 plan_vm = PlanVM.model_validate(res['latest_plan'])
 
                 container.clear()
+                # Display the header chips with plan metadata
                 with ui.row().classes("gap-2"):
                     ui.chip(f"Planner: {plan_vm.planner_used or 'N/A'}", icon="memory", color="blue").props("outline square")
                     ui.chip(f"Time: {plan_vm.planning_time or 0:.2f}s", icon="timer", color="green").props("outline square")
                     ui.chip(f"Cost: {plan_vm.total_cost or 0}", icon="paid", color="orange").props("outline square")
                     ui.chip(f"Created: {plan_vm.created_at[11:19]}", icon="today", color="purple").props("outline square")
 
-                ui.markdown("###### Steps").classes("text-primary text-md mt-4")
-                with ui.list().props("bordered separator"):
-                    ui.notify(plan_vm.steps)
-                    if not plan_vm.steps:
-                        ui.item_label("Plan found, but it contains no steps.").classes('q-pa-md')
-                    for step in sorted(plan_vm.steps, key=lambda s: s.step_order):
-                        with ui.item():
-                            with ui.item_section().props("avatar"):
-                                ui.chip(f"{step.step_order}", color="primary", text_color="white")
-                            with ui.item_section():
-                                ui.item_label(step.action_name.replace('_', ' ').title())
-                                ui.item_label(f"({step.raw_step})").props("caption")
 
+                has_any_content = False
+
+                # filtered plan (the actual actions)
+                if plan_vm.filtered_plan:
+                    has_any_content = True
+                    ui.markdown("###### Plan Actions").classes("text-primary text-md mt-4")
+                    with ui.list().props("bordered separator"):
+                        for i, action_string in enumerate(plan_vm.filtered_plan):
+                            with ui.item():
+                                with ui.item_section().props("avatar"):
+                                    ui.chip(f"{i + 1}", color="primary", text_color="white")
+                                with ui.item_section():
+                                    ui.item_label(action_string).style('font-family: monospace')
+
+                # detected activities
                 if plan_vm.detected_activity_plan:
+                    has_any_content = True
                     ui.markdown("###### Detected Activities").classes("text-accent text-md mt-4")
                     with ui.list().props("bordered separator"):
                         for activity in plan_vm.detected_activity_plan:
                             with ui.item():
                                 with ui.item_section().props("avatar"):
-                                    ui.icon("sensors", color="accent")
+                                    ui.icon("visibility", color="accent")
                                 with ui.item_section():
                                     ui.item_label(activity.replace('_', ' ').title())
 
+                # cleaning plan
+                if plan_vm.cleaning_plan:
+                    has_any_content = True
+                    ui.markdown("###### Cleaning Instructions").classes("text-info text-md mt-4")
+                    with ui.list().props("bordered separator"):
+                        for instruction in plan_vm.cleaning_plan:
+                            with ui.item():
+                                with ui.item_section().props("avatar"):
+                                    ui.icon("cleaning_services", color="info")
+                                with ui.item_section():
+                                    ui.item_label(instruction.replace('_', ' ').title())
+
+                if not has_any_content:
+                    with ui.list().props("bordered"):
+                         ui.item_label("Plan found, but it contains no actions or instructions.").classes('q-pa-md')
+
             except Exception as e:
-                ui.notify(f"Error fetching plan: {e}", color='negative')
+                ui.notify(f"Error fetching plan: {e}", color='negative', multi_line=True)
                 container.clear()
                 ui.label("No plan available for this room.").classes("text-grey q-pa-md")
 
@@ -260,9 +281,9 @@ async def admin_dashboard():
                                 {"headerName":"Room","field":"room_number","checkboxSelection":True,"width":125},
                                 {"headerName":"Type","field":"room_type","width":100},
                                 {"headerName":"Capacity","field":"capacity","width":100},
-                                {"headerName":"Occupancy","field":"is_occupied","width":120},
-                                {"headerName":"Last Cleaned","field":"last_cleaned","width":130},
-                                {"headerName":"Created","field":"created_at","width":130},
+                                # {"headerName":"Occupancy","field":"is_occupied","width":120},
+                                # {"headerName":"Last Cleaned","field":"last_cleaned","width":130},
+                                # {"headerName":"Created","field":"created_at","width":130},
                             ],
                             "defaultColDef":{"flex":1,"resizable":True},
                             "rowData":[],
@@ -280,9 +301,9 @@ async def admin_dashboard():
                             {"headerName":"Room","field":"room_number","width":125,"sortable":True},
                             {"headerName":"Type","field":"room_type","width":100},
                             {"headerName":"Capacity","field":"capacity","width":100},
-                            {"headerName":"Occupancy","field":"is_occupied","width":120},
-                            {"headerName":"#Devices","field":"device_count","width":120},
-                            {"headerName":"Created","field":"created_at","width":130},
+                            # {"headerName":"Occupancy","field":"is_occupied","width":120},
+                            # {"headerName":"#Devices","field":"device_count","width":120},
+                            # {"headerName":"Created","field":"created_at","width":130},
                         ],
                         "defaultColDef":{"flex":1,"resizable":True},
                         "rowData":[],
@@ -304,18 +325,56 @@ async def admin_dashboard():
                     else:
                         ui.notify('Planner started', color='positive')
 
+                async def toggle_occupancy():
+                    # Get all selected rooms
+                    sel = await grid_building.run_grid_method('getSelectedRows') or await grid_per_floor.run_grid_method('getSelectedRows')
+                    if not sel:
+                        ui.notify('Please select a room to toggle occupancy.', color='warning')
+                        return
+                    room_data = sel[0]
+                    room_number = room_data['room_number']
+                    floor_number = room_data.get('floor_number') or current_floor
+                    new_status = not room_data['is_occupied']
+
+                    ui.notify(f'Toggling room {room_number} occupancy', spinner=True)
+                    try:
+                        await backend.set_room_occupancy(floor_number, room_number, new_status)
+                        ui.notify('Occupancy updated successfully.', color='positive')
+                    except Exception as e:
+                        ui.notify(f"Error updating room {room_number}: {e}", color='negative')
+                        return
+                    # refresh the main grid on the left
+                    if grid_building.visible:
+                        await refresh_building()
+                    else:
+                        await refresh_per_floor()
+                    # refresh the detail view on the right
+                    # Fetch the latest data for all rooms on that floor to get the new is_occupied
+                    all_rooms_on_floor = await backend.list_rooms(floor_number)
+                    # Find the specific room we just updated
+                    fresh_room_data = next((r for r in all_rooms_on_floor if r['room_number'] == room_number), None)
+                    if fresh_room_data:
+                        # run show_room to rebuild the right pane
+                        await show_room(summary_column, floor_number, fresh_room_data)
+                    # refresh the grid to show the new state
+                    if grid_building.visible:
+                        await refresh_building()
+                    else:
+                        await refresh_per_floor()
+
                 with ui.row().classes("items-center"):
                     # ui.icon("auto_awesome").classes("text-primary")
-                    ui.label("Planner").classes("text-h6 text-primary")
+                    ui.separator().classes("text-h6 text-primary")
+
                 chips_row = ui.row().classes('gap-2 mt-2 rounded-lg border border-primary').style('padding: 0.5rem')
                 with chips_row:
                         ui.chip('No rooms selected',
                         color='grey-5',
                         text_color='white').props('outline square')
-                # Action buttons below chips_row
+
                 with ui.row().classes("gap-2 mt-4"):
                      ui.button('Run Planner for Selected Room', on_click=run_plan_for_room)
-
+                     ui.button('Toggle Occupancy', on_click=toggle_occupancy, color='secondary')
            # Thresholds card
             with ui.card().props("flat bordered").style("width:100%"):
                 with ui.row().classes("items-center"):
@@ -466,7 +525,7 @@ async def admin_dashboard():
         if grid_building.visible: await refresh_building()
         else:                     await refresh_per_floor()
 
-    ui.timer(25.0, lambda: asyncio.create_task(poll()))
+    ui.timer(5.0, lambda: asyncio.create_task(poll()))
 
 
 
@@ -476,10 +535,8 @@ async def guest_view(floor: int, room: str):
     add_header("Guest")
     ui.label(f"Room {room} (Floor {floor})").classes("text-h5 q-ma-md")
 
-    # The dialog logic remains the same as it already handles both device types.
     async def show_device_dialog(e):
         # ui.notify(e)
-        # The event now directly passes the row data dictionary.
         _, device_data, _ = e.args
         device = DeviceVM.model_validate(device_data)
 
@@ -501,7 +558,6 @@ async def guest_view(floor: int, room: str):
                     value=current
                 ).props('label-always')
 
-                # toggle =  ui.switch("Toggle", value=True)
 
                 with ui.row().classes('w-full justify-end'):
                     async def handle_done():
@@ -537,9 +593,6 @@ async def guest_view(floor: int, room: str):
                     ui.button("Done", on_click=handle_done)
                     ui.button("Cancel", on_click=dialog.close)
 
-                # ui.label(f"Last reported value: {device.last_value} {device.unit or ''}")
-                # with ui.row().classes('w-full justify-end'):
-                #     ui.button("Close", on_click=dialog.close)
 
         await dialog
 
