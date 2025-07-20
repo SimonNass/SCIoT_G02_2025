@@ -9,7 +9,7 @@ from backend.aiplaning.utils.dbUtils import get_floor_uids, get_room_uids_per_fl
 from backend.mqtt.utils.mappingParserUtils import get_actuator_sensor_matrices
 from typing import List, Dict, Optional
 
-def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, sensor_initial_locked: Optional[List[str]] = [], room_number: str = None):
+def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, sensor_initial_locked: Optional[List[str]] = [], room_number: str = None, plan_cleaning: bool = False, plan_activitys: bool = True):
     domain_name = "test_SCIoT_G02_2025"
     problem_name = 'test'
     output_path = 'auto_generated/'
@@ -61,12 +61,12 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
 
     # sensor_initial_values = {'s1': -1, 's2':1, 's3':-1}
     sensor_initial_values = get_sensor_initial_values(room_number)
-    logging.info(f"sensor_initial_values: {sensor_initial_values}")
+    # logging.info(f"sensor_initial_values: {sensor_initial_values}")
     # sensor_goal_values = {'s1': -1, 's2':1}
 
     # actuator_initial_values = {'a1': True, 'a2':False}
     actuator_initial_values = get_actuator_initial_values(room_number)
-    logging.info(f"sensor_initial_values: {sensor_initial_values}")
+    # logging.info(f"sensor_initial_values: {sensor_initial_values}")
     #for floor in floor_uids:
     #    for room in room_uids_per_floor[floor]:
     #        for device in sensor_room_mapping[room]:
@@ -85,31 +85,39 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
     names_room_positions = ['overall_room']
     #['overall_room', 'bed', 'closet', 'window']
 
-    sensor_goal_state_mapping = {"temperature_s":"is_ok",
-                                "humidity_s":"is_ok",
-                                "window_rotation_s":"is_low",
-                                "light_s":"is_high",
-                                "TV_volume_s":"is_low",
-                                "sound_s":"is_ok"}
+    use_defoult_sensor_goals = True
+    use_activity_sensor_goals = True
+
+    sensor_goal_state_mapping = {}
+    if use_defoult_sensor_goals:
+        sensor_goal_state_mapping = {"temperature_s":"is_ok",
+                                    "humidity_s":"is_ok",
+                                    #"window_rotation_s":"is_low",
+                                    "light_s":"is_high",
+                                    "TV_volume_s":"is_ok",
+                                    "sound_s":"is_ok"}
 
     # TODO make 'requests_service':{'button_s':'is_sensing' -> request text displayed
     # TODO in r_dress > assign_lock_for_sensor TV_volume_s_s6_TV_volume_s
     # TODO activity sleep do the blinds not work decrease mapping
-    activity_detect_mapping = {"read":{"chair_s":"is_sensing", "power_consumption_s":"is_low"},
-                                "on_the_phone":{"chair_s":"is_sensing", "power_consumption_s":"is_ok"},
-                                "work":{"chair_s":"is_sensing", "power_consumption_s":"is_high"},
-                                "sleep":{"bed_s":"is_sensing", "TV_volume_s":"~is_high"},
-                                "bath":{"shower_s":"is_sensing", "chair_s":"~is_sensing", "bed_s":"~is_sensing"},
-                                "dress":{"chair_s":"~is_sensing", "bed_s":"~is_sensing", "shower_s":"~is_sensing", "motion_s":"is_sensing"},
-                                "watch_TV":{"TV_volume_s":"is_high", "bed_s":"is_sensing"}}
-    activity_fulfill_mapping = {"read":{"temperature_s":"is_ok", "light_s":"is_high", "sound_s":"is_ok"},
-                                "on_the_phone":{"light_s":"is_high", "sound_s":"is_low"},
-                                "work":{"light_s":"is_high", "sound_s":"is_ok"},
-                                "sleep":{"light_s":"is_low", "sound_s":"is_low"},
-                                "bath":{"temperature_s":"is_high", "humidity_s":"is_low"},
-                                #"bath":{"light_s":"is_ok", "temperature_s":"is_high", "humidity_s":"is_low"}, # TODO not working r_bath with lights inittial 1
-                                "dress":{"light_s":"is_ok"},
-                                "watch_TV":{"light_s":"is_ok", "TV_volume_s":"is_high", "sound_s":"is_high"}}
+    activity_detect_mapping = {}
+    activity_fulfill_mapping = {}
+    if use_activity_sensor_goals:
+        activity_detect_mapping = {"read":{"chair_s":"is_sensing", "power_consumption_s":"is_low"},
+                                    "on_the_phone":{"chair_s":"is_sensing", "power_consumption_s":"is_ok"},
+                                    "work":{"chair_s":"is_sensing", "power_consumption_s":"is_high"},
+                                    "sleep":{"bed_s":"is_sensing", "TV_volume_s":"~is_high"},
+                                    "bath":{"shower_s":"is_sensing", "chair_s":"~is_sensing", "bed_s":"~is_sensing"},
+                                    "dress":{"chair_s":"~is_sensing", "bed_s":"~is_sensing", "shower_s":"~is_sensing", "motion_s":"is_sensing"},
+                                    "watch_TV":{"TV_volume_s":"is_high", "bed_s":"is_sensing"}}
+        activity_fulfill_mapping = {"read":{"temperature_s":"is_ok", "light_s":"is_high", "sound_s":"is_ok"},
+                                    "on_the_phone":{"light_s":"is_high", "sound_s":"is_low"},
+                                    "work":{"light_s":"is_high", "sound_s":"is_ok"},
+                                    "sleep":{"light_s":"is_low", "sound_s":"is_low"},
+                                    "bath":{"temperature_s":"is_high", "humidity_s":"is_low"},
+                                    #"bath":{"light_s":"is_ok", "temperature_s":"is_high", "humidity_s":"is_low"}, # TODO not working r_bath with lights inittial 1
+                                    "dress":{"light_s":"is_ok"},
+                                    "watch_TV":{"light_s":"is_ok", "TV_volume_s":"is_high", "sound_s":"is_high"}}
 
 
     return {'domain_name':domain_name,
@@ -118,7 +126,8 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
             'domaine_file_name':domaine_file_name,
             'problem_file_name':problem_file_name,
 
-            'plan_cleaning':False,
+            'plan_cleaning': plan_cleaning,
+            'plan_activitys': plan_activitys,
 
             'floor_uids':floor_uids,
             'room_uids_per_floor':room_uids_per_floor,
@@ -163,7 +172,8 @@ def query_input_over_config_file(config_file_name: os.path = "aiplaning/config/a
     output_path = str(config.get('General', 'output_path', fallback="auto_generated/"))
     domaine_file_name = str(config.get('General', 'domaine_file_name', fallback="test_domain"))
     problem_file_name = str(config.get('General', 'problem_file_name', fallback="test_problem"))
-    plan_cleaning = bool(config.get('General', 'plan_cleaning', fallback=False) in [True, 'True'])
+    plan_cleaning = bool(config.get('General', 'plan_cleaning', fallback=True) in [True, 'True'])
+    plan_activitys = bool(config.get('General', 'plan_activitys', fallback=True) in [True, 'True'])
 
     # Topology
     floor_uids = json.loads(config.get('Topology', 'floor_uids', fallback='[]'))
@@ -199,6 +209,7 @@ def query_input_over_config_file(config_file_name: os.path = "aiplaning/config/a
             'problem_file_name':problem_file_name,
 
             'plan_cleaning':plan_cleaning,
+            'plan_activitys':plan_activitys,
 
             'floor_uids':floor_uids,
             'room_uids_per_floor':room_uids_per_floor,
@@ -243,6 +254,7 @@ def query_input(over_config_file: bool = False, config_file_name: os.path = ''):
 #   'domaine_file_name':domaine_file_name, > str
 #   'problem_file_name':problem_file_name, > str
 #   'plan_cleaning':False, > bool
+#   'plan_activitys':False, > bool
 #   'floor_uids':floor_uids, > List[uuid as str]
 #   'room_uids_per_floor':room_uids_per_floor, > Dict[uuid as str, List[uuid as str]]
 #   'elevator_uids':elevator_uids, > List[uuid as str]

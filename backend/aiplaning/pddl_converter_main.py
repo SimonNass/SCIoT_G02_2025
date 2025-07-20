@@ -67,7 +67,7 @@ def create(input_dictionary):
         #individual_sensor_goals = pddl_converter_initial_state.create_sensor_values(predicates_dict, floor_uids, room_uids_per_floor, sensor_room_mapping, uid_to_pddl_variable_sensors, sensor_goal_values)
         
         # create goal
-        goal_state = pddl_converter_goals.create_goal(predicates_dict, pddl_variable_types, input_dictionary['sensor_goal_state_mapping'], input_dictionary['plan_cleaning'])
+        goal_state = pddl_converter_goals.create_goal(predicates_dict, pddl_variable_types, input_dictionary['sensor_goal_state_mapping'], input_dictionary['plan_cleaning'], input_dictionary['plan_activitys'])
 
         # define the problem object.
         problem = Problem(
@@ -126,28 +126,28 @@ def main():
     json_text = {'excludeActions': helper_action_names}
     pddl_converter_help.write_out_pddl(output_path, domaine_file_name + ".planviz.json", json.dumps(json_text))
 
-def run_planner_with_db_data(sensor_goal_values: Optional[Dict[str, int]] = {},
+def run_planner_with_db_data(plan_cleaning = False,
+                            sensor_goal_values: Optional[Dict[str, int]] = {},
                             sensor_initial_locked: Optional[List[str]] = [],
                             room_number: str = None):
     planner = "dual-bfws-ffparser"
     pddl_converter_help.check_lib_versions()
 
-    input_dictionary = pddl_converter_input.query_input_over_db(sensor_goal_values, sensor_initial_locked, room_number)
-    logging.info("Gets here")
+    input_dictionary = pddl_converter_input.query_input_over_db(sensor_goal_values, sensor_initial_locked, room_number, plan_cleaning)
     # logging.info(input_dictionary)
     
     d, p, execution_mapper = create(input_dictionary)
-    # pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "d" + ".pddl", d)
-    # pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "p" + ".pddl", p)
+    pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "d" + ".pddl", d)
+    pddl_converter_help.write_out_pddl("/backend/aiplaning/auto_generated", "p" + ".pddl", p)
     solve_result = pddl_service.solve_planning_problem(str(d), str(p), planner, False)
     
-    filtered_plan, cleaning_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans = execution_mapper.filter_plan(solve_result.get('plan'))
+    filtered_plan, cleaning_plan, increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans, two_actuators_involved_actioin_plans, detected_activity_plan = execution_mapper.filter_plan(solve_result.get('plan'))
     
     updateActuators(increse_actuator_plans, turn_off_actuator_plans, decrese_actuator_plans)
     if room_number is None:
-        plan = save_to_database(solve_result, planner, cleaning_plan, filtered_plan)
+        plan = save_to_database(solve_result, planner, cleaning_plan, filtered_plan, detected_activity_plan)
     else:
-        plan = save_to_database(solve_result, planner, cleaning_plan, filtered_plan, PlanScope.ROOM, room_number)
+        plan = save_to_database(solve_result, planner, cleaning_plan, filtered_plan, detected_activity_plan, PlanScope.ROOM, room_number)
 
     return plan
 

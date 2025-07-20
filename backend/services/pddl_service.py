@@ -40,6 +40,7 @@ class PDDLPlannerService:
         """
         # Import inside the function to avoid circular imports
         from backend.models.models import PlanScope
+        logging.info(f"solve_planning_problem called")
         
         # Set default scope if not provided
         if scope is None:
@@ -63,7 +64,7 @@ class PDDLPlannerService:
                 headers={'Content-Type': 'application/json'},
                 timeout=10  # 10 seconds timeout
             )
-            logging.info("Gets here")
+
             response.raise_for_status()
             job_response = response.json()
             

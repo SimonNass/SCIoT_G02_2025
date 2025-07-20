@@ -62,6 +62,7 @@ class PlanVM(BaseModel):
     created_at: str
     filtered_plan: Optional[List[str]] = None
     cleaning_plan: Optional[List[str]] = None
+    detected_activity_plan: Optional[List[str]] = None
     steps: List[StepVM]
 
 

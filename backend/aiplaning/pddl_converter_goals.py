@@ -5,7 +5,7 @@
 from typing import List, Dict
 from pddl.logic import base, variables
 
-def create_goal(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], sensor_goal_state_mapping: Dict[str,str], plan_cleaning: bool = True):
+def create_goal(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[str,List[variables]], sensor_goal_state_mapping: Dict[str,str], plan_cleaning: bool = True, plan_activitys: bool = True):
 
     room_type: variables = pddl_variable_types["room"][0]
     room_position_type: variables = pddl_variable_types["room_position"][0]
@@ -40,7 +40,9 @@ def create_goal(predicates_dict: Dict[str,variables], pddl_variable_types: Dict[
     enforce_checks = base.And(base.ForallCondition(checked_all_activitys(room_type, room_position_type), [room_type, room_position_type]),
                               base.ForallCondition(fulfilled_activitys(room_type, room_position_type), [room_type, room_position_type]))
 
-    goal_state = base.And(goal_for_sensors_default, actuator_off_unoccupied_rooms, enforce_checks)
+    goal_state = base.And(actuator_off_unoccupied_rooms)
     if plan_cleaning:
         goal_state = base.And(goal_state, clean_unoccupied_rooms)
+    if plan_activitys:
+        goal_state = base.And(goal_state, goal_for_sensors_default, enforce_checks)
     return goal_state

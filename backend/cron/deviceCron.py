@@ -120,7 +120,7 @@ def start_scheduler(app):
 
     def run_planning():
         with app.app_context():
-            run_planner_with_db_data()
+            run_planner_with_db_data(True)
     
     # Job 1: Mark devices offline
     scheduler.add_job(
