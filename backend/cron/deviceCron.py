@@ -11,7 +11,7 @@ import atexit
 
 mark_devices_offline_after_minutes = 60
 delete_after_minutes = 180
-run_planner_every_seconds = 10
+run_planner_every_seconds = 60
 
 def _mark_devices_offline():
     """
@@ -141,13 +141,13 @@ def start_scheduler(app):
     )
 
     # Job 3:
-    # scheduler.add_job(
-    #     func=run_planning,
-    #     trigger=IntervalTrigger(seconds=run_planner_every_seconds),
-    #     id='run_planning',
-    #     name=f'Runs AI Plannin every {run_planner_every_seconds} seconds',
-    #     replace_existing=True
-    # )
+    scheduler.add_job(
+         func=run_planning,
+         trigger=IntervalTrigger(seconds=run_planner_every_seconds),
+         id='run_planning',
+         name=f'Runs AI Plannin every {run_planner_every_seconds} seconds',
+         replace_existing=True
+    )
     scheduler.start()
     logging.info("Device management scheduler started")
     
