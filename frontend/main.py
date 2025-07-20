@@ -44,7 +44,7 @@ class DeviceVM(BaseModel):
     ai_planing_type: str | None = None
 
 class StepVM(BaseModel):
-    id: int
+    id: str
     step_order: int
     action_name: str
     raw_step: str
@@ -134,6 +134,19 @@ async def show_room(summary_column, floor_no:int, room:dict):
 
 
                 has_any_content = False
+
+                if plan_vm.steps:
+                    has_any_content = True
+                    ui.markdown("###### Steps").classes("text-primary text-md mt-4")
+                    with ui.list().props("bordered separator"):
+                        ui.notify(plan_vm.steps)
+                        for step in sorted(plan_vm.steps, key=lambda s: s.step_order):
+                            with ui.item():
+                                with ui.item_section().props("avatar"):
+                                    ui.chip(f"{step.step_order}", color="primary", text_color="white")
+                                with ui.item_section():
+                                    ui.item_label(step.action_name.replace('_', ' ').title())
+                                    ui.item_label(f"({step.raw_step})").props("caption")
 
                 # filtered plan (the actual actions)
                 if plan_vm.filtered_plan:
