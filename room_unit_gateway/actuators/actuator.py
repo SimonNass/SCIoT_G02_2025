@@ -20,7 +20,7 @@ class ActuatorInterface(ABC):
         self.general_iot_device = general_iot_device
         self.initial_value = max(self.general_iot_device.min_value,min(self.general_iot_device.max_value,initial_value))
         self.last_value = self.initial_value
-        self.last_value_timestamp = time.time()
+        self.last_value_timestamp = 0
         if not self.is_valid(self.initial_value):
             self.last_value = self.general_iot_device.min_value
         self.off_value = max(self.general_iot_device.min_value,min(self.general_iot_device.max_value,off_value))
