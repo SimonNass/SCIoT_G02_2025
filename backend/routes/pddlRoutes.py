@@ -379,7 +379,9 @@ def get_latest_plan_for_room(room_number):
 def run_planner_all():
     """Run planner for entire building"""
     try:
-        plan = run_planner_with_db_data(True)
+        plan_cleaning = True
+        plan_activitys = True
+        plan = run_planner_with_db_data(plan_cleaning, {}, [], plan_activitys)
         plan_data = {
             'id': plan.id,
             'scope': plan.scope.value,
@@ -415,7 +417,9 @@ def run_planner_all():
 def run_planner_specific_room(room_number):
     """Run planner for a specific room"""
     try:
-        plan = run_planner_with_db_data(False, {}, [], room_number)
+        plan_cleaning = True
+        plan_activitys = True
+        plan = run_planner_with_db_data(plan_cleaning, {}, [], plan_activitys, room_number)
         plan_data = {
             'id': plan.id,
             'scope': plan.scope.value,
