@@ -40,7 +40,7 @@ class MQTTEndpoint:
 
             self.mqtt_client.on_message = recv(self.gateway, self.topic_prefix)
             self.mqtt_client.connect(host=self.host, port=self.port, keepalive=self.timeout)
-            self.mqtt_client.subscribe(self.topic_prefix + '#', qos=1)
+            self.mqtt_client.subscribe(self.topic_prefix + '#', qos=self.qos)
             self.mqtt_client.loop_start()
             logging.info(f"MQTT client started and connecting to {self.host}:{self.port}")
         except Exception as e:
