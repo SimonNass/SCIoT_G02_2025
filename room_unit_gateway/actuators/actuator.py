@@ -99,7 +99,7 @@ class AnalogActuator(ActuatorInterface):
             logger.error(f"{self.general_iot_device.name}: write was unsucesful {e}")
 
     def write_internal_actuator(self, write_value: float):
-        return grovepi.analogWrite(self.general_iot_device.i2c_connector,write_value)
+        return grovepi.analogWrite(self.general_iot_device.i2c_connector,int(write_value))
 
 class DigitalActuator(ActuatorInterface):
     def __init__(self, general_iot_device: IoT_Info, initial_value: float, off_value: float, impact_step_size: float):
@@ -123,7 +123,7 @@ class DigitalActuator(ActuatorInterface):
             logger.error(f"{self.general_iot_device.name}: write was unsucesful {e}")
 
     def write_internal_actuator(self, write_value: float):
-        return grovepi.digitalWrite(self.general_iot_device.i2c_connector,write_value)
+        return grovepi.digitalWrite(self.general_iot_device.i2c_connector,int(write_value))
 
 class VirtualActuator_numerical(ActuatorInterface):
     def __init__(self, general_iot_device: IoT_Info, initial_value: float, off_value: float, impact_step_size: float):
