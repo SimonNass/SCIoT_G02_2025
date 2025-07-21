@@ -340,8 +340,6 @@ def _update_device_from_payload(device_obj, parsed_payload):
 
         if parsed_payload.get('last_value') is not None:
             device_obj.last_value = parsed_payload['last_value']
-            
-        db.session.add(device_obj)
         
     except Exception as e:
         logging.error(f"Error updating device {device_obj.device_id} from payload: {str(e)}")

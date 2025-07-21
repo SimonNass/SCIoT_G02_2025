@@ -11,7 +11,7 @@ def updateActuators(increse_actuator_plans: list, turn_off_actuator_plans: list,
             for uuid in uuids:
                 device = devices.get(uuid)
                 if device:
-                    if 'str' in device.datatype:
+                    if "str" in device.datatype:
                         request_actuator_update(device.device_id, "Employee Notified")
                         continue
                     last_value_float: float = safe_float_conversion_for_sensor_data(device.last_value)
@@ -26,7 +26,10 @@ def updateActuators(increse_actuator_plans: list, turn_off_actuator_plans: list,
             for uuid in uuids:
                 device = devices.get(uuid)
                 if device:
-                    logging.info(f"Defice Off {device.off_value}")
+                    if "str" in device.datatype:
+                        request_actuator_update(device.device_id, "")
+                        continue
+                    logging.info(f"Device Off {device.off_value}")
                     request_actuator_update(device.device_id, device.off_value)
 
         for plan in decrese_actuator_plans:
@@ -34,7 +37,7 @@ def updateActuators(increse_actuator_plans: list, turn_off_actuator_plans: list,
             for uuid in uuids:
                 device = devices.get(uuid)
                 if device:
-                    if 'str' in device.datatype:
+                    if "str" in device.datatype:
                         request_actuator_update(device.device_id, "Employee Notified")
                         continue 
                     last_value_float: float = safe_float_conversion_for_sensor_data(device.last_value)
