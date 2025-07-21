@@ -26,5 +26,5 @@ class ArdoinoActuator(ActuatorInterface):
             logger.error(f"closing ardoino_serial was unsucesful {e}")
 
     def write_internal_actuator(self, write_value: float):
-        self.ardoino_serial.remote_call(self.type_name_ardoino, write_value)
+        #self.ardoino_serial.remote_call(self.type_name_ardoino, write_value)
         return 0

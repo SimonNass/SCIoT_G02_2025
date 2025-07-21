@@ -51,11 +51,13 @@ class GatewayNetworkReciever:
             if iot_type == 'actuator':
                 #select the actuator based on uuid
                 specified_actuator = self.find_actuator(device_uuid)
+                print(specified_actuator.general_iot_device.name)
                 # write new value
                 specified_actuator.write_actuator(new_value)
             elif iot_type == 'sensor':
                 #select the sensor based on uuid
                 specified_sensor = self.find_sensor(device_uuid)
+                print(specified_sensor.general_iot_device.name)
                 # write new value
                 specified_sensor.write_sensor(new_value)
             else:
