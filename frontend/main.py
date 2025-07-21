@@ -126,7 +126,7 @@ async def show_room(summary_column, floor_no:int, room:dict, fetch_plan_on_load:
 
                 room_number = selected_rows[0]['room_number']
                 res = await backend.get_latest_plan_for_room(room_number)
-                ui.notify(f"Latest plan for room: {res}")
+                #ui.notify(f"Latest plan for room: {res}")
                 plan_vm = PlanVM.model_validate(res['latest_plan'])
 
                 container.clear()
