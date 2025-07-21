@@ -107,6 +107,7 @@ def list_all_plans():
                 'created_at': plan.created_at.isoformat(),
                 'filtered_plan': plan.filtered_plan,
                 'cleaning_plan': plan.cleaning_plan,
+                'detected_activity_plan': plan.detected_activity_plan,
                 'steps': []
             }
             
@@ -156,6 +157,7 @@ def list_plans_for_floor(floor_number):
                 'created_at': plan.created_at.isoformat(),
                 'filtered_plan': plan.filtered_plan,
                 'cleaning_plan': plan.cleaning_plan,
+                'detected_activity_plan': plan.detected_activity_plan,
                 'steps': []
             }
             
@@ -205,6 +207,8 @@ def list_plans_for_room(room_number):
                 'planner_used': plan.planner_used,
                 'raw_plan': plan.raw_plan,
                 'created_at': plan.created_at.isoformat(),
+                'filtered_plan': plan.filtered_plan,
+                'detected_activity_plan': plan.detected_activity_plan,
                 'steps': []
             }
             
@@ -253,6 +257,7 @@ def get_latest_plan():
             'created_at': plan.created_at.isoformat(),
             'filtered_plan': plan.filtered_plan,
             'cleaning_plan': plan.cleaning_plan,
+            'detected_activity_plan': plan.detected_activity_plan,            
             'steps': []
         }
         
@@ -296,6 +301,8 @@ def get_latest_plan_for_floor(floor_number):
             'planner_used': plan.planner_used,
             'raw_plan': plan.raw_plan,
             'created_at': plan.created_at.isoformat(),
+            'filtered_plan': plan.filtered_plan,
+            'detected_activity_plan': plan.detected_activity_plan,
             'steps': []
         }
         
@@ -344,7 +351,6 @@ def get_latest_plan_for_room(room_number):
             'raw_plan': plan.raw_plan,
             'created_at': plan.created_at.isoformat(),
             'filtered_plan': plan.filtered_plan,
-            'cleaning_plan': plan.cleaning_plan,
             'detected_activity_plan': plan.detected_activity_plan,
             'steps': []
         }

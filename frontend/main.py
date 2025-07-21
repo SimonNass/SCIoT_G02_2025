@@ -142,16 +142,27 @@ async def show_room(summary_column, floor_no:int, room:dict, fetch_plan_on_load:
 
                 if plan_vm.steps:
                     has_any_content = True
-                    ui.markdown("###### Steps").classes("text-primary text-md mt-4")
+                    ui.markdown("###### Planning Steps").classes("text-secondary text-md mt-4")
+                    
+                    # Sort steps by step_order to ensure correct sequence
+                    sorted_steps = sorted(plan_vm.steps, key=lambda s: s.step_order)
+                    
                     with ui.list().props("bordered separator"):
                         # ui.notify(plan_vm.steps)
                         for step in sorted(plan_vm.steps, key=lambda s: s.step_order):
                             with ui.item():
                                 with ui.item_section().props("avatar"):
-                                    ui.chip(f"{step.step_order}", color="primary", text_color="white")
+                                    ui.chip(f"{step.step_order}", color="secondary", text_color="white")
                                 with ui.item_section():
-                                    ui.item_label(step.action_name.replace('_', ' ').title())
-                                    ui.item_label(f"({step.raw_step})").props("caption")
+                                    ui.item_label(step.action_name).classes("text-weight-medium")
+                                    if step.raw_step:
+                                        ui.item_label(step.raw_step).classes("text-caption text-grey-7").style('font-family: monospace')
+                                    if step.target_device_ids:
+                                        device_chips = ui.row().classes("gap-1 q-mt-xs")
+                                        with device_chips:
+                                            ui.label("Devices:").classes("text-caption text-grey-6")
+                                            for device_id in step.target_device_ids:
+                                                ui.chip(device_id).props("dense outline")
 
                 # filtered plan (the actual actions)
                 if plan_vm.filtered_plan:

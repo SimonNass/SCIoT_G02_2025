@@ -58,7 +58,7 @@ def request_actuator_update(device_id: str, new_value: Any) -> bool:
         
         # Publish the message
         if mqtt_client and mqtt_client.is_connected():
-            result = mqtt_client.publish(topic, payload_json, qos=1)
+            result = mqtt_client.publish(topic, payload_json, qos=2)
 
             if result.rc == 0:
                 logging.info(f"Actuator update published to {topic}: {payload_json}")
@@ -128,7 +128,8 @@ def request_sensor_update(device_id: str, new_value: Any) -> bool:
         
         # Publish the message
         if mqtt_client and mqtt_client.is_connected():
-            result = mqtt_client.publish(topic, payload_json, qos=1)
+            logging.info("Calls publish")
+            result = mqtt_client.publish(topic, payload_json, qos=2)
 
             if result.rc == 0:
                 logging.info(f"Sensor update published to {topic}: {payload_json}")
@@ -196,7 +197,7 @@ def request_current_sensor_value(device_id: str) -> bool:
         
         # Publish the request
         if mqtt_client and mqtt_client.is_connected():
-            result = mqtt_client.publish(topic, payload_json, qos=1)
+            result = mqtt_client.publish(topic, payload_json, qos=2)
 
             if result.rc == 0:
                 logging.info(f"Current value request published to {topic}")
