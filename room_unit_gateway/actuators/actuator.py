@@ -20,7 +20,7 @@ class ActuatorInterface(ABC):
         self.general_iot_device = general_iot_device
         self.initial_value = max(self.general_iot_device.min_value,min(self.general_iot_device.max_value,initial_value))
         self.last_value = self.initial_value
-        self.last_value_timestamp = time.time()
+        self.last_value_timestamp = 0
         if not self.is_valid(self.initial_value):
             self.last_value = self.general_iot_device.min_value
         self.off_value = max(self.general_iot_device.min_value,min(self.general_iot_device.max_value,off_value))
@@ -41,6 +41,10 @@ class ActuatorInterface(ABC):
         return return_dict
 
     def write_actuator(self, value: float):
+        time_now = time.time()
+        if time_now - self.last_value_timestamp < 5:
+            print("time to close")
+            return
         write_value = max(self.general_iot_device.min_value,min(self.general_iot_device.max_value,value))
         if not self.is_valid(write_value):
             text = f"value {value} is out of the allowed interval [{self.general_iot_device.min_value},{self.general_iot_device.max_value}] for this actuator"
@@ -95,7 +99,8 @@ class AnalogActuator(ActuatorInterface):
             logger.error(f"{self.general_iot_device.name}: write was unsucesful {e}")
 
     def write_internal_actuator(self, write_value: float):
-        return grovepi.analogWrite(self.general_iot_device.i2c_connector,write_value)
+        #print(f'{write_value} to {int(write_value)} with {type(write_value)} to {type(int(write_value))}')
+        return grovepi.analogWrite(self.general_iot_device.i2c_connector,int(write_value))
 
 class DigitalActuator(ActuatorInterface):
     def __init__(self, general_iot_device: IoT_Info, initial_value: float, off_value: float, impact_step_size: float):
@@ -119,7 +124,7 @@ class DigitalActuator(ActuatorInterface):
             logger.error(f"{self.general_iot_device.name}: write was unsucesful {e}")
 
     def write_internal_actuator(self, write_value: float):
-        return grovepi.digitalWrite(self.general_iot_device.i2c_connector,write_value)
+        return grovepi.digitalWrite(self.general_iot_device.i2c_connector,int(write_value))
 
 class VirtualActuator_numerical(ActuatorInterface):
     def __init__(self, general_iot_device: IoT_Info, initial_value: float, off_value: float, impact_step_size: float):

@@ -337,8 +337,9 @@ def _update_device_from_payload(device_obj, parsed_payload):
         
         if parsed_payload.get('impact_step_size'):
             device_obj.impact_step_size = parsed_payload['impact_step_size']
-            
-        logging.debug(f"Device {device_obj.device_id} updated with payload data")
+
+        if parsed_payload.get('last_value') is not None:
+            device_obj.last_value = parsed_payload['last_value']
         
     except Exception as e:
         logging.error(f"Error updating device {device_obj.device_id} from payload: {str(e)}")
@@ -494,6 +495,7 @@ def _handle_rfid_sensor(room, parsed_payload, latest_value):
         
         status_change = "entered" if room.is_occupied else "exited"
         db.session.add(room)
+        logging.info(room.is_occupied)
         logging.info(f"Room {room.room_number}: User {status_change} (RFID: {rfid_value})")
         
         return True

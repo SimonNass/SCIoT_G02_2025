@@ -7,7 +7,7 @@ from backend.mqtt.utils.cacheUtils import initialize_device_cache
 # Configuration constants
 MQTT_KEEPALIVE = 600
 # At most once: 0, At least once 1 Exactly once 2
-MQTT_QOS = 1
+MQTT_QOS = 2
 MAX_PAYLOAD_SIZE = 1024 * 10  # 10KB
 
 mqtt_client = None

@@ -104,13 +104,15 @@ def query_input_over_db(sensor_goal_values: Optional[Dict[str, int]] = {}, senso
     activity_fulfill_mapping = {}
     if use_activity_sensor_goals:
         activity_detect_mapping = {"read":{"chair_s":"is_sensing", "power_consumption_s":"is_low"},
+                                    "button_pressed":{"button_s":"is_sensing", "chair_s":"~is_sensing", "bed_s":"is_sensing", "TV_volume_s":"~is_high"},
                                     "on_the_phone":{"chair_s":"is_sensing", "power_consumption_s":"is_ok"},
                                     "work":{"chair_s":"is_sensing", "power_consumption_s":"is_high", "bed_s":"~is_sensing"},
-                                    "sleep":{"bed_s":"is_sensing", "TV_volume_s":"~is_high"},
+                                    "sleep":{"bed_s":"is_sensing", "button_s":"~is_sensing", "TV_volume_s":"~is_high"},
                                     "bath":{"shower_s":"is_sensing", "chair_s":"~is_sensing", "bed_s":"~is_sensing"},
                                     "dress":{"chair_s":"~is_sensing", "bed_s":"~is_sensing", "shower_s":"~is_sensing", "motion_s":"is_sensing"},
-                                    "watch_TV":{"TV_volume_s":"is_high", "bed_s":"is_sensing"}}
+                                    "watch_TV":{"TV_volume_s":"is_high", "button_s":"~is_sensing", "bed_s":"is_sensing"}}
         activity_fulfill_mapping = {"read":{"temperature_s":"is_ok", "light_s":"is_high", "sound_s":"is_ok"},
+                                    "button_pressed":{"light_s":"is_high", "light_s":"is_high"},
                                     "on_the_phone":{"light_s":"is_high", "sound_s":"is_low"},
                                     "work":{"light_s":"is_high", "sound_s":"is_ok"},
                                     "sleep":{"light_s":"is_low", "sound_s":"is_low"},

@@ -129,11 +129,12 @@ def main():
 def run_planner_with_db_data(plan_cleaning = False,
                             sensor_goal_values: Optional[Dict[str, int]] = {},
                             sensor_initial_locked: Optional[List[str]] = [],
+                            plan_activitys: bool = True,
                             room_number: str = None):
     planner = "dual-bfws-ffparser"
     pddl_converter_help.check_lib_versions()
 
-    input_dictionary = pddl_converter_input.query_input_over_db(sensor_goal_values, sensor_initial_locked, room_number, plan_cleaning)
+    input_dictionary = pddl_converter_input.query_input_over_db(sensor_goal_values, sensor_initial_locked, room_number, plan_cleaning, plan_activitys)
     # logging.info(input_dictionary)
     
     d, p, execution_mapper = create(input_dictionary)

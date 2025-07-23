@@ -107,6 +107,7 @@ def list_all_plans():
                 'created_at': plan.created_at.isoformat(),
                 'filtered_plan': plan.filtered_plan,
                 'cleaning_plan': plan.cleaning_plan,
+                'detected_activity_plan': plan.detected_activity_plan,
                 'steps': []
             }
             
@@ -156,6 +157,7 @@ def list_plans_for_floor(floor_number):
                 'created_at': plan.created_at.isoformat(),
                 'filtered_plan': plan.filtered_plan,
                 'cleaning_plan': plan.cleaning_plan,
+                'detected_activity_plan': plan.detected_activity_plan,
                 'steps': []
             }
             
@@ -205,6 +207,9 @@ def list_plans_for_room(room_number):
                 'planner_used': plan.planner_used,
                 'raw_plan': plan.raw_plan,
                 'created_at': plan.created_at.isoformat(),
+                'filtered_plan': plan.filtered_plan,
+                'cleaning_plan': plan.cleaning_plan,
+                'detected_activity_plan': plan.detected_activity_plan,
                 'steps': []
             }
             
@@ -253,6 +258,7 @@ def get_latest_plan():
             'created_at': plan.created_at.isoformat(),
             'filtered_plan': plan.filtered_plan,
             'cleaning_plan': plan.cleaning_plan,
+            'detected_activity_plan': plan.detected_activity_plan,            
             'steps': []
         }
         
@@ -296,6 +302,9 @@ def get_latest_plan_for_floor(floor_number):
             'planner_used': plan.planner_used,
             'raw_plan': plan.raw_plan,
             'created_at': plan.created_at.isoformat(),
+            'filtered_plan': plan.filtered_plan,
+            'cleaning_plan': plan.cleaning_plan,
+            'detected_activity_plan': plan.detected_activity_plan,
             'steps': []
         }
         
@@ -373,7 +382,9 @@ def get_latest_plan_for_room(room_number):
 def run_planner_all():
     """Run planner for entire building"""
     try:
-        plan = run_planner_with_db_data(True)
+        plan_cleaning = True
+        plan_activitys = True
+        plan = run_planner_with_db_data(plan_cleaning, {}, [], plan_activitys)
         plan_data = {
             'id': plan.id,
             'scope': plan.scope.value,
@@ -409,7 +420,9 @@ def run_planner_all():
 def run_planner_specific_room(room_number):
     """Run planner for a specific room"""
     try:
-        plan = run_planner_with_db_data(False, {}, [], room_number)
+        plan_cleaning = True
+        plan_activitys = True
+        plan = run_planner_with_db_data(plan_cleaning, {}, [], plan_activitys, room_number)
         plan_data = {
             'id': plan.id,
             'scope': plan.scope.value,
